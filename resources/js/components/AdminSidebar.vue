@@ -109,16 +109,16 @@ const logout = () => {
                 </div>
 
                 <!-- Section: Multi-Tenancy Management -->
-                <div class="mt-8 space-y-1">
+                <div class="mt-7 space-y-1">
                     <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                         Tenant Management
                     </p>
 
                     <Link
-                        href="/tenants"
+                        href="/admin/tenants"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                            isRouteActive('/tenants')
+                            isRouteActive('/admin/tenants') || isRouteActive('/tenants')
                                 ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -131,10 +131,10 @@ const logout = () => {
                     </Link>
 
                     <Link
-                        href="/tenants/create"
+                        href="/admin/tenants/create"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                            currentUrl === '/tenants/create'
+                            currentUrl === '/admin/tenants/create' || currentUrl === '/tenants/create'
                                 ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 font-semibold'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -147,8 +147,31 @@ const logout = () => {
                     </Link>
                 </div>
 
+                <!-- Section: Subscriptions & Plans -->
+                <div class="mt-7 space-y-1">
+                    <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                        Subscriptions & Plans
+                    </p>
+
+                    <Link
+                        href="/admin/subscriptions/plans"
+                        :class="[
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            isRouteActive('/admin/subscriptions')
+                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        <span>Subscription Plans</span>
+                    </Link>
+                </div>
+
                 <!-- Section: System & Audit -->
-                <div class="mt-8 space-y-1">
+                <div class="mt-7 space-y-1">
                     <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                         System & Security
                     </p>

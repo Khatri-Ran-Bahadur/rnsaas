@@ -4,9 +4,9 @@ namespace Modules\Subscription\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -59,8 +59,6 @@ class Plan extends Model
         $query->where('is_active', true);
     }
 
-
-    
     public function features(): BelongsToMany
     {
         return $this->belongsToMany(

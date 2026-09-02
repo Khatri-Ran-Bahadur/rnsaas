@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Subscription\Http\Controllers\SubscriptionController;
+use Modules\Subscription\Http\Controllers\PlanController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('subscriptions', SubscriptionController::class)->names('subscription');
-});
+Route::middleware(['auth', 'superadmin'])
+    ->prefix('admin/subscriptions')
+    ->name('admin.subscriptions.')
+    ->group(function () {
+        Route::resource('plans', PlanController::class);
+    });

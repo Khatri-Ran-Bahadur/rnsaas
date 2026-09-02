@@ -12,7 +12,7 @@ test('authenticated user can invite a member to a tenant', function () {
     $admin = User::factory()->create();
     $tenant = Tenant::factory()->create();
 
-    $response = $this->actingAs($admin)->post("/tenants/{$tenant->id}/members/invite", [
+    $response = $this->actingAs($admin)->post("/admin/tenants/{$tenant->id}/members/invite", [
         'email' => 'newmember@example.com',
         'name' => 'New Member',
     ]);
@@ -42,7 +42,7 @@ test('authenticated user can suspend, revoke, and reactivate a tenant member', f
     ]);
 
     // Suspend
-    $response = $this->actingAs($admin)->post("/tenants/{$tenant->id}/members/{$member->id}/suspend");
+    $response = $this->actingAs($admin)->post("/admin/tenants/{$tenant->id}/members/{$member->id}/suspend");
     $response->assertRedirect();
     $this->assertDatabaseHas('tenant_user', [
         'tenant_id' => $tenant->id,
@@ -51,7 +51,7 @@ test('authenticated user can suspend, revoke, and reactivate a tenant member', f
     ]);
 
     // Reactivate
-    $response = $this->actingAs($admin)->post("/tenants/{$tenant->id}/members/{$member->id}/reactivate");
+    $response = $this->actingAs($admin)->post("/admin/tenants/{$tenant->id}/members/{$member->id}/reactivate");
     $response->assertRedirect();
     $this->assertDatabaseHas('tenant_user', [
         'tenant_id' => $tenant->id,
@@ -60,7 +60,7 @@ test('authenticated user can suspend, revoke, and reactivate a tenant member', f
     ]);
 
     // Revoke
-    $response = $this->actingAs($admin)->post("/tenants/{$tenant->id}/members/{$member->id}/revoke");
+    $response = $this->actingAs($admin)->post("/admin/tenants/{$tenant->id}/members/{$member->id}/revoke");
     $response->assertRedirect();
     $this->assertDatabaseHas('tenant_user', [
         'tenant_id' => $tenant->id,

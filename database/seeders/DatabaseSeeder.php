@@ -4,9 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Modules\SuperAdmin\Database\Seeders\SuperAdminDatabaseSeeder;
 use Modules\Subscription\Database\Seeders\SubscriptionFeatureSeeder;
 use Modules\Subscription\Database\Seeders\SubscriptionPlanSeeder;
+use Modules\SuperAdmin\Database\Seeders\SuperAdminDatabaseSeeder;
 
 class DatabaseSeeder extends Seeder
 {

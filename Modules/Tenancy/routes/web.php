@@ -5,7 +5,7 @@ use Modules\Tenancy\Http\Controllers\TenantController;
 use Modules\Tenancy\Http\Controllers\TenantMemberController;
 
 Route::middleware(['auth', 'verified'])
-    ->prefix('tenants')
+    ->prefix('admin/tenants')
     ->name('tenancy.')
     ->group(function () {
         Route::controller(TenantController::class)->group(function () {
@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])
             Route::post('/', 'store')->name('store');
             Route::get('/{tenant}', 'show')->name('show');
             Route::get('/{tenant}/edit', 'edit')->name('edit');
+            Route::put('/{tenant}', 'update')->name('update');
         });
 
         Route::controller(TenantMemberController::class)->prefix('{tenant}/members')->name('members.')->group(function () {
@@ -23,3 +24,9 @@ Route::middleware(['auth', 'verified'])
             Route::post('/{user}/reactivate', 'reactivate')->name('reactivate');
         });
     });
+
+// Backward compatibility alias for /tenants -> /admin/tenants
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::redirect('/tenants', '/admin/tenants');
+    Route::redirect('/tenants/create', '/admin/tenants/create');
+});

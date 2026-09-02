@@ -14,4 +14,3 @@ abstract class TestCase extends BaseTestCase
         $this->artisan('migrate', ['--path' => 'Modules/Audit/database/migrations']);
     }
 }
-

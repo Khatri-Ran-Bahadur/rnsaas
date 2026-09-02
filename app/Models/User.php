@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Modules\Tenancy\Models\Tenant;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int $id
@@ -26,7 +28,28 @@ use Illuminate\Support\Carbon;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
+
+    /**
+     * Get all tenants this user belongs to.
+     */
+    public function tenants(): BelongsToMany
+    {
+        return $this->belongsToMany(Tenant::class)
+            ->withPivot([
+                'status',
+                'joined_at',
+                'invited_at',
+                'suspended_at',
+                'revoked_at',
+                'invited_by',
+                'suspended_by',
+                'revoked_by',
+                'settings',
+                'version',
+            ])
+            ->withTimestamps();
+    }
 
     /**
      * Get the attributes that should be cast.

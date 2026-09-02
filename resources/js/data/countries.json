@@ -1,0 +1,1082 @@
+[
+  {
+    "code": "AF",
+    "name": "Afghanistan",
+    "flag": "🇦🇫",
+    "currency": "AFN",
+    "timezone": "Asia/Kabul",
+    "locale": "ps"
+  },
+  {
+    "code": "AL",
+    "name": "Albania",
+    "flag": "🇦🇱",
+    "currency": "ALL",
+    "timezone": "Europe/Tirane",
+    "locale": "sq"
+  },
+  {
+    "code": "DZ",
+    "name": "Algeria",
+    "flag": "🇩🇿",
+    "currency": "DZD",
+    "timezone": "Africa/Algiers",
+    "locale": "ar"
+  },
+  {
+    "code": "AD",
+    "name": "Andorra",
+    "flag": "🇦🇩",
+    "currency": "EUR",
+    "timezone": "Europe/Andorra",
+    "locale": "ca"
+  },
+  {
+    "code": "AO",
+    "name": "Angola",
+    "flag": "🇦🇴",
+    "currency": "AOA",
+    "timezone": "Africa/Luanda",
+    "locale": "pt"
+  },
+  {
+    "code": "AR",
+    "name": "Argentina",
+    "flag": "🇦🇷",
+    "currency": "ARS",
+    "timezone": "America/Argentina/Buenos_Aires",
+    "locale": "es"
+  },
+  {
+    "code": "AM",
+    "name": "Armenia",
+    "flag": "🇦🇲",
+    "currency": "AMD",
+    "timezone": "Asia/Yerevan",
+    "locale": "hy"
+  },
+  {
+    "code": "AU",
+    "name": "Australia",
+    "flag": "🇦🇺",
+    "currency": "AUD",
+    "timezone": "Australia/Sydney",
+    "locale": "en"
+  },
+  {
+    "code": "AT",
+    "name": "Austria",
+    "flag": "🇦🇹",
+    "currency": "EUR",
+    "timezone": "Europe/Vienna",
+    "locale": "de"
+  },
+  {
+    "code": "AZ",
+    "name": "Azerbaijan",
+    "flag": "🇦🇿",
+    "currency": "AZN",
+    "timezone": "Asia/Baku",
+    "locale": "az"
+  },
+  {
+    "code": "BS",
+    "name": "Bahamas",
+    "flag": "🇧🇸",
+    "currency": "BSD",
+    "timezone": "America/Nassau",
+    "locale": "en"
+  },
+  {
+    "code": "BH",
+    "name": "Bahrain",
+    "flag": "🇧🇭",
+    "currency": "BHD",
+    "timezone": "Asia/Bahrain",
+    "locale": "ar"
+  },
+  {
+    "code": "BD",
+    "name": "Bangladesh",
+    "flag": "🇧🇩",
+    "currency": "BDT",
+    "timezone": "Asia/Dhaka",
+    "locale": "bn"
+  },
+  {
+    "code": "BB",
+    "name": "Barbados",
+    "flag": "🇧🇧",
+    "currency": "BBD",
+    "timezone": "America/Barbados",
+    "locale": "en"
+  },
+  {
+    "code": "BY",
+    "name": "Belarus",
+    "flag": "🇧🇾",
+    "currency": "BYN",
+    "timezone": "Europe/Minsk",
+    "locale": "be"
+  },
+  {
+    "code": "BE",
+    "name": "Belgium",
+    "flag": "🇧🇪",
+    "currency": "EUR",
+    "timezone": "Europe/Brussels",
+    "locale": "nl"
+  },
+  {
+    "code": "BZ",
+    "name": "Belize",
+    "flag": "🇧🇿",
+    "currency": "BZD",
+    "timezone": "America/Belize",
+    "locale": "en"
+  },
+  {
+    "code": "BJ",
+    "name": "Benin",
+    "flag": "🇧🇯",
+    "currency": "XOF",
+    "timezone": "Africa/Porto-Novo",
+    "locale": "fr"
+  },
+  {
+    "code": "BT",
+    "name": "Bhutan",
+    "flag": "🇧🇹",
+    "currency": "BTN",
+    "timezone": "Asia/Thimphu",
+    "locale": "dz"
+  },
+  {
+    "code": "BO",
+    "name": "Bolivia",
+    "flag": "🇧🇴",
+    "currency": "BOB",
+    "timezone": "America/La_Paz",
+    "locale": "es"
+  },
+  {
+    "code": "BA",
+    "name": "Bosnia and Herzegovina",
+    "flag": "🇧🇦",
+    "currency": "BAM",
+    "timezone": "Europe/Sarajevo",
+    "locale": "bs"
+  },
+  {
+    "code": "BW",
+    "name": "Botswana",
+    "flag": "🇧🇼",
+    "currency": "BWP",
+    "timezone": "Africa/Gaborone",
+    "locale": "en"
+  },
+  {
+    "code": "BR",
+    "name": "Brazil",
+    "flag": "🇧🇷",
+    "currency": "BRL",
+    "timezone": "America/Sao_Paulo",
+    "locale": "pt"
+  },
+  {
+    "code": "BN",
+    "name": "Brunei",
+    "flag": "🇧🇳",
+    "currency": "BND",
+    "timezone": "Asia/Brunei",
+    "locale": "ms"
+  },
+  {
+    "code": "BG",
+    "name": "Bulgaria",
+    "flag": "🇧🇬",
+    "currency": "BGN",
+    "timezone": "Europe/Sofia",
+    "locale": "bg"
+  },
+  {
+    "code": "BF",
+    "name": "Burkina Faso",
+    "flag": "🇧🇫",
+    "currency": "XOF",
+    "timezone": "Africa/Ouagadougou",
+    "locale": "fr"
+  },
+  {
+    "code": "BI",
+    "name": "Burundi",
+    "flag": "🇧🇮",
+    "currency": "BIF",
+    "timezone": "Africa/Bujumbura",
+    "locale": "fr"
+  },
+  {
+    "code": "KH",
+    "name": "Cambodia",
+    "flag": "🇰🇭",
+    "currency": "KHR",
+    "timezone": "Asia/Phnom_Penh",
+    "locale": "km"
+  },
+  {
+    "code": "CM",
+    "name": "Cameroon",
+    "flag": "🇨🇲",
+    "currency": "XAF",
+    "timezone": "Africa/Douala",
+    "locale": "fr"
+  },
+  {
+    "code": "CA",
+    "name": "Canada",
+    "flag": "🇨🇦",
+    "currency": "CAD",
+    "timezone": "America/Toronto",
+    "locale": "en"
+  },
+  {
+    "code": "CL",
+    "name": "Chile",
+    "flag": "🇨🇱",
+    "currency": "CLP",
+    "timezone": "America/Santiago",
+    "locale": "es"
+  },
+  {
+    "code": "CN",
+    "name": "China",
+    "flag": "🇨🇳",
+    "currency": "CNY",
+    "timezone": "Asia/Shanghai",
+    "locale": "zh"
+  },
+  {
+    "code": "CO",
+    "name": "Colombia",
+    "flag": "🇨🇴",
+    "currency": "COP",
+    "timezone": "America/Bogota",
+    "locale": "es"
+  },
+  {
+    "code": "CR",
+    "name": "Costa Rica",
+    "flag": "🇨🇷",
+    "currency": "CRC",
+    "timezone": "America/Costa_Rica",
+    "locale": "es"
+  },
+  {
+    "code": "HR",
+    "name": "Croatia",
+    "flag": "🇭🇷",
+    "currency": "EUR",
+    "timezone": "Europe/Zagreb",
+    "locale": "hr"
+  },
+  {
+    "code": "CU",
+    "name": "Cuba",
+    "flag": "🇨🇺",
+    "currency": "CUP",
+    "timezone": "America/Havana",
+    "locale": "es"
+  },
+  {
+    "code": "CY",
+    "name": "Cyprus",
+    "flag": "🇨🇾",
+    "currency": "EUR",
+    "timezone": "Asia/Nicosia",
+    "locale": "el"
+  },
+  {
+    "code": "CZ",
+    "name": "Czech Republic",
+    "flag": "🇨🇿",
+    "currency": "CZK",
+    "timezone": "Europe/Prague",
+    "locale": "cs"
+  },
+  {
+    "code": "DK",
+    "name": "Denmark",
+    "flag": "🇩🇰",
+    "currency": "DKK",
+    "timezone": "Europe/Copenhagen",
+    "locale": "da"
+  },
+  {
+    "code": "DO",
+    "name": "Dominican Republic",
+    "flag": "🇩🇴",
+    "currency": "DOP",
+    "timezone": "America/Santo_Domingo",
+    "locale": "es"
+  },
+  {
+    "code": "EC",
+    "name": "Ecuador",
+    "flag": "🇪🇨",
+    "currency": "USD",
+    "timezone": "America/Guayaquil",
+    "locale": "es"
+  },
+  {
+    "code": "EG",
+    "name": "Egypt",
+    "flag": "🇪🇬",
+    "currency": "EGP",
+    "timezone": "Africa/Cairo",
+    "locale": "ar"
+  },
+  {
+    "code": "SV",
+    "name": "El Salvador",
+    "flag": "🇸🇻",
+    "currency": "USD",
+    "timezone": "America/El_Salvador",
+    "locale": "es"
+  },
+  {
+    "code": "EE",
+    "name": "Estonia",
+    "flag": "🇪🇪",
+    "currency": "EUR",
+    "timezone": "Europe/Tallinn",
+    "locale": "et"
+  },
+  {
+    "code": "ET",
+    "name": "Ethiopia",
+    "flag": "🇪🇹",
+    "currency": "ETB",
+    "timezone": "Africa/Addis_Ababa",
+    "locale": "am"
+  },
+  {
+    "code": "FI",
+    "name": "Finland",
+    "flag": "🇫🇮",
+    "currency": "EUR",
+    "timezone": "Europe/Helsinki",
+    "locale": "fi"
+  },
+  {
+    "code": "FR",
+    "name": "France",
+    "flag": "🇫🇷",
+    "currency": "EUR",
+    "timezone": "Europe/Paris",
+    "locale": "fr"
+  },
+  {
+    "code": "GE",
+    "name": "Georgia",
+    "flag": "🇬🇪",
+    "currency": "GEL",
+    "timezone": "Asia/Tbilisi",
+    "locale": "ka"
+  },
+  {
+    "code": "DE",
+    "name": "Germany",
+    "flag": "🇩🇪",
+    "currency": "EUR",
+    "timezone": "Europe/Berlin",
+    "locale": "de"
+  },
+  {
+    "code": "GH",
+    "name": "Ghana",
+    "flag": "🇬🇭",
+    "currency": "GHS",
+    "timezone": "Africa/Accra",
+    "locale": "en"
+  },
+  {
+    "code": "GR",
+    "name": "Greece",
+    "flag": "🇬🇷",
+    "currency": "EUR",
+    "timezone": "Europe/Athens",
+    "locale": "el"
+  },
+  {
+    "code": "GT",
+    "name": "Guatemala",
+    "flag": "🇬🇹",
+    "currency": "GTQ",
+    "timezone": "America/Guatemala",
+    "locale": "es"
+  },
+  {
+    "code": "HN",
+    "name": "Honduras",
+    "flag": "🇭🇳",
+    "currency": "HNL",
+    "timezone": "America/Tegucigalpa",
+    "locale": "es"
+  },
+  {
+    "code": "HK",
+    "name": "Hong Kong",
+    "flag": "🇭🇰",
+    "currency": "HKD",
+    "timezone": "Asia/Hong_Kong",
+    "locale": "zh"
+  },
+  {
+    "code": "HU",
+    "name": "Hungary",
+    "flag": "🇭🇺",
+    "currency": "HUF",
+    "timezone": "Europe/Budapest",
+    "locale": "hu"
+  },
+  {
+    "code": "IS",
+    "name": "Iceland",
+    "flag": "🇮🇸",
+    "currency": "ISK",
+    "timezone": "Atlantic/Reykjavik",
+    "locale": "is"
+  },
+  {
+    "code": "IN",
+    "name": "India",
+    "flag": "🇮🇳",
+    "currency": "INR",
+    "timezone": "Asia/Kolkata",
+    "locale": "hi"
+  },
+  {
+    "code": "ID",
+    "name": "Indonesia",
+    "flag": "🇮🇩",
+    "currency": "IDR",
+    "timezone": "Asia/Jakarta",
+    "locale": "id"
+  },
+  {
+    "code": "IR",
+    "name": "Iran",
+    "flag": "🇮🇷",
+    "currency": "IRR",
+    "timezone": "Asia/Tehran",
+    "locale": "fa"
+  },
+  {
+    "code": "IQ",
+    "name": "Iraq",
+    "flag": "🇮🇶",
+    "currency": "IQD",
+    "timezone": "Asia/Baghdad",
+    "locale": "ar"
+  },
+  {
+    "code": "IE",
+    "name": "Ireland",
+    "flag": "🇮🇪",
+    "currency": "EUR",
+    "timezone": "Europe/Dublin",
+    "locale": "en"
+  },
+  {
+    "code": "IL",
+    "name": "Israel",
+    "flag": "🇮🇱",
+    "currency": "ILS",
+    "timezone": "Asia/Jerusalem",
+    "locale": "he"
+  },
+  {
+    "code": "IT",
+    "name": "Italy",
+    "flag": "🇮🇹",
+    "currency": "EUR",
+    "timezone": "Europe/Rome",
+    "locale": "it"
+  },
+  {
+    "code": "JM",
+    "name": "Jamaica",
+    "flag": "🇯🇲",
+    "currency": "JMD",
+    "timezone": "America/Jamaica",
+    "locale": "en"
+  },
+  {
+    "code": "JP",
+    "name": "Japan",
+    "flag": "🇯🇵",
+    "currency": "JPY",
+    "timezone": "Asia/Tokyo",
+    "locale": "ja"
+  },
+  {
+    "code": "JO",
+    "name": "Jordan",
+    "flag": "🇯🇴",
+    "currency": "JOD",
+    "timezone": "Asia/Amman",
+    "locale": "ar"
+  },
+  {
+    "code": "KZ",
+    "name": "Kazakhstan",
+    "flag": "🇰🇿",
+    "currency": "KZT",
+    "timezone": "Asia/Almaty",
+    "locale": "kk"
+  },
+  {
+    "code": "KE",
+    "name": "Kenya",
+    "flag": "🇰🇪",
+    "currency": "KES",
+    "timezone": "Africa/Nairobi",
+    "locale": "sw"
+  },
+  {
+    "code": "KW",
+    "name": "Kuwait",
+    "flag": "🇰🇼",
+    "currency": "KWD",
+    "timezone": "Asia/Kuwait",
+    "locale": "ar"
+  },
+  {
+    "code": "KG",
+    "name": "Kyrgyzstan",
+    "flag": "🇰🇬",
+    "currency": "KGS",
+    "timezone": "Asia/Bishkek",
+    "locale": "ky"
+  },
+  {
+    "code": "LA",
+    "name": "Laos",
+    "flag": "🇱🇦",
+    "currency": "LAK",
+    "timezone": "Asia/Vientiane",
+    "locale": "lo"
+  },
+  {
+    "code": "LV",
+    "name": "Latvia",
+    "flag": "🇱🇻",
+    "currency": "EUR",
+    "timezone": "Europe/Riga",
+    "locale": "lv"
+  },
+  {
+    "code": "LB",
+    "name": "Lebanon",
+    "flag": "🇱🇧",
+    "currency": "LBP",
+    "timezone": "Asia/Beirut",
+    "locale": "ar"
+  },
+  {
+    "code": "LY",
+    "name": "Libya",
+    "flag": "🇱🇾",
+    "currency": "LYD",
+    "timezone": "Africa/Tripoli",
+    "locale": "ar"
+  },
+  {
+    "code": "LT",
+    "name": "Lithuania",
+    "flag": "🇱🇹",
+    "currency": "EUR",
+    "timezone": "Europe/Vilnius",
+    "locale": "lt"
+  },
+  {
+    "code": "LU",
+    "name": "Luxembourg",
+    "flag": "🇱🇺",
+    "currency": "EUR",
+    "timezone": "Europe/Luxembourg",
+    "locale": "fr"
+  },
+  {
+    "code": "MO",
+    "name": "Macau",
+    "flag": "🇲🇴",
+    "currency": "MOP",
+    "timezone": "Asia/Macau",
+    "locale": "zh"
+  },
+  {
+    "code": "MY",
+    "name": "Malaysia",
+    "flag": "🇲🇾",
+    "currency": "MYR",
+    "timezone": "Asia/Kuala_Lumpur",
+    "locale": "ms"
+  },
+  {
+    "code": "MV",
+    "name": "Maldives",
+    "flag": "🇲🇻",
+    "currency": "MVR",
+    "timezone": "Indian/Maldives",
+    "locale": "dv"
+  },
+  {
+    "code": "MT",
+    "name": "Malta",
+    "flag": "🇲🇹",
+    "currency": "EUR",
+    "timezone": "Europe/Malta",
+    "locale": "mt"
+  },
+  {
+    "code": "MU",
+    "name": "Mauritius",
+    "flag": "🇲🇺",
+    "currency": "MUR",
+    "timezone": "Indian/Mauritius",
+    "locale": "en"
+  },
+  {
+    "code": "MX",
+    "name": "Mexico",
+    "flag": "🇲🇽",
+    "currency": "MXN",
+    "timezone": "America/Mexico_City",
+    "locale": "es"
+  },
+  {
+    "code": "MD",
+    "name": "Moldova",
+    "flag": "🇲🇩",
+    "currency": "MDL",
+    "timezone": "Europe/Chisinau",
+    "locale": "ro"
+  },
+  {
+    "code": "MC",
+    "name": "Monaco",
+    "flag": "🇲🇨",
+    "currency": "EUR",
+    "timezone": "Europe/Monaco",
+    "locale": "fr"
+  },
+  {
+    "code": "MN",
+    "name": "Mongolia",
+    "flag": "🇲🇳",
+    "currency": "MNT",
+    "timezone": "Asia/Ulaanbaatar",
+    "locale": "mn"
+  },
+  {
+    "code": "ME",
+    "name": "Montenegro",
+    "flag": "🇲🇪",
+    "currency": "EUR",
+    "timezone": "Europe/Podgorica",
+    "locale": "sr"
+  },
+  {
+    "code": "MA",
+    "name": "Morocco",
+    "flag": "🇲🇦",
+    "currency": "MAD",
+    "timezone": "Africa/Casablanca",
+    "locale": "ar"
+  },
+  {
+    "code": "MM",
+    "name": "Myanmar",
+    "flag": "🇲🇲",
+    "currency": "MMK",
+    "timezone": "Asia/Yangon",
+    "locale": "my"
+  },
+  {
+    "code": "NA",
+    "name": "Namibia",
+    "flag": "🇳🇦",
+    "currency": "NAD",
+    "timezone": "Africa/Windhoek",
+    "locale": "en"
+  },
+  {
+    "code": "NP",
+    "name": "Nepal",
+    "flag": "🇳🇵",
+    "currency": "NPR",
+    "timezone": "Asia/Kathmandu",
+    "locale": "ne"
+  },
+  {
+    "code": "NL",
+    "name": "Netherlands",
+    "flag": "🇳🇱",
+    "currency": "EUR",
+    "timezone": "Europe/Amsterdam",
+    "locale": "nl"
+  },
+  {
+    "code": "NZ",
+    "name": "New Zealand",
+    "flag": "🇳🇿",
+    "currency": "NZD",
+    "timezone": "Pacific/Auckland",
+    "locale": "en"
+  },
+  {
+    "code": "NG",
+    "name": "Nigeria",
+    "flag": "🇳🇬",
+    "currency": "NGN",
+    "timezone": "Africa/Lagos",
+    "locale": "en"
+  },
+  {
+    "code": "NO",
+    "name": "Norway",
+    "flag": "🇳🇴",
+    "currency": "NOK",
+    "timezone": "Europe/Oslo",
+    "locale": "no"
+  },
+  {
+    "code": "OM",
+    "name": "Oman",
+    "flag": "🇴🇲",
+    "currency": "OMR",
+    "timezone": "Asia/Muscat",
+    "locale": "ar"
+  },
+  {
+    "code": "PK",
+    "name": "Pakistan",
+    "flag": "🇵🇰",
+    "currency": "PKR",
+    "timezone": "Asia/Karachi",
+    "locale": "ur"
+  },
+  {
+    "code": "PA",
+    "name": "Panama",
+    "flag": "🇵🇦",
+    "currency": "PAB",
+    "timezone": "America/Panama",
+    "locale": "es"
+  },
+  {
+    "code": "PY",
+    "name": "Paraguay",
+    "flag": "🇵🇾",
+    "currency": "PYG",
+    "timezone": "America/Asuncion",
+    "locale": "es"
+  },
+  {
+    "code": "PE",
+    "name": "Peru",
+    "flag": "🇵🇪",
+    "currency": "PEN",
+    "timezone": "America/Lima",
+    "locale": "es"
+  },
+  {
+    "code": "PH",
+    "name": "Philippines",
+    "flag": "🇵🇭",
+    "currency": "PHP",
+    "timezone": "Asia/Manila",
+    "locale": "en"
+  },
+  {
+    "code": "PL",
+    "name": "Poland",
+    "flag": "🇵🇱",
+    "currency": "PLN",
+    "timezone": "Europe/Warsaw",
+    "locale": "pl"
+  },
+  {
+    "code": "PT",
+    "name": "Portugal",
+    "flag": "🇵🇹",
+    "currency": "EUR",
+    "timezone": "Europe/Lisbon",
+    "locale": "pt"
+  },
+  {
+    "code": "QA",
+    "name": "Qatar",
+    "flag": "🇶🇦",
+    "currency": "QAR",
+    "timezone": "Asia/Qatar",
+    "locale": "ar"
+  },
+  {
+    "code": "RO",
+    "name": "Romania",
+    "flag": "🇷🇴",
+    "currency": "RON",
+    "timezone": "Europe/Bucharest",
+    "locale": "ro"
+  },
+  {
+    "code": "RU",
+    "name": "Russia",
+    "flag": "🇷🇺",
+    "currency": "RUB",
+    "timezone": "Europe/Moscow",
+    "locale": "ru"
+  },
+  {
+    "code": "RW",
+    "name": "Rwanda",
+    "flag": "🇷🇼",
+    "currency": "RWF",
+    "timezone": "Africa/Kigali",
+    "locale": "rw"
+  },
+  {
+    "code": "SA",
+    "name": "Saudi Arabia",
+    "flag": "🇸🇦",
+    "currency": "SAR",
+    "timezone": "Asia/Riyadh",
+    "locale": "ar"
+  },
+  {
+    "code": "SN",
+    "name": "Senegal",
+    "flag": "🇸🇳",
+    "currency": "XOF",
+    "timezone": "Africa/Dakar",
+    "locale": "fr"
+  },
+  {
+    "code": "RS",
+    "name": "Serbia",
+    "flag": "🇷🇸",
+    "currency": "RSD",
+    "timezone": "Europe/Belgrade",
+    "locale": "sr"
+  },
+  {
+    "code": "SG",
+    "name": "Singapore",
+    "flag": "🇸🇬",
+    "currency": "SGD",
+    "timezone": "Asia/Singapore",
+    "locale": "en"
+  },
+  {
+    "code": "SK",
+    "name": "Slovakia",
+    "flag": "🇸🇰",
+    "currency": "EUR",
+    "timezone": "Europe/Bratislava",
+    "locale": "sk"
+  },
+  {
+    "code": "SI",
+    "name": "Slovenia",
+    "flag": "🇸🇮",
+    "currency": "EUR",
+    "timezone": "Europe/Ljubljana",
+    "locale": "sl"
+  },
+  {
+    "code": "ZA",
+    "name": "South Africa",
+    "flag": "🇿🇦",
+    "currency": "ZAR",
+    "timezone": "Africa/Johannesburg",
+    "locale": "en"
+  },
+  {
+    "code": "KR",
+    "name": "South Korea",
+    "flag": "🇰🇷",
+    "currency": "KRW",
+    "timezone": "Asia/Seoul",
+    "locale": "ko"
+  },
+  {
+    "code": "ES",
+    "name": "Spain",
+    "flag": "🇪🇸",
+    "currency": "EUR",
+    "timezone": "Europe/Madrid",
+    "locale": "es"
+  },
+  {
+    "code": "LK",
+    "name": "Sri Lanka",
+    "flag": "🇱🇰",
+    "currency": "LKR",
+    "timezone": "Asia/Colombo",
+    "locale": "si"
+  },
+  {
+    "code": "SE",
+    "name": "Sweden",
+    "flag": "🇸🇪",
+    "currency": "SEK",
+    "timezone": "Europe/Stockholm",
+    "locale": "sv"
+  },
+  {
+    "code": "CH",
+    "name": "Switzerland",
+    "flag": "🇨🇭",
+    "currency": "CHF",
+    "timezone": "Europe/Zurich",
+    "locale": "de"
+  },
+  {
+    "code": "TW",
+    "name": "Taiwan",
+    "flag": "🇹🇼",
+    "currency": "TWD",
+    "timezone": "Asia/Taipei",
+    "locale": "zh"
+  },
+  {
+    "code": "TZ",
+    "name": "Tanzania",
+    "flag": "🇹🇿",
+    "currency": "TZS",
+    "timezone": "Africa/Dar_es_Salaam",
+    "locale": "sw"
+  },
+  {
+    "code": "TH",
+    "name": "Thailand",
+    "flag": "🇹🇭",
+    "currency": "THB",
+    "timezone": "Asia/Bangkok",
+    "locale": "th"
+  },
+  {
+    "code": "TN",
+    "name": "Tunisia",
+    "flag": "🇹🇳",
+    "currency": "TND",
+    "timezone": "Africa/Tunis",
+    "locale": "ar"
+  },
+  {
+    "code": "TR",
+    "name": "Turkey",
+    "flag": "🇹🇷",
+    "currency": "TRY",
+    "timezone": "Europe/Istanbul",
+    "locale": "tr"
+  },
+  {
+    "code": "UG",
+    "name": "Uganda",
+    "flag": "🇺🇬",
+    "currency": "UGX",
+    "timezone": "Africa/Kampala",
+    "locale": "en"
+  },
+  {
+    "code": "UA",
+    "name": "Ukraine",
+    "flag": "🇺🇦",
+    "currency": "UAH",
+    "timezone": "Europe/Kyiv",
+    "locale": "uk"
+  },
+  {
+    "code": "AE",
+    "name": "United Arab Emirates",
+    "flag": "🇦🇪",
+    "currency": "AED",
+    "timezone": "Asia/Dubai",
+    "locale": "ar"
+  },
+  {
+    "code": "GB",
+    "name": "United Kingdom",
+    "flag": "🇬🇧",
+    "currency": "GBP",
+    "timezone": "Europe/London",
+    "locale": "en"
+  },
+  {
+    "code": "US",
+    "name": "United States",
+    "flag": "🇺🇸",
+    "currency": "USD",
+    "timezone": "America/New_York",
+    "locale": "en"
+  },
+  {
+    "code": "UY",
+    "name": "Uruguay",
+    "flag": "🇺🇾",
+    "currency": "UYU",
+    "timezone": "America/Montevideo",
+    "locale": "es"
+  },
+  {
+    "code": "UZ",
+    "name": "Uzbekistan",
+    "flag": "🇺🇿",
+    "currency": "UZS",
+    "timezone": "Asia/Tashkent",
+    "locale": "uz"
+  },
+  {
+    "code": "VE",
+    "name": "Venezuela",
+    "flag": "🇻🇪",
+    "currency": "VES",
+    "timezone": "America/Caracas",
+    "locale": "es"
+  },
+  {
+    "code": "VN",
+    "name": "Vietnam",
+    "flag": "🇻🇳",
+    "currency": "VND",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "locale": "vi"
+  },
+  {
+    "code": "YE",
+    "name": "Yemen",
+    "flag": "🇾🇪",
+    "currency": "YER",
+    "timezone": "Asia/Aden",
+    "locale": "ar"
+  },
+  {
+    "code": "ZM",
+    "name": "Zambia",
+    "flag": "🇿🇲",
+    "currency": "ZMW",
+    "timezone": "Africa/Lusaka",
+    "locale": "en"
+  },
+  {
+    "code": "ZW",
+    "name": "Zimbabwe",
+    "flag": "🇿🇼",
+    "currency": "ZWL",
+    "timezone": "Africa/Harare",
+    "locale": "en"
+  }
+]

@@ -1,7 +1,11 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../Modules/*/resources/js/**/*.{vue,ts,js}';
+@source '../**/*.{vue,ts,js}';
 
 @theme inline {
     --font-sans:

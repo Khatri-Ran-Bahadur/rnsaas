@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Modules\SuperAdmin\Database\Seeders\SuperAdminDatabaseSeeder;
+use Modules\Subscription\Database\Seeders\SubscriptionFeatureSeeder;
+use Modules\Subscription\Database\Seeders\SubscriptionPlanSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,6 +19,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             SuperAdminDatabaseSeeder::class,
+            SubscriptionFeatureSeeder::class,
+            SubscriptionPlanSeeder::class,
         ]);
 
     }

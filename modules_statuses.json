@@ -2,5 +2,6 @@
     "Customer": true,
     "Tenancy": true,
     "Audit": true,
-    "SuperAdmin": true
+    "SuperAdmin": true,
+    "Subscription": true
 }

@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\Tenancy\Http\Controllers;
+namespace Modules\Audit\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class TenancyController extends Controller
+class AuditController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('tenancy::index');
+        return view('audit::index');
     }
 
     /**
@@ -20,7 +20,7 @@ class TenancyController extends Controller
      */
     public function create()
     {
-        return view('tenancy::create');
+        return view('audit::create');
     }
 
     /**
@@ -33,7 +33,7 @@ class TenancyController extends Controller
      */
     public function show($id)
     {
-        return view('tenancy::show');
+        return view('audit::show');
     }
 
     /**
@@ -41,7 +41,7 @@ class TenancyController extends Controller
      */
     public function edit($id)
     {
-        return view('tenancy::edit');
+        return view('audit::edit');
     }
 
     /**

@@ -2,8 +2,9 @@
 
 namespace Modules\Tenancy\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Modules\Tenancy\Application\Context\TenantContext;
+use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class TenancyServiceProvider extends ModuleServiceProvider
 {
@@ -36,11 +37,25 @@ class TenancyServiceProvider extends ModuleServiceProvider
 
     /**
      * Define module schedules.
-     * 
-     * @param $schedule
+     *
+     * @param  $schedule
      */
     // protected function configureSchedules(Schedule $schedule): void
     // {
     //     $schedule->command('inspire')->hourly();
     // }
+
+    public function boot(): void
+    {
+        parent::boot();
+
+        $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    public function register(): void
+    {
+        parent::register();
+
+        $this->app->singleton(TenantContext::class, fn () => new TenantContext);
+    }
 }

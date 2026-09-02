@@ -1,0 +1,26 @@
+<?php
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+test('login screen can be rendered', function () {
+    $response = $this->get('/login');
+
+    $response->assertOk();
+});
+
+test('users can authenticate using the login screen', function () {
+    $user = User::factory()->create([
+        'password' => 'password',
+    ]);
+
+    $response = $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect();
+});

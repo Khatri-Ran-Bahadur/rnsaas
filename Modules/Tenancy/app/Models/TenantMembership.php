@@ -6,20 +6,11 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Tenancy\Database\Factories\TenantMembershipFactory;
 use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 
 class TenantMembership extends Model
 {
     use HasFactory;
-
-    /**
-     * Create a new factory instance for the model.
-     */
-    protected static function newFactory(): TenantMembershipFactory
-    {
-        return TenantMembershipFactory::new();
-    }
 
     protected $table = 'tenant_user';
 

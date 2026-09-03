@@ -7,22 +7,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Tenancy\Database\Factories\TenantFactory;
+use Modules\Subscription\Models\TenantSubscription;
 use Modules\Tenancy\Domain\Enums\TenantStatus;
 
 class Tenant extends Model
 {
     use HasFactory;
     use SoftDeletes;
-
-    /**
-     * Create a new factory instance for the model.
-     */
-    protected static function newFactory(): TenantFactory
-    {
-        return TenantFactory::new();
-    }
 
     /**
      * The attributes that are mass assignable.
@@ -86,5 +79,16 @@ class Tenant extends Model
                 'version',
             ])
             ->withTimestamps();
+    }
+
+    /**
+     * Get all subscriptions belonging to this tenant.
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(
+            TenantSubscription::class,
+            'tenant_id',
+        );
     }
 }

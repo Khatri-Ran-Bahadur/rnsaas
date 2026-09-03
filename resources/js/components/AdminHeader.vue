@@ -95,7 +95,7 @@ const logout = () => {
                     class="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     @click.stop="userDropdownOpen = !userDropdownOpen"
                 >
-                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-xs font-bold text-white shadow-xs dark:bg-white dark:text-zinc-900">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-xs font-bold text-white shadow-xs shadow-primary-500/25">
                         {{ user.name.charAt(0) }}
                     </div>
                     <div class="hidden text-left md:block">

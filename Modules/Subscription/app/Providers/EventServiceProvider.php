@@ -3,6 +3,18 @@
 namespace Modules\Subscription\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Modules\Payment\Events\PaymentPaid;
+use Modules\Subscription\Events\TenantSubscriptionCanceled;
+use Modules\Subscription\Events\TenantSubscriptionCreated;
+use Modules\Subscription\Events\TenantSubscriptionExpired;
+use Modules\Subscription\Events\SubscriptionActivated;
+use Modules\Subscription\Listeners\RecordSubscriptionCanceled;
+use Modules\Subscription\Listeners\RecordSubscriptionCreated;
+use Modules\Subscription\Listeners\RecordSubscriptionExpired;
+use Modules\Subscription\Listeners\ActivateSubscriptionFromPayment;
+use Modules\Subscription\Listeners\RecordSubscriptionActivated;
+
+
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -11,7 +23,23 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        PaymentPaid::class => [
+            ActivateSubscriptionFromPayment::class,
+        ],
+        TenantSubscriptionCreated::class => [
+            RecordSubscriptionCreated::class,
+        ],
+        TenantSubscriptionCanceled::class=>[
+            RecordSubscriptionCanceled::class,
+        ],
+        TenantSubscriptionExpired::class=>[
+            RecordSubscriptionExpired::class,
+        ],
+        SubscriptionActivated::class => [
+            RecordSubscriptionActivated::class,
+        ],
+    ];
 
     /**
      * Indicates if events should be discovered.

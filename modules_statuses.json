@@ -3,5 +3,6 @@
     "Tenancy": true,
     "Audit": true,
     "SuperAdmin": true,
-    "Subscription": true
+    "Subscription": true,
+    "Payment": true
 }

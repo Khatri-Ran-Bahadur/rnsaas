@@ -127,7 +127,7 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                         v-model="internalSearch"
                         type="text"
                         :placeholder="searchPlaceholder"
-                        class="w-full rounded-lg border border-zinc-200/90 bg-white py-2 pl-9 pr-4 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 shadow-2xs hover:border-zinc-300 focus:border-zinc-400 focus:outline-hidden focus:ring-4 focus:ring-zinc-900/5 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:placeholder-zinc-500 dark:hover:border-zinc-700 dark:focus:border-zinc-600 dark:focus:ring-white/10"
+                        class="w-full rounded-lg border border-zinc-200/90 bg-white py-2 pl-9 pr-4 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 shadow-2xs hover:border-zinc-300 focus:border-primary-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500/20 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white dark:placeholder-zinc-500 dark:hover:border-zinc-700 dark:focus:border-primary-500"
                         @keyup.enter="handleSearch"
                     />
                 </div>
@@ -135,7 +135,7 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                 <button
                     v-if="searchable"
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-2xs transition-all duration-150 hover:bg-zinc-800 active:scale-[0.98] dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                    class="inline-flex items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-xs shadow-primary-500/25 transition-all duration-150 hover:bg-primary-700 active:scale-[0.98]"
                     @click="handleSearch"
                 >
                     Search
@@ -153,7 +153,7 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                         class="rounded-md p-1.5 transition-colors"
                         :class="[
                             viewMode === 'list'
-                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs'
+                                ? 'bg-primary-600 text-white shadow-xs'
                                 : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
                         ]"
                         title="List View"
@@ -168,7 +168,7 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                         class="rounded-md p-1.5 transition-colors"
                         :class="[
                             viewMode === 'grid'
-                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs'
+                                ? 'bg-primary-600 text-white shadow-xs'
                                 : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
                         ]"
                         title="Grid View"
@@ -378,7 +378,7 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                             class="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-colors"
                             :class="[
                                 paginationMeta.currentPage === page
-                                    ? 'bg-zinc-900 text-white font-bold dark:bg-white dark:text-zinc-900 shadow-2xs'
+                                    ? 'bg-primary-600 text-white font-bold shadow-xs shadow-primary-500/25'
                                     : 'border border-zinc-200/90 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800',
                             ]"
                             @click="emit('pageChange', page)"

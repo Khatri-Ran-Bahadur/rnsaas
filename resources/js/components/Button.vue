@@ -54,7 +54,7 @@ const variantClasses = computed(() => {
             return 'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 shadow-xs focus:ring-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-700';
         case 'primary':
         default:
-            return 'bg-zinc-900 text-white hover:bg-zinc-800 active:bg-zinc-950 shadow-xs focus:ring-zinc-900 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 dark:active:bg-zinc-200 dark:focus:ring-white';
+            return 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-xs shadow-primary-500/25 focus:ring-primary-500';
     }
 });
 

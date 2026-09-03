@@ -59,7 +59,7 @@ const logout = () => {
             <!-- Brand Header -->
             <div class="flex h-16 shrink-0 items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800">
                 <Link href="/admin/dashboard" class="flex items-center gap-3 group" @click="emit('closeMobile')">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-white font-bold tracking-wider shadow-xs dark:bg-white dark:text-zinc-900">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-white font-bold tracking-wider shadow-xs shadow-primary-500/25">
                         S
                     </div>
                     <div>
@@ -94,9 +94,9 @@ const logout = () => {
                     <Link
                         href="/admin/dashboard"
                         :class="[
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                             isRouteActive('/admin/dashboard')
-                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
                         @click="emit('closeMobile')"
@@ -117,9 +117,9 @@ const logout = () => {
                     <Link
                         href="/admin/tenants"
                         :class="[
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                             isRouteActive('/admin/tenants') || isRouteActive('/tenants')
-                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
                         @click="emit('closeMobile')"
@@ -133,9 +133,9 @@ const logout = () => {
                     <Link
                         href="/admin/tenants/create"
                         :class="[
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                             currentUrl === '/admin/tenants/create' || currentUrl === '/tenants/create'
-                                ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 font-semibold'
+                                ? 'bg-primary-50 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 font-semibold'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
                         @click="emit('closeMobile')"
@@ -156,9 +156,9 @@ const logout = () => {
                     <Link
                         href="/admin/subscriptions/plans"
                         :class="[
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
                             isRouteActive('/admin/subscriptions')
-                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
                         @click="emit('closeMobile')"
@@ -167,6 +167,29 @@ const logout = () => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         <span>Subscription Plans</span>
+                    </Link>
+                </div>
+
+                <!-- Section: Billing & Payments -->
+                <div class="mt-7 space-y-1">
+                    <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                        Billing & Payments
+                    </p>
+
+                    <Link
+                        href="/admin/payments"
+                        :class="[
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                            isRouteActive('/admin/payments')
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span>Payments</span>
                     </Link>
                 </div>
 
@@ -207,7 +230,7 @@ const logout = () => {
             <div class="border-t border-zinc-200 p-4 dark:border-zinc-800">
                 <div class="flex items-center justify-between rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950/60">
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white shadow-xs shadow-primary-500/25">
                             {{ user.name.charAt(0) }}
                         </div>
                         <div class="truncate">

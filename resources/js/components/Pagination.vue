@@ -44,7 +44,7 @@ const cleanLabel = (label: string) => {
                     :class="[
                         'relative inline-flex items-center px-3 py-1.5 text-xs font-medium transition-colors first:rounded-l-lg last:rounded-r-lg',
                         link.active
-                            ? 'z-10 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold'
+                            ? 'z-10 bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                             : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800',
                     ]"
                     v-html="cleanLabel(link.label)"

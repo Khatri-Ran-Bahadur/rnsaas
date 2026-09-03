@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Subscription\Enums\BillingCycle;
 use Modules\Subscription\Enums\SubscriptionStatus;
+use Modules\Subscription\Events\TenantSubscriptionCreated;
 use Modules\Subscription\Exceptions\InactivePlanException;
 use Modules\Subscription\Exceptions\TenantAlreadySubscribedException;
 use Modules\Subscription\Models\Plan;
@@ -26,7 +27,7 @@ class CreateSubscriptionAction
             $startsAt,
         ): TenantSubscription {
             if (! $plan->is_active) {
-                throw new InactivePlanException();
+                throw new InactivePlanException;
             }
 
             $hasCurrentSubscription = $tenant
@@ -38,7 +39,7 @@ class CreateSubscriptionAction
                 ->exists();
 
             if ($hasCurrentSubscription) {
-                throw new TenantAlreadySubscribedException();
+                throw new TenantAlreadySubscribedException;
             }
 
             $startsAt ??= now();
@@ -56,7 +57,7 @@ class CreateSubscriptionAction
                 BillingCycle::Lifetime => null,
             };
 
-            return TenantSubscription::create([
+            $subscription = TenantSubscription::create([
                 'public_id' => (string) Str::ulid(),
                 'tenant_id' => $tenant->id,
                 'plan_id' => $plan->id,
@@ -71,6 +72,10 @@ class CreateSubscriptionAction
                 'ends_at' => null,
                 'metadata' => null,
             ]);
+
+            TenantSubscriptionCreated::dispatch($subscription);
+
+            return $subscription;
         });
     }
 }

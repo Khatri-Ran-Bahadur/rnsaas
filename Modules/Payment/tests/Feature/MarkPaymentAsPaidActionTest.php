@@ -9,6 +9,8 @@ use Modules\Payment\Events\PaymentPaid;
 use Modules\Payment\Exceptions\PaymentCannotBeMarkedAsPaidException;
 use Modules\Payment\Models\PaymentTransaction;
 use Modules\Tenancy\Models\Tenant;
+use Illuminate\Support\Facades\DB;
+use Modules\Payment\Exceptions\PaymentConcurrencyException;
 
 uses(RefreshDatabase::class);
 
@@ -96,4 +98,27 @@ it('cannot mark a refunded payment as paid', function () {
     expect(fn () => app(MarkPaymentAsPaidAction::class)
         ->handle($payment))
         ->toThrow(PaymentCannotBeMarkedAsPaidException::class);
+});
+
+
+it('only performs the pending to paid transition when the expected status matches', function () {
+    $payment = PaymentTransaction::factory()->create([
+        'status' => PaymentStatus::Paid,
+        'paid_at' => now()->subMinute(),
+    ]);
+
+    $updated = PaymentTransaction::query()
+        ->whereKey($payment->id)
+        ->where('status', PaymentStatus::Pending->value)
+        ->update([
+            'status' => PaymentStatus::Paid,
+            'paid_at' => now(),
+        ]);
+
+    expect($updated)->toBe(0);
+
+    $this->assertDatabaseHas('payment_transactions', [
+        'id' => $payment->id,
+        'status' => PaymentStatus::Paid->value,
+    ]);
 });

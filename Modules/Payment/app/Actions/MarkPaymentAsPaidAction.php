@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Payment\Enums\PaymentStatus;
 use Modules\Payment\Events\PaymentPaid;
 use Modules\Payment\Exceptions\PaymentCannotBeMarkedAsPaidException;
+use Modules\Payment\Exceptions\PaymentConcurrencyException;
 use Modules\Payment\Models\PaymentTransaction;
 
 class MarkPaymentAsPaidAction
@@ -14,6 +15,8 @@ class MarkPaymentAsPaidAction
         PaymentTransaction $payment,
     ): PaymentTransaction {
         return DB::transaction(function () use ($payment): PaymentTransaction {
+            $payment->refresh();
+
             if ($payment->status->isPaid()) {
                 throw new PaymentCannotBeMarkedAsPaidException;
             }
@@ -22,10 +25,17 @@ class MarkPaymentAsPaidAction
                 throw new PaymentCannotBeMarkedAsPaidException;
             }
 
-            $payment->update([
-                'status' => PaymentStatus::Paid,
-                'paid_at' => now(),
-            ]);
+            $updated = PaymentTransaction::query()
+                ->whereKey($payment->getKey())
+                ->where('status', PaymentStatus::Pending->value)
+                ->update([
+                    'status' => PaymentStatus::Paid,
+                    'paid_at' => now(),
+                ]);
+
+            if ($updated !== 1) {
+                throw new PaymentConcurrencyException;
+            }
 
             $payment->refresh();
 

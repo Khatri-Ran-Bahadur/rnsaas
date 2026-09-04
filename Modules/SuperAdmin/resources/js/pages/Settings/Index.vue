@@ -262,9 +262,118 @@ const removeBrandingItem = (target: 'logo' | 'favicon' | 'login_logo') => {
     }
 };
 
-// Modals for Test Email
+// Modals for Test Email & Connection Testing
 const showTestEmailModal = ref(false);
 const testEmailAddress = ref('');
+const isSendingTestEmail = ref(false);
+const isTestingConnection = ref(false);
+const testEmailResult = ref<{ success: boolean; message: string } | null>(null);
+
+const openTestEmailModal = () => {
+    testEmailResult.value = null;
+    if (!testEmailAddress.value) {
+        testEmailAddress.value = (page.props.auth as any)?.user?.email || '';
+    }
+    showTestEmailModal.value = true;
+};
+
+const resolveEmailEndpoint = (action: 'test' | 'test-connection') => {
+    const prefix = window.location.pathname.startsWith('/admin') ? '/admin' : '/superadmin';
+    return `${prefix}/settings/email/${action}`;
+};
+
+const handleTestConnection = async () => {
+    if (isTestingConnection.value) return;
+
+    isTestingConnection.value = true;
+    testEmailResult.value = null;
+
+    try {
+        const res = await fetch(resolveEmailEndpoint('test-connection'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': (page.props as any).csrf_token || '',
+            },
+            body: JSON.stringify({
+                host: form.mail.host,
+                port: form.mail.port,
+                username: form.mail.username,
+                password: form.mail.password,
+                encryption: form.mail.encryption,
+            }),
+        });
+
+        const data = await res.json();
+        testEmailResult.value = {
+            success: Boolean(res.ok && data.success),
+            message: data.message || (res.ok ? 'Connection established successfully.' : 'Connection test failed.'),
+        };
+
+        if (res.ok && data.success) {
+            showToast(data.message || 'SMTP connection test succeeded.', 'success');
+        } else {
+            showToast(data.message || 'SMTP connection failed.', 'error');
+        }
+    } catch (e: any) {
+        testEmailResult.value = {
+            success: false,
+            message: e.message || 'Network error occurred while testing SMTP connection.',
+        };
+        showToast('Network error occurred while testing SMTP connection.', 'error');
+    } finally {
+        isTestingConnection.value = false;
+    }
+};
+
+const handleSendTestEmail = async () => {
+    if (isSendingTestEmail.value || !testEmailAddress.value) return;
+
+    isSendingTestEmail.value = true;
+    testEmailResult.value = null;
+
+    try {
+        const res = await fetch(resolveEmailEndpoint('test'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': (page.props as any).csrf_token || '',
+            },
+            body: JSON.stringify({
+                email: testEmailAddress.value,
+                host: form.mail.host,
+                port: form.mail.port,
+                username: form.mail.username,
+                password: form.mail.password,
+                encryption: form.mail.encryption,
+                from_address: form.mail.from_address,
+                from_name: form.mail.from_name,
+            }),
+        });
+
+        const data = await res.json();
+        testEmailResult.value = {
+            success: Boolean(res.ok && data.success),
+            message: data.message || (res.ok ? 'Email sent successfully.' : 'Failed to send test email.'),
+        };
+
+        if (res.ok && data.success) {
+            showToast(data.message || 'Test email sent successfully!', 'success');
+        } else {
+            showToast(data.message || 'Failed to send test email.', 'error');
+        }
+    } catch (e: any) {
+        testEmailResult.value = {
+            success: false,
+            message: e.message || 'Network error occurred while sending test email.',
+        };
+        showToast('Network error occurred while sending test email.', 'error');
+    } finally {
+        isSendingTestEmail.value = false;
+    }
+};
 
 // Submit Handler
 const savingSection = ref<string | null>(null);
@@ -878,16 +987,34 @@ const saveSection = (sectionName: string) => {
                                     </p>
                                 </div>
 
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    @click="showTestEmailModal = true"
-                                >
-                                    <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                                    </svg>
-                                    <span>Send Test Email</span>
-                                </Button>
+                                <div class="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        :disabled="isTestingConnection"
+                                        @click="handleTestConnection"
+                                    >
+                                        <svg v-if="isTestingConnection" class="h-4 w-4 mr-1.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <svg v-else class="h-4 w-4 mr-1.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                        <span>{{ isTestingConnection ? 'Testing...' : 'Test Connection' }}</span>
+                                    </Button>
+
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        @click="openTestEmailModal"
+                                    >
+                                        <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                        </svg>
+                                        <span>Send Test Email</span>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
 
@@ -1328,39 +1455,120 @@ const saveSection = (sectionName: string) => {
 
 
 
-        <!-- Send Test Email Modal (UI only as backend route not invented) -->
+        <!-- Send Test Email Modal -->
         <Modal
             :show="showTestEmailModal"
-            title="Send Test Email"
+            title="Send Test Email & Verify SMTP"
             description="Verify that your SMTP configuration is properly delivering emails."
             max-width="md"
             @close="showTestEmailModal = false"
         >
             <div class="space-y-4">
+                <!-- Target Server Notice -->
+                <div class="rounded-xl border border-zinc-200/80 bg-zinc-50/70 p-3.5 text-xs dark:border-zinc-800 dark:bg-zinc-800/40">
+                    <div class="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+                        <span>Target Server:</span>
+                        <span class="font-mono font-semibold text-zinc-800 dark:text-zinc-200">
+                            {{ form.mail.host || '127.0.0.1' }}:{{ form.mail.port || 587 }}
+                        </span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+                        <span>Encryption:</span>
+                        <span class="font-semibold text-zinc-700 dark:text-zinc-300 uppercase">
+                            {{ form.mail.encryption || 'TLS' }}
+                        </span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+                        <span>Sender:</span>
+                        <span class="font-mono text-zinc-700 dark:text-zinc-300 truncate max-w-[200px]" :title="form.mail.from_address || 'Default'">
+                            {{ form.mail.from_address || 'System Default' }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Recipient Email Field -->
                 <div>
-                    <label class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Recipient Email</label>
+                    <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                        Recipient Email Address <span class="text-rose-500">*</span>
+                    </label>
                     <input
                         v-model="testEmailAddress"
                         type="email"
+                        required
                         placeholder="you@domain.com"
-                        class="mt-1.5 block w-full rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-sm text-zinc-900 focus:border-primary-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                        class="mt-1.5 block w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-2xs transition-all focus:border-primary-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+                        :disabled="isSendingTestEmail"
+                        @keydown.enter.prevent="handleSendTestEmail"
                     />
+                    <p class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                        A test message with configuration diagnostics will be dispatched to this address.
+                    </p>
                 </div>
 
-                <div class="rounded-lg bg-zinc-50 p-3 text-xs text-zinc-500 dark:bg-zinc-800">
-                    Note: Test email dispatch endpoint is not yet connected to the backend.
+                <!-- Live Test Result Banner -->
+                <div
+                    v-if="testEmailResult"
+                    :class="[
+                        'rounded-xl border p-3.5 text-xs transition-all',
+                        testEmailResult.success
+                            ? 'border-emerald-200 bg-emerald-50/90 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+                            : 'border-rose-200 bg-rose-50/90 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300'
+                    ]"
+                >
+                    <div class="flex items-start gap-2.5">
+                        <svg v-if="testEmailResult.success" class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <svg v-else class="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div class="flex-1">
+                            <p class="font-semibold">{{ testEmailResult.success ? 'Delivery Verified!' : 'Delivery Failed' }}</p>
+                            <p class="mt-0.5 whitespace-pre-wrap">{{ testEmailResult.message }}</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2">
-                    <Button variant="secondary" @click="showTestEmailModal = false">
-                        Cancel
-                    </Button>
+                <!-- Modal Actions -->
+                <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
                     <Button
-                        :disabled="!testEmailAddress"
-                        @click="showTestEmailModal = false; showToast('Test email request queued.');"
+                        variant="outline"
+                        size="sm"
+                        :disabled="isTestingConnection || isSendingTestEmail"
+                        @click="handleTestConnection"
                     >
-                        Send Test
+                        <svg v-if="isTestingConnection" class="h-3.5 w-3.5 mr-1.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>{{ isTestingConnection ? 'Testing...' : 'Test Connection' }}</span>
                     </Button>
+
+                    <div class="flex items-center justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            :disabled="isSendingTestEmail"
+                            @click="showTestEmailModal = false"
+                        >
+                            Close
+                        </Button>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            :disabled="!testEmailAddress || isSendingTestEmail"
+                            @click="handleSendTestEmail"
+                        >
+                            <svg v-if="isSendingTestEmail" class="h-3.5 w-3.5 mr-1.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <svg v-else class="h-3.5 w-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                            <span>{{ isSendingTestEmail ? 'Sending Test...' : 'Send Test' }}</span>
+                        </Button>
+                    </div>
                 </div>
             </div>
         </Modal>

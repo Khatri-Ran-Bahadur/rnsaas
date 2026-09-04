@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\SuperAdmin\Http\Controllers\DashboardController;
+use Modules\SuperAdmin\Http\Controllers\EmailSettingsController;
 use Modules\SuperAdmin\Http\Controllers\PlatformSettingsController;
 use Modules\SuperAdmin\Http\Controllers\UserController;
 
@@ -39,6 +40,14 @@ foreach (['superadmin', 'admin'] as $prefix) {
             Route::post('/settings/cache/clear', [PlatformSettingsController::class, 'clearCache'])
                 ->middleware('permission:settings.update')
                 ->name('settings.cache.clear');
+
+            Route::post('/settings/email/test', [EmailSettingsController::class, 'sendTestEmail'])
+                ->middleware('permission:settings.update')
+                ->name('settings.email.test');
+
+            Route::post('/settings/email/test-connection', [EmailSettingsController::class, 'testConnection'])
+                ->middleware('permission:settings.update')
+                ->name('settings.email.test-connection');
         });
 }
 

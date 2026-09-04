@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 use Modules\Tenancy\Domain\Events\TenantMembershipStatusChanged;
+use Modules\Tenancy\Domain\Exceptions\TenantMembershipConcurrencyException;
 use Modules\Tenancy\Models\TenantMembership;
 
 final class SuspendTenantMemberAction
@@ -32,13 +33,23 @@ final class SuspendTenantMemberAction
             }
 
             $oldStatus = $membership->status;
+            $currentVersion = $membership->version;
 
-            $membership->update([
-                'status' => TenantMembershipStatus::Suspended,
-                'suspended_at' => now(),
-                'suspended_by' => $suspendedBy->id,
-                'version' => $membership->version + 1,
-            ]);
+            $updated = TenantMembership::query()
+                ->whereKey($membership->getKey())
+                ->where('version', $currentVersion)
+                ->update([
+                    'status' => TenantMembershipStatus::Suspended,
+                    'suspended_at' => now(),
+                    'suspended_by' => $suspendedBy->id,
+                    'version' => $currentVersion + 1,
+                ]);
+
+            if ($updated !== 1) {
+                throw new TenantMembershipConcurrencyException();
+            }
+
+            $membership->refresh();
 
             TenantMembershipStatusChanged::dispatch(
                 $membership,
@@ -47,7 +58,7 @@ final class SuspendTenantMemberAction
                 $suspendedBy,
             );
 
-            return $membership->fresh();
+            return $membership;
         });
     }
 }

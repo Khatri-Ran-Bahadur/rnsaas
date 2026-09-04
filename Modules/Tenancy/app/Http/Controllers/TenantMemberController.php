@@ -42,7 +42,10 @@ class TenantMemberController
 
         $action->execute($tenant, $user, $request->user());
 
-        return back()->with('success', "Invitation sent to {$user->email}.");
+        return back()->with(
+            'success',
+            "Invitation sent to {$user->email}.",
+        );
     }
 
     /**
@@ -59,9 +62,15 @@ class TenantMemberController
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        $action->execute($membership, $request->user());
+        $action->execute(
+            $membership,
+            $request->user(),
+        );
 
-        return back()->with('success', "Membership for {$user->email} has been suspended.");
+        return back()->with(
+            'success',
+            "Membership for {$user->email} has been suspended.",
+        );
     }
 
     /**
@@ -78,13 +87,19 @@ class TenantMemberController
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        $action->execute($membership, $request->user()->id);
+        $action->execute(
+            $membership,
+            $request->user(),
+        );
 
-        return back()->with('success', "Membership for {$user->email} has been revoked.");
+        return back()->with(
+            'success',
+            "Membership for {$user->email} has been revoked.",
+        );
     }
 
     /**
-     * Reactivate a suspended or revoked member's access in this tenant.
+     * Reactivate a suspended member's access in this tenant.
      */
     public function reactivate(
         Request $request,
@@ -97,8 +112,14 @@ class TenantMemberController
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        $action->execute($membership);
+        $action->execute(
+            $membership,
+            $request->user(),
+        );
 
-        return back()->with('success', "Membership for {$user->email} has been reactivated.");
+        return back()->with(
+            'success',
+            "Membership for {$user->email} has been reactivated.",
+        );
     }
 }

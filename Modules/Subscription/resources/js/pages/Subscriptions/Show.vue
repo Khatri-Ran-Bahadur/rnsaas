@@ -114,9 +114,18 @@ const formatProvider = (providerStr?: string | null) => {
 
 const showCancelModal = ref(false);
 const isCanceling = ref(false);
+const showReactivateModal = ref(false);
+const isReactivating = ref(false);
 
 const canCancel = (sub: SubscriptionDetail) => {
     return (sub.status === 'active' || sub.status === 'trialing') && !sub.canceled_at;
+};
+
+const canReactivate = (sub: SubscriptionDetail) => {
+    if (!sub.canceled_at) return false;
+    if (sub.status !== 'active' && sub.status !== 'trialing') return false;
+    if (sub.current_period_ends_at && new Date(sub.current_period_ends_at) <= new Date()) return false;
+    return true;
 };
 
 const confirmCancel = () => {
@@ -129,6 +138,21 @@ const confirmCancel = () => {
             onFinish: () => {
                 isCanceling.value = false;
                 showCancelModal.value = false;
+            },
+        }
+    );
+};
+
+const confirmReactivate = () => {
+    isReactivating.value = true;
+    router.post(
+        `/admin/subscriptions/${props.subscription.id}/reactivate`,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                isReactivating.value = false;
+                showReactivateModal.value = false;
             },
         }
     );
@@ -177,6 +201,20 @@ const confirmCancel = () => {
                     <span>Cancel Subscription</span>
                 </Button>
 
+                <Button
+                    v-if="canReactivate(subscription)"
+                    variant="primary"
+                    size="sm"
+                    @click="showReactivateModal = true"
+                >
+                    <template #prefix>
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </template>
+                    <span>Reactivate Subscription</span>
+                </Button>
+
                 <Link href="/admin/subscriptions">
                     <Button variant="outline" size="sm">
                         <template #prefix>
@@ -193,17 +231,34 @@ const confirmCancel = () => {
         <!-- Canceled Status Banner -->
         <div
             v-if="subscription.canceled_at"
-            class="mt-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200"
+            class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200"
         >
-            <svg class="h-5 w-5 shrink-0 text-amber-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <div class="text-sm">
-                <p class="font-semibold">Subscription Scheduled for Cancellation</p>
-                <p class="mt-0.5 text-xs text-amber-800 dark:text-amber-300">
-                    This subscription was canceled on {{ formatDate(subscription.canceled_at) }}. The organization retains active access until the current billing period ends on {{ formatDate(subscription.ends_at ?? subscription.current_period_ends_at) }}.
-                </p>
+            <div class="flex items-start gap-3">
+                <svg class="h-5 w-5 shrink-0 text-amber-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="text-sm">
+                    <p class="font-semibold">Subscription Scheduled for Cancellation</p>
+                    <p class="mt-0.5 text-xs text-amber-800 dark:text-amber-300">
+                        This subscription was canceled on {{ formatDate(subscription.canceled_at) }}. The organization retains active access until the current billing period ends on {{ formatDate(subscription.ends_at ?? subscription.current_period_ends_at) }}.
+                    </p>
+                </div>
             </div>
+
+            <Button
+                v-if="canReactivate(subscription)"
+                variant="primary"
+                size="sm"
+                class="shrink-0"
+                @click="showReactivateModal = true"
+            >
+                <template #prefix>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </template>
+                <span>Reactivate</span>
+            </Button>
         </div>
 
         <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -377,9 +432,25 @@ const confirmCancel = () => {
                             Cancels renewal at period end.
                         </p>
                     </div>
-                    <div v-else-if="subscription.canceled_at" class="rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
-                        <p class="font-medium">Canceled</p>
-                        <p class="text-[11px] mt-0.5">Ends on {{ formatDate(subscription.ends_at ?? subscription.current_period_ends_at) }}</p>
+                    <div v-else-if="subscription.canceled_at" class="space-y-3">
+                        <div class="rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
+                            <p class="font-medium">Canceled</p>
+                            <p class="text-[11px] mt-0.5">Ends on {{ formatDate(subscription.ends_at ?? subscription.current_period_ends_at) }}</p>
+                        </div>
+                        <Button
+                            v-if="canReactivate(subscription)"
+                            variant="primary"
+                            size="sm"
+                            class="w-full"
+                            @click="showReactivateModal = true"
+                        >
+                            <template #prefix>
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </template>
+                            <span>Reactivate Subscription</span>
+                        </Button>
                     </div>
                     <div v-else class="text-xs text-zinc-400">
                         No lifecycle actions available for status <span class="font-mono font-medium">{{ subscription.status }}</span>.
@@ -434,6 +505,59 @@ const confirmCancel = () => {
                         @click="confirmCancel"
                     >
                         <span>Confirm Cancellation</span>
+                    </Button>
+                </div>
+            </template>
+        </Modal>
+
+        <!-- Reactivate Confirmation Modal -->
+        <Modal
+            :show="showReactivateModal"
+            title="Reactivate Subscription"
+            description="Are you sure you want to reactivate this subscription?"
+            max-width="md"
+            @close="showReactivateModal = false"
+        >
+            <div class="space-y-3 py-2 text-sm text-zinc-600 dark:text-zinc-300">
+                <p>
+                    This will reactivate the subscription for
+                    <span class="font-semibold text-zinc-900 dark:text-white">{{ subscription.tenant?.name }}</span>
+                    and restore automated renewals.
+                </p>
+                <div class="rounded-lg bg-zinc-50 p-3 text-xs dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
+                    <div class="flex justify-between py-1">
+                        <span class="text-zinc-500">Plan:</span>
+                        <span class="font-medium text-zinc-900 dark:text-white">{{ subscription.plan?.name }}</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-t border-zinc-200/60 dark:border-zinc-700/60">
+                        <span class="text-zinc-500">Current Period Ends:</span>
+                        <span class="font-mono font-medium text-zinc-900 dark:text-white">{{ formatDate(subscription.current_period_ends_at) }}</span>
+                    </div>
+                </div>
+                <p class="text-xs text-zinc-500">
+                    The scheduled cancellation timestamp will be cleared and the subscription will continue regular renewals.
+                </p>
+            </div>
+
+            <template #footer>
+                <div class="flex items-center justify-end gap-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        :disabled="isReactivating"
+                        @click="showReactivateModal = false"
+                    >
+                        <span>Cancel</span>
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        :loading="isReactivating"
+                        @click="confirmReactivate"
+                    >
+                        <span>Reactivate Subscription</span>
                     </Button>
                 </div>
             </template>

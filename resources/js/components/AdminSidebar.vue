@@ -147,6 +147,29 @@ const logout = () => {
                     </Link>
                 </div>
 
+                <!-- Section: User Management -->
+                <div class="mt-7 space-y-1">
+                    <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                        User Management
+                    </p>
+
+                    <Link
+                        href="/admin/users"
+                        :class="[
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                            isRouteActive('/admin/users')
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <span>Users</span>
+                    </Link>
+                </div>
+
                 <!-- Section: Subscriptions & Plans -->
                 <div class="mt-7 space-y-1">
                     <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">

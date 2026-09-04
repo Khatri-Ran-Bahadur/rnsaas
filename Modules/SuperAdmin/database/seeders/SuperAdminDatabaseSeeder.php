@@ -35,6 +35,7 @@ class SuperAdminDatabaseSeeder extends Seeder
 
             'payments.view',
             'payments.refund',
+            'users.view',
         ];
 
         $permissionModels = collect($permissions)

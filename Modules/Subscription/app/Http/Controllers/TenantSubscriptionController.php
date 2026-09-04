@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Subscription\Actions\CancelSubscriptionAction;
 use Modules\Subscription\Actions\CreateSubscriptionAction;
+use Modules\Subscription\Actions\ReactivateSubscriptionAction;
 use Modules\Subscription\Enums\SubscriptionStatus;
 use Modules\Subscription\Http\Requests\StoreTenantSubscriptionRequest;
 use Modules\Subscription\Models\Plan;
@@ -181,6 +182,18 @@ class TenantSubscriptionController extends Controller
         return back()->with(
             'success',
             'Subscription was successfully canceled.',
+        );
+    }
+
+    public function reactivate(
+        TenantSubscription $subscription,
+        ReactivateSubscriptionAction $action,
+    ): RedirectResponse {
+        $action->handle($subscription);
+
+        return back()->with(
+            'success',
+            'Subscription was successfully reactivated.',
         );
     }
 }

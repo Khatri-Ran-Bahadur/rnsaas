@@ -238,3 +238,47 @@ it('allows a superadmin to cancel an active subscription', function () {
     $subscription->refresh();
     expect($subscription->canceled_at)->not->toBeNull();
 });
+
+it('allows a superadmin to reactivate a scheduled canceled subscription', function () {
+    actingAsSubscriptionSuperAdmin();
+
+    $subscription = TenantSubscription::factory()->create([
+        'status' => SubscriptionStatus::Active,
+        'canceled_at' => now()->subDay(),
+        'current_period_ends_at' => now()->addDays(15),
+        'ends_at' => now()->addDays(15),
+    ]);
+
+    $response = $this->post(
+        route('admin.subscriptions.reactivate', $subscription)
+    );
+
+    $response->assertRedirect();
+    $response->assertSessionHas('success', 'Subscription was successfully reactivated.');
+
+    $subscription->refresh();
+    expect($subscription->canceled_at)->toBeNull()
+        ->and($subscription->ends_at)->toBeNull()
+        ->and($subscription->status)->toBe(SubscriptionStatus::Active);
+});
+
+it('requires superadmin access to reactivate a subscription', function () {
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    $subscription = TenantSubscription::factory()->create([
+        'status' => SubscriptionStatus::Active,
+        'canceled_at' => now()->subDay(),
+        'current_period_ends_at' => now()->addDays(15),
+        'ends_at' => now()->addDays(15),
+    ]);
+
+    $response = $this->post(
+        route('admin.subscriptions.reactivate', $subscription)
+    );
+
+    $response->assertForbidden();
+});

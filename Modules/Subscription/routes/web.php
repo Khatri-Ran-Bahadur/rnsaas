@@ -26,5 +26,6 @@ Route::middleware(['auth', 'superadmin'])
             Route::post('/', 'store')->name('store');
             Route::get('/{subscription}', 'show')->name('show');
             Route::post('/{subscription}/cancel', 'cancel')->name('cancel');
+            Route::post('/{subscription}/reactivate', 'reactivate')->name('reactivate');
         });
     });

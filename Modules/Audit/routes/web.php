@@ -1,8 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Audit\Http\Controllers\AuditController;
+use Modules\Audit\Http\Controllers\AuditLogController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('audits', AuditController::class)->names('audit');
-});
+Route::middleware(['auth', 'superadmin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])
+            ->name('audit-logs.index');
+    });

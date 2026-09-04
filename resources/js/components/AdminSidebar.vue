@@ -215,8 +215,15 @@ const logout = () => {
                         System & Security
                     </p>
 
-                    <div
-                        class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 dark:text-zinc-500 cursor-not-allowed select-none"
+                    <Link
+                        href="/admin/audit-logs"
+                        :class="[
+                            'group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                            isRouteActive('/admin/audit-logs')
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
                     >
                         <div class="flex items-center gap-3">
                             <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,8 +231,17 @@ const logout = () => {
                             </svg>
                             <span>Audit Logs</span>
                         </div>
-                        <span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">Core</span>
-                    </div>
+                        <span
+                            :class="[
+                                'rounded px-1.5 py-0.5 text-[10px]',
+                                isRouteActive('/admin/audit-logs')
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
+                            ]"
+                        >
+                            Core
+                        </span>
+                    </Link>
 
                     <div
                         class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 dark:text-zinc-500 cursor-not-allowed select-none"

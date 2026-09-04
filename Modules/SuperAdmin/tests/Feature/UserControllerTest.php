@@ -12,7 +12,10 @@ uses(RefreshDatabase::class);
 beforeEach(function (): void {
     $this->seed(SuperAdminDatabaseSeeder::class);
 
-    $this->superAdmin = User::factory()->create();
+    $this->superAdmin = User::factory()->create([
+        'name' => 'Super Administrator',
+        'email' => 'superadmin@sathisaas.test',
+    ]);
 
     $this->superAdmin->assignRole(
         Role::findByName('SuperAdmin', 'web')
@@ -24,7 +27,7 @@ it('allows super admins to view users', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.users.index'));
+        ->get(route('superadmin.users.index'));
 
     $response
         ->assertOk()
@@ -50,7 +53,7 @@ it('filters users by search', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.users.index', [
+        ->get(route('superadmin.users.index', [
             'search' => 'john',
         ]));
 
@@ -80,7 +83,7 @@ it('filters users by role', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.users.index', [
+        ->get(route('superadmin.users.index', [
             'role' => 'Manager',
         ]));
 
@@ -106,7 +109,7 @@ it('includes tenant count for every user', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.users.index'));
+        ->get(route('superadmin.users.index'));
 
     $response
         ->assertOk()
@@ -126,7 +129,7 @@ it('denies users without users view permission', function (): void {
 
     $response = $this
         ->actingAs($user)
-        ->get(route('admin.users.index'));
+        ->get(route('superadmin.users.index'));
 
     $response->assertForbidden();
 });

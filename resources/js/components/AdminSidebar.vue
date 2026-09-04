@@ -15,8 +15,8 @@ const page = usePage();
 const currentUrl = computed(() => page.url);
 
 const isRouteActive = (pattern: string) => {
-    if (pattern === '/admin/dashboard') {
-        return currentUrl.value === '/admin/dashboard';
+    if (pattern === '/superadmin/dashboard') {
+        return currentUrl.value === '/superadmin/dashboard' || currentUrl.value === '/superadmin';
     }
     return currentUrl.value.startsWith(pattern);
 };
@@ -58,14 +58,14 @@ const logout = () => {
         >
             <!-- Brand Header -->
             <div class="flex h-16 shrink-0 items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800">
-                <Link href="/admin/dashboard" class="flex items-center gap-3 group" @click="emit('closeMobile')">
+                <Link href="/superadmin/dashboard" class="flex items-center gap-3 group" @click="emit('closeMobile')">
                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-white font-bold tracking-wider shadow-xs shadow-primary-500/25">
                         S
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="font-bold text-base tracking-tight text-zinc-900 dark:text-white">SathiSaaS</span>
-                            <span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">ADMIN</span>
+                            <span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">SUPERADMIN</span>
                         </div>
                         <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Platform Management</p>
                     </div>
@@ -92,10 +92,10 @@ const logout = () => {
                     </p>
 
                     <Link
-                        href="/admin/dashboard"
+                        href="/superadmin/dashboard"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/dashboard')
+                            isRouteActive('/superadmin/dashboard')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -115,10 +115,10 @@ const logout = () => {
                     </p>
 
                     <Link
-                        href="/admin/tenants"
+                        href="/superadmin/tenants"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/tenants') || isRouteActive('/tenants')
+                            isRouteActive('/superadmin/tenants')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -131,10 +131,10 @@ const logout = () => {
                     </Link>
 
                     <Link
-                        href="/admin/tenants/create"
+                        href="/superadmin/tenants/create"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            currentUrl === '/admin/tenants/create' || currentUrl === '/tenants/create'
+                            currentUrl === '/superadmin/tenants/create'
                                 ? 'bg-primary-50 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 font-semibold'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -154,10 +154,10 @@ const logout = () => {
                     </p>
 
                     <Link
-                        href="/admin/users"
+                        href="/superadmin/users"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/users')
+                            isRouteActive('/superadmin/users')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -177,10 +177,10 @@ const logout = () => {
                     </p>
 
                     <Link
-                        href="/admin/subscriptions"
+                        href="/superadmin/subscriptions"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/subscriptions') && !isRouteActive('/admin/subscriptions/plans')
+                            isRouteActive('/superadmin/subscriptions') && !isRouteActive('/superadmin/subscriptions/plans')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -193,10 +193,10 @@ const logout = () => {
                     </Link>
 
                     <Link
-                        href="/admin/subscriptions/plans"
+                        href="/superadmin/subscriptions/plans"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/subscriptions/plans')
+                            isRouteActive('/superadmin/subscriptions/plans')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -216,10 +216,10 @@ const logout = () => {
                     </p>
 
                     <Link
-                        href="/admin/payments"
+                        href="/superadmin/payments"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/payments')
+                            isRouteActive('/superadmin/payments')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -232,6 +232,31 @@ const logout = () => {
                     </Link>
                 </div>
 
+                <!-- Section: Content & Media -->
+                <div class="mt-7 space-y-1">
+                    <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                        Content & Assets
+                    </p>
+
+                    <Link
+                        href="/superadmin/media"
+                        :class="[
+                            'group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                            isRouteActive('/superadmin/media')
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
+                    >
+                        <div class="flex items-center gap-3">
+                            <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>Media Library</span>
+                        </div>
+                    </Link>
+                </div>
+
                 <!-- Section: System & Audit -->
                 <div class="mt-7 space-y-1">
                     <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -239,10 +264,10 @@ const logout = () => {
                     </p>
 
                     <Link
-                        href="/admin/audit-logs"
+                        href="/superadmin/audit-logs"
                         :class="[
                             'group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/audit-logs')
+                            isRouteActive('/superadmin/audit-logs')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -257,7 +282,7 @@ const logout = () => {
                         <span
                             :class="[
                                 'rounded px-1.5 py-0.5 text-[10px]',
-                                isRouteActive('/admin/audit-logs')
+                                isRouteActive('/superadmin/audit-logs')
                                     ? 'bg-white/20 text-white'
                                     : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
                             ]"

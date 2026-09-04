@@ -72,7 +72,7 @@ class PlanController extends Controller
         $plan->features()->sync($featureIds);
 
         return redirect()
-            ->route('admin.subscriptions.plans.index')
+            ->route('superadmin.subscriptions.plans.index')
             ->with(
                 'success',
                 "Plan '{$plan->name}' was created successfully.",
@@ -135,7 +135,7 @@ class PlanController extends Controller
         $plan->features()->sync($featureIds);
 
         return redirect()
-            ->route('admin.subscriptions.plans.index')
+            ->route('superadmin.subscriptions.plans.index')
             ->with(
                 'success',
                 "Plan '{$plan->name}' was updated successfully.",
@@ -152,7 +152,7 @@ class PlanController extends Controller
         $plan->delete();
 
         return redirect()
-            ->route('admin.subscriptions.plans.index')
+            ->route('superadmin.subscriptions.plans.index')
             ->with(
                 'success',
                 "Plan '{$planName}' was deleted successfully.",

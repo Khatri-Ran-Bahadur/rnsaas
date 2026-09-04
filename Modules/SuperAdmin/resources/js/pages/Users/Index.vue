@@ -75,7 +75,7 @@ const hasActiveFilters = computed(() => {
 const applyFilters = () => {
     isFiltering.value = true;
     router.get(
-        '/admin/users',
+        '/superadmin/users',
         {
             search: search.value || undefined,
             role: selectedRole.value || undefined,
@@ -159,7 +159,7 @@ const getRoleBadgeVariant = (roleName: string) => {
     <AdminLayout
         title="Platform Users"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
             { label: 'Users' },
         ]"
     >

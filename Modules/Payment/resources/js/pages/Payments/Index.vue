@@ -123,7 +123,7 @@ const providerOptions = [
 // Filter management
 const applyFilters = () => {
 	router.get(
-		"/admin/payments",
+		"/superadmin/payments",
 		{
 			search: search.value || undefined,
 			status: status.value || undefined,
@@ -134,10 +134,24 @@ const applyFilters = () => {
 			preserveState: true,
 			preserveScroll: true,
 			replace: true,
-		}
+		},
 	);
 };
 
+// Reset filters
+const resetFilters = () => {
+	search.value = "";
+	status.value = "";
+	provider.value = "";
+	applyFilters();
+};
+
+// Toggle filters
+const toggleFilters = () => {
+	showFilters.value = !showFilters.value;
+};
+
+// Handle per page change
 const handlePerPageChange = (newPerPage: number) => {
 	perPage.value = newPerPage;
 	applyFilters();
@@ -281,7 +295,7 @@ const closeConfirmModal = () => {
 	<AdminLayout
 		title="Payments"
 		:breadcrumbs="[
-			{ label: 'Dashboard', href: '/admin/dashboard' },
+			{ label: 'Dashboard', href: '/superadmin/dashboard' },
 			{ label: 'Payments' },
 		]"
 	>

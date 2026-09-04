@@ -112,7 +112,7 @@ const billingCycleOptions = [
 ];
 
 const submit = () => {
-    form.put(`/admin/subscriptions/plans/${props.plan.id}`);
+    form.put(`/superadmin/subscriptions/plans/${props.plan.id}`);
 };
 </script>
 
@@ -120,10 +120,10 @@ const submit = () => {
     <AdminLayout
         :title="`Edit ${plan.name} Plan`"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Subscriptions', href: '/admin/subscriptions/plans' },
-            { label: 'Plans', href: '/admin/subscriptions/plans' },
-            { label: plan.name, href: `/admin/subscriptions/plans/${plan.id}` },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
+            { label: 'Subscriptions', href: '/superadmin/subscriptions/plans' },
+            { label: 'Plans', href: '/superadmin/subscriptions/plans' },
+            { label: plan.name, href: `/superadmin/subscriptions/plans/${plan.id}` },
             { label: 'Edit' },
         ]"
     >
@@ -132,7 +132,7 @@ const submit = () => {
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <Link
-                        :href="`/admin/subscriptions/plans/${plan.id}`"
+                        :href="`/superadmin/subscriptions/plans/${plan.id}`"
                         class="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                     >
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,7 +154,7 @@ const submit = () => {
 
                 <div class="flex items-center gap-3">
                     <Button
-                        :href="`/admin/subscriptions/plans/${plan.id}`"
+                        :href="`/superadmin/subscriptions/plans/${plan.id}`"
                         variant="outline"
                         size="sm"
                     >
@@ -366,7 +366,7 @@ const submit = () => {
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                     <Button
-                        :href="`/admin/subscriptions/plans/${plan.id}`"
+                        :href="`/superadmin/subscriptions/plans/${plan.id}`"
                         variant="outline"
                     >
                         Cancel

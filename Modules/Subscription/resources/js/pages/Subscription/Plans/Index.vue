@@ -133,7 +133,7 @@ const formatPrice = (plan: Plan) => {
     <AdminLayout
         title="Subscription Settings"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
             { label: 'Subscriptions' },
             { label: 'Plans & Settings' },
         ]"
@@ -151,7 +151,7 @@ const formatPrice = (plan: Plan) => {
 
             <div class="flex items-center gap-3">
                 <Button
-                    href="/admin/subscriptions/plans/create"
+                    href="/superadmin/subscriptions/plans/create"
                     variant="primary"
                     size="sm"
                 >
@@ -342,7 +342,7 @@ const formatPrice = (plan: Plan) => {
                         <!-- Bottom Plan Action Button -->
                         <div class="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/40 dark:bg-zinc-950/20">
                             <Button
-                                :href="`/admin/subscriptions/plans/${plan.id}/edit`"
+                                :href="`/superadmin/subscriptions/plans/${plan.id}/edit`"
                                 variant="primary"
                                 size="sm"
                                 class="w-full justify-center"
@@ -363,7 +363,7 @@ const formatPrice = (plan: Plan) => {
             >
                 <template #actions>
                     <Button
-                        href="/admin/subscriptions/plans/create"
+                        href="/superadmin/subscriptions/plans/create"
                         variant="primary"
                         size="sm"
                     >

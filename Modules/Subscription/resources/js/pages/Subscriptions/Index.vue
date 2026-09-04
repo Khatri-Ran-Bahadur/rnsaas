@@ -150,7 +150,7 @@ const confirmCancel = () => {
     if (!subToCancel.value) return;
     isCanceling.value = true;
     router.post(
-        `/admin/subscriptions/${subToCancel.value.id}/cancel`,
+        `/superadmin/subscriptions/${subToCancel.value.id}/cancel`,
         {},
         {
             preserveScroll: true,
@@ -166,7 +166,7 @@ const confirmReactivate = () => {
     if (!subToReactivate.value) return;
     isReactivating.value = true;
     router.post(
-        `/admin/subscriptions/${subToReactivate.value.id}/reactivate`,
+        `/superadmin/subscriptions/${subToReactivate.value.id}/reactivate`,
         {},
         {
             preserveScroll: true,
@@ -180,7 +180,7 @@ const confirmReactivate = () => {
 
 const applyFilters = () => {
     router.get(
-        '/admin/subscriptions',
+        '/superadmin/subscriptions',
         {
             search: search.value || undefined,
             status: status.value || undefined,
@@ -272,7 +272,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
     <AdminLayout
         title="Subscriptions"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
             { label: 'Subscriptions' },
         ]"
     >
@@ -289,7 +289,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
 
             <div class="flex items-center gap-3">
                 <Button
-                    href="/admin/subscriptions/create"
+                    href="/superadmin/subscriptions/create"
                     variant="primary"
                 >
                     <template #prefix>
@@ -486,7 +486,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
                         </Button>
                         <Button
                             v-else
-                            href="/admin/subscriptions/create"
+                            href="/superadmin/subscriptions/create"
                             variant="primary"
                             size="sm"
                         >
@@ -527,7 +527,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
                                     </div>
                                     <div>
                                         <Link
-                                            :href="`/admin/subscriptions/${sub.id}`"
+                                            :href="`/superadmin/subscriptions/${sub.id}`"
                                             class="font-semibold text-zinc-900 hover:underline dark:text-white"
                                         >
                                             {{ sub.tenant?.name ?? `Tenant #${sub.tenant_id}` }}
@@ -605,7 +605,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
                                         <div class="py-1 text-xs">
                                             <!-- View Details -->
                                             <Link
-                                                :href="`/admin/subscriptions/${sub.id}`"
+                                                :href="`/superadmin/subscriptions/${sub.id}`"
                                                 class="flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md"
                                                 @click="close"
                                             >
@@ -669,7 +669,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <Link
-                                        :href="`/admin/subscriptions/${sub.id}`"
+                                        :href="`/superadmin/subscriptions/${sub.id}`"
                                         class="font-semibold text-sm text-zinc-900 hover:underline dark:text-white truncate block"
                                         :title="sub.tenant?.name"
                                     >
@@ -739,7 +739,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
                                 <template #default="{ close }">
                                     <div class="py-1 text-xs">
                                         <Link
-                                            :href="`/admin/subscriptions/${sub.id}`"
+                                            :href="`/superadmin/subscriptions/${sub.id}`"
                                             class="flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md"
                                             @click="close"
                                         >

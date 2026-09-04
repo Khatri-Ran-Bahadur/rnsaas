@@ -48,7 +48,7 @@ it('allows a superadmin to view payment listing', function () {
         'type' => PaymentType::Subscription,
     ]);
 
-    $response = $this->get(route('admin.payments.index'));
+    $response = $this->get(route('superadmin.payments.index'));
 
     $response->assertOk();
 });
@@ -64,7 +64,7 @@ it('filters payments by status', function () {
         'status' => PaymentStatus::Paid,
     ]);
 
-    $response = $this->get(route('admin.payments.index', [
+    $response = $this->get(route('superadmin.payments.index', [
         'status' => PaymentStatus::Pending->value,
     ]));
 
@@ -82,7 +82,7 @@ it('filters payments by provider', function () {
         'provider' => 'stripe',
     ]);
 
-    $response = $this->get(route('admin.payments.index', [
+    $response = $this->get(route('superadmin.payments.index', [
         'provider' => 'bank_transfer',
     ]));
 
@@ -96,7 +96,7 @@ it('paginates payments', function () {
         ->count(25)
         ->create();
 
-    $response = $this->get(route('admin.payments.index'));
+    $response = $this->get(route('superadmin.payments.index'));
 
     $response->assertOk();
 });

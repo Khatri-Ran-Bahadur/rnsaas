@@ -68,7 +68,7 @@ const handleCountryChange = (countryCode: string | number) => {
 };
 
 const submit = () => {
-    form.post('/admin/tenants');
+    form.post('/superadmin/tenants');
 };
 
 const industryOptions = [
@@ -87,8 +87,8 @@ const industryOptions = [
     <AdminLayout
         title="Create Organization"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Organizations', href: '/admin/tenants' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
+            { label: 'Organizations', href: '/superadmin/tenants' },
             { label: 'New Organization' },
         ]"
     >
@@ -96,7 +96,7 @@ const industryOptions = [
         <div class="pb-6 border-b border-zinc-200 dark:border-zinc-800">
             <div class="flex items-center gap-3">
                 <Link
-                    href="/admin/tenants"
+                    href="/superadmin/tenants"
                     class="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                 >
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,7 +230,7 @@ const industryOptions = [
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <Button
-                        href="/admin/tenants"
+                        href="/superadmin/tenants"
                         variant="outline"
                     >
                         Cancel

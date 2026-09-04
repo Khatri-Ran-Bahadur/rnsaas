@@ -69,7 +69,7 @@ const formatDate = (dateStr?: string) => {
                 <!-- Quick Action Buttons -->
                 <div class="flex flex-wrap items-center gap-3 shrink-0">
                     <Link
-                        href="/tenants/create"
+                        href="/superadmin/tenants/create"
                         class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-xs transition-colors hover:bg-zinc-800 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
                     >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,7 +79,7 @@ const formatDate = (dateStr?: string) => {
                     </Link>
 
                     <Link
-                        href="/tenants"
+                        href="/superadmin/tenants"
                         class="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-2xs transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,7 +169,7 @@ const formatDate = (dateStr?: string) => {
                         </div>
 
                         <Link
-                            href="/tenants"
+                            href="/superadmin/tenants"
                             class="text-xs font-semibold text-zinc-900 hover:underline dark:text-white"
                         >
                             View All →
@@ -201,7 +201,7 @@ const formatDate = (dateStr?: string) => {
                                             </div>
                                             <div>
                                                 <Link
-                                                    :href="`/tenants/${tenant.id}`"
+                                                    :href="`/superadmin/tenants/${tenant.id}`"
                                                     class="font-semibold text-zinc-900 hover:underline dark:text-zinc-100"
                                                 >
                                                     {{ tenant.name }}
@@ -223,7 +223,7 @@ const formatDate = (dateStr?: string) => {
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <Link
-                                            :href="`/tenants/${tenant.id}`"
+                                            :href="`/superadmin/tenants/${tenant.id}`"
                                             class="rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                                         >
                                             View
@@ -241,7 +241,7 @@ const formatDate = (dateStr?: string) => {
                         >
                             <template #actions>
                                 <Link
-                                    href="/tenants/create"
+                                    href="/superadmin/tenants/create"
                                     class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-medium text-white shadow-xs hover:bg-zinc-800 dark:bg-white dark:text-zinc-900"
                                 >
                                     Create Organization

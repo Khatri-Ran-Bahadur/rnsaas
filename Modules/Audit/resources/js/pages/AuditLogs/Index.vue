@@ -116,7 +116,7 @@ const tenantOptions = computed(() => {
 
 const applyFilters = () => {
     router.get(
-        '/admin/audit-logs',
+        '/superadmin/audit-logs',
         {
             search: search.value || undefined,
             event: selectedEvent.value || undefined,
@@ -226,7 +226,7 @@ const getShortAuditableType = (typeStr: string | null, id: number | null) => {
     <AdminLayout
         title="Audit Logs"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
             { label: 'Audit Logs' },
         ]"
     >

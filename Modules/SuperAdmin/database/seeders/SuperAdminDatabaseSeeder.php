@@ -36,6 +36,16 @@ class SuperAdminDatabaseSeeder extends Seeder
             'payments.view',
             'payments.refund',
             'users.view',
+
+            'media.view',
+            'media.create',
+            'media.download',
+            'media.delete',
+            'media.directories.create',
+            'media.directories.update',
+            'media.directories.delete',
+            'media.manage-any',
+            'media.manage-own',
         ];
 
         $permissionModels = collect($permissions)

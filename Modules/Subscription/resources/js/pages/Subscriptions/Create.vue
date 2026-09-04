@@ -48,7 +48,7 @@ const planOptions = computed(() => {
 });
 
 const submit = () => {
-    form.post('/admin/subscriptions');
+    form.post('/superadmin/subscriptions');
 };
 </script>
 
@@ -56,8 +56,8 @@ const submit = () => {
     <AdminLayout
         title="Create Subscription"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Subscriptions', href: '/admin/subscriptions' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
+            { label: 'Subscriptions', href: '/superadmin/subscriptions' },
             { label: 'New Subscription' },
         ]"
     >
@@ -65,7 +65,7 @@ const submit = () => {
         <div class="pb-6 border-b border-zinc-200 dark:border-zinc-800">
             <div class="flex items-center gap-3">
                 <Link
-                    href="/admin/subscriptions"
+                    href="/superadmin/subscriptions"
                     class="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors"
                 >
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,7 +143,7 @@ const submit = () => {
 
             <!-- Action Buttons at bottom right (matching Create Organization) -->
             <div class="flex items-center justify-end gap-3 pt-2">
-                <Link href="/admin/subscriptions">
+                <Link href="/superadmin/subscriptions">
                     <Button type="button" variant="outline">
                         <span>Cancel</span>
                     </Button>

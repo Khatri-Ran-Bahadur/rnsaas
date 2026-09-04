@@ -1,0 +1,11 @@
+{
+    "name": "Media",
+    "alias": "media",
+    "description": "SaaS Media Library and Picker Module",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Media\\Providers\\MediaServiceProvider"
+    ],
+    "files": []
+}

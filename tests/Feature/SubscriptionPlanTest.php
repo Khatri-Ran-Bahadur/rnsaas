@@ -58,7 +58,7 @@ test('superadmin can create a new plan with features', function () {
         'feature_ids' => [$feature1->id],
     ]);
 
-    $response->assertRedirect('/admin/subscriptions/plans');
+    $response->assertRedirect('/superadmin/subscriptions/plans');
     $response->assertSessionHas('success');
 
     $this->assertDatabaseHas('subscription_plans', [
@@ -100,7 +100,7 @@ test('superadmin can access edit plan page and update it', function () {
         'feature_ids' => [],
     ]);
 
-    $updateResponse->assertRedirect('/admin/subscriptions/plans');
+    $updateResponse->assertRedirect('/superadmin/subscriptions/plans');
     $updateResponse->assertSessionHas('success');
 
     $this->assertDatabaseHas('subscription_plans', [

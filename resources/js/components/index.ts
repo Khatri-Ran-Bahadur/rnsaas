@@ -23,3 +23,5 @@ export { default as ListGridToggle } from './ListGridToggle.vue';
 export { default as PerPageSelector } from './PerPageSelector.vue';
 export { default as SearchInput } from './SearchInput.vue';
 export { default as FilterButton } from './FilterButton.vue';
+export { default as MediaPicker } from './MediaPicker.vue';
+export { default as MediaLibraryModal } from './MediaLibraryModal.vue';

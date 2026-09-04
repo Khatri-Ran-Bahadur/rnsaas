@@ -74,8 +74,8 @@ const formatDate = (dateStr: string) => {
     <AdminLayout
         :title="tenant.name"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Organizations', href: '/admin/tenants' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
+            { label: 'Organizations', href: '/superadmin/tenants' },
             { label: tenant.name },
         ]"
     >
@@ -133,7 +133,7 @@ const formatDate = (dateStr: string) => {
                     </Button>
 
                     <Button
-                        :href="`/admin/tenants/${tenant.id}/edit`"
+                        :href="`/superadmin/tenants/${tenant.id}/edit`"
                         variant="outline"
                         size="sm"
                     >
@@ -234,7 +234,7 @@ const formatDate = (dateStr: string) => {
                             <h2 class="text-base font-semibold text-zinc-900 dark:text-white">Organization Details</h2>
                             <p class="text-xs text-zinc-500 dark:text-zinc-400">Core business profile and categorization.</p>
                         </div>
-                        <Button :href="`/admin/tenants/${tenant.id}/edit`" variant="outline" size="xs">
+                        <Button :href="`/superadmin/tenants/${tenant.id}/edit`" variant="outline" size="xs">
                             Edit Details
                         </Button>
                     </div>

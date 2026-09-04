@@ -35,7 +35,7 @@ it('allows a superadmin to view subscription listing', function () {
     TenantSubscription::factory()->create();
 
     $response = $this->get(
-        route('admin.subscriptions.index')
+        route('superadmin.subscriptions.index')
     );
 
     $response->assertOk();
@@ -45,7 +45,7 @@ it('allows a superadmin to view subscription creation page', function () {
     actingAsSubscriptionSuperAdmin();
 
     $response = $this->get(
-        route('admin.subscriptions.create')
+        route('superadmin.subscriptions.create')
     );
 
     $response->assertOk();
@@ -57,7 +57,7 @@ it('allows a superadmin to view a subscription', function () {
     $subscription = TenantSubscription::factory()->create();
 
     $response = $this->get(
-        route('admin.subscriptions.show', $subscription)
+        route('superadmin.subscriptions.show', $subscription)
     );
 
     $response->assertOk();
@@ -71,7 +71,7 @@ it('requires superadmin access for subscription listing', function () {
     $this->actingAs($user);
 
     $response = $this->get(
-        route('admin.subscriptions.index')
+        route('superadmin.subscriptions.index')
     );
 
     $response->assertForbidden();
@@ -89,7 +89,7 @@ it('paginates subscription listing', function () {
         ]);
 
     $response = $this->get(
-        route('admin.subscriptions.index')
+        route('superadmin.subscriptions.index')
     );
 
     $response->assertOk();
@@ -107,7 +107,7 @@ it('respects per_page query parameter for subscription listing', function () {
         ]);
 
     $response = $this->get(
-        route('admin.subscriptions.index', ['per_page' => 10])
+        route('superadmin.subscriptions.index', ['per_page' => 10])
     );
 
     $response->assertOk();
@@ -130,7 +130,7 @@ it('eager loads tenant and plan for subscription listing', function () {
     ]);
 
     $response = $this->get(
-        route('admin.subscriptions.index')
+        route('superadmin.subscriptions.index')
     );
 
     $response->assertOk();
@@ -148,7 +148,7 @@ it('filters subscriptions by status', function () {
     ]);
 
     $response = $this->get(
-        route('admin.subscriptions.index', ['status' => SubscriptionStatus::Pending->value])
+        route('superadmin.subscriptions.index', ['status' => SubscriptionStatus::Pending->value])
     );
 
     $response->assertOk();
@@ -164,7 +164,7 @@ it('filters subscriptions by plan', function () {
     TenantSubscription::factory()->create(['plan_id' => $planB->id]);
 
     $response = $this->get(
-        route('admin.subscriptions.index', ['plan' => $planA->id])
+        route('superadmin.subscriptions.index', ['plan' => $planA->id])
     );
 
     $response->assertOk();
@@ -180,7 +180,7 @@ it('filters subscriptions by billing cycle', function () {
     TenantSubscription::factory()->create(['plan_id' => $yearlyPlan->id]);
 
     $response = $this->get(
-        route('admin.subscriptions.index', ['billing_cycle' => BillingCycle::Monthly->value])
+        route('superadmin.subscriptions.index', ['billing_cycle' => BillingCycle::Monthly->value])
     );
 
     $response->assertOk();
@@ -196,7 +196,7 @@ it('searches subscriptions by tenant name', function () {
     TenantSubscription::factory()->create(['tenant_id' => $tenantB->id]);
 
     $response = $this->get(
-        route('admin.subscriptions.index', ['search' => 'Acme'])
+        route('superadmin.subscriptions.index', ['search' => 'Acme'])
     );
 
     $response->assertOk();
@@ -212,7 +212,7 @@ it('preserves query strings across pagination', function () {
         ->create(['plan_id' => $plan->id, 'status' => SubscriptionStatus::Active]);
 
     $response = $this->get(
-        route('admin.subscriptions.index', [
+        route('superadmin.subscriptions.index', [
             'status' => SubscriptionStatus::Active->value,
             'page' => 2,
         ])
@@ -230,7 +230,7 @@ it('allows a superadmin to cancel an active subscription', function () {
     ]);
 
     $response = $this->post(
-        route('admin.subscriptions.cancel', $subscription)
+        route('superadmin.subscriptions.cancel', $subscription)
     );
 
     $response->assertRedirect();
@@ -250,7 +250,7 @@ it('allows a superadmin to reactivate a scheduled canceled subscription', functi
     ]);
 
     $response = $this->post(
-        route('admin.subscriptions.reactivate', $subscription)
+        route('superadmin.subscriptions.reactivate', $subscription)
     );
 
     $response->assertRedirect();
@@ -277,7 +277,7 @@ it('requires superadmin access to reactivate a subscription', function () {
     ]);
 
     $response = $this->post(
-        route('admin.subscriptions.reactivate', $subscription)
+        route('superadmin.subscriptions.reactivate', $subscription)
     );
 
     $response->assertForbidden();

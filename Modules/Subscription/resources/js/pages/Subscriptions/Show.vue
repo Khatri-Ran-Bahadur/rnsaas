@@ -131,7 +131,7 @@ const canReactivate = (sub: SubscriptionDetail) => {
 const confirmCancel = () => {
     isCanceling.value = true;
     router.post(
-        `/admin/subscriptions/${props.subscription.id}/cancel`,
+        `/superadmin/subscriptions/${props.subscription.id}/cancel`,
         {},
         {
             preserveScroll: true,
@@ -146,7 +146,7 @@ const confirmCancel = () => {
 const confirmReactivate = () => {
     isReactivating.value = true;
     router.post(
-        `/admin/subscriptions/${props.subscription.id}/reactivate`,
+        `/superadmin/subscriptions/${props.subscription.id}/reactivate`,
         {},
         {
             preserveScroll: true,
@@ -163,8 +163,8 @@ const confirmReactivate = () => {
     <AdminLayout
         title="Subscription Details"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Subscriptions', href: '/admin/subscriptions' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
+            { label: 'Subscriptions', href: '/superadmin/subscriptions' },
             { label: subscription.public_id },
         ]"
     >
@@ -215,7 +215,7 @@ const confirmReactivate = () => {
                     <span>Reactivate Subscription</span>
                 </Button>
 
-                <Link href="/admin/subscriptions">
+                <Link href="/superadmin/subscriptions">
                     <Button variant="outline" size="sm">
                         <template #prefix>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

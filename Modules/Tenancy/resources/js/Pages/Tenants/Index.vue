@@ -61,7 +61,7 @@ const industryOptions = [
 
 const applyFilters = () => {
     router.get(
-        '/admin/tenants',
+        '/superadmin/tenants',
         {
             search: search.value || undefined,
             status: status.value || undefined,
@@ -110,7 +110,7 @@ const formatDate = (dateStr: string) => {
 <template>
     <AdminLayout
         title="Organizations"
-        :breadcrumbs="[{ label: 'Dashboard', href: '/admin/dashboard' }, { label: 'Organizations' }]"
+        :breadcrumbs="[{ label: 'Dashboard', href: '/superadmin/dashboard' }, { label: 'Organizations' }]"
     >
         <!-- Page Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
@@ -125,7 +125,7 @@ const formatDate = (dateStr: string) => {
 
             <div class="flex items-center gap-3">
                 <Button
-                    href="/admin/tenants/create"
+                    href="/superadmin/tenants/create"
                     variant="primary"
                 >
                     <template #prefix>
@@ -240,7 +240,7 @@ const formatDate = (dateStr: string) => {
                         </Button>
                         <Button
                             v-else
-                            href="/admin/tenants/create"
+                            href="/superadmin/tenants/create"
                             variant="primary"
                             size="sm"
                         >
@@ -330,7 +330,7 @@ const formatDate = (dateStr: string) => {
                                     </div>
                                     <div>
                                         <Link
-                                            :href="`/admin/tenants/${item.id}`"
+                                            :href="`/superadmin/tenants/${item.id}`"
                                             class="font-semibold text-zinc-900 hover:underline dark:text-white"
                                         >
                                             {{ item.name }}
@@ -385,7 +385,7 @@ const formatDate = (dateStr: string) => {
                                     <template #default="{ close }">
                                         <div class="py-1 text-xs">
                                             <Link
-                                                :href="`/admin/tenants/${item.id}`"
+                                                :href="`/superadmin/tenants/${item.id}`"
                                                 class="flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md"
                                                 @click="close"
                                             >
@@ -397,7 +397,7 @@ const formatDate = (dateStr: string) => {
                                             </Link>
 
                                             <Link
-                                                :href="`/admin/tenants/${item.id}/edit`"
+                                                :href="`/superadmin/tenants/${item.id}/edit`"
                                                 class="flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md"
                                                 @click="close"
                                             >
@@ -434,7 +434,7 @@ const formatDate = (dateStr: string) => {
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <Link
-                                        :href="`/admin/tenants/${item.id}`"
+                                        :href="`/superadmin/tenants/${item.id}`"
                                         class="font-semibold text-sm text-zinc-900 hover:underline dark:text-white truncate block"
                                         :title="item.name"
                                     >
@@ -501,7 +501,7 @@ const formatDate = (dateStr: string) => {
                                 <template #default="{ close }">
                                     <div class="py-1 text-xs">
                                         <Link
-                                            :href="`/admin/tenants/${item.id}`"
+                                            :href="`/superadmin/tenants/${item.id}`"
                                             class="flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md"
                                             @click="close"
                                         >
@@ -513,7 +513,7 @@ const formatDate = (dateStr: string) => {
                                         </Link>
 
                                         <Link
-                                            :href="`/admin/tenants/${item.id}/edit`"
+                                            :href="`/superadmin/tenants/${item.id}/edit`"
                                             class="flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md"
                                             @click="close"
                                         >

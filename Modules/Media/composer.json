@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/media",
+    "description": "SaaS Media Library and Picker Module",
+    "authors": [
+        {
+            "name": "Ran Bahadur Khatri",
+            "email": "rnkhatri@example.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Media\\": "app/",
+            "Modules\\Media\\Database\\Factories\\": "database/factories/",
+            "Modules\\Media\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Media\\Tests\\": "tests/"
+        }
+    }
+}

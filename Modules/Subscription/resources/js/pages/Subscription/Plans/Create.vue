@@ -118,7 +118,7 @@ const billingCycleOptions = [
 ];
 
 const submit = () => {
-    form.post('/admin/subscriptions/plans');
+    form.post('/superadmin/subscriptions/plans');
 };
 </script>
 
@@ -126,9 +126,9 @@ const submit = () => {
     <AdminLayout
         title="Create Subscription Plan"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Subscriptions', href: '/admin/subscriptions/plans' },
-            { label: 'Plans', href: '/admin/subscriptions/plans' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
+            { label: 'Subscriptions', href: '/superadmin/subscriptions/plans' },
+            { label: 'Plans', href: '/superadmin/subscriptions/plans' },
             { label: 'Create Plan' },
         ]"
     >
@@ -136,7 +136,7 @@ const submit = () => {
         <div class="pb-6 border-b border-zinc-200 dark:border-zinc-800">
             <div class="flex items-center gap-3">
                 <Link
-                    href="/admin/subscriptions/plans"
+                    href="/superadmin/subscriptions/plans"
                     class="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                 >
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -359,7 +359,7 @@ const submit = () => {
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                     <Button
-                        href="/admin/subscriptions/plans"
+                        href="/superadmin/subscriptions/plans"
                         variant="outline"
                     >
                         Cancel

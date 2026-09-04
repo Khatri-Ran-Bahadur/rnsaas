@@ -135,7 +135,7 @@ class TenantSubscriptionController extends Controller
         );
 
         return redirect()
-            ->route('admin.subscriptions.index')
+            ->route('superadmin.subscriptions.index')
             ->with(
                 'success',
                 "Subscription for '{$tenant->name}' was created successfully.",

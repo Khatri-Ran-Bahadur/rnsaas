@@ -105,9 +105,9 @@ const groupedModules = computed(() => {
     <AdminLayout
         :title="`${plan.name} - Plan Details`"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Subscriptions', href: '/admin/subscriptions/plans' },
-            { label: 'Plans', href: '/admin/subscriptions/plans' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
+            { label: 'Subscriptions', href: '/superadmin/subscriptions/plans' },
+            { label: 'Plans', href: '/superadmin/subscriptions/plans' },
             { label: plan.name },
         ]"
     >
@@ -139,7 +139,7 @@ const groupedModules = computed(() => {
                 <!-- Action Bar -->
                 <div class="flex items-center gap-3 self-start sm:self-auto">
                     <Button
-                        :href="`/admin/subscriptions/plans/${plan.id}/edit`"
+                        :href="`/superadmin/subscriptions/plans/${plan.id}/edit`"
                         variant="primary"
                         size="sm"
                     >
@@ -152,7 +152,7 @@ const groupedModules = computed(() => {
                     </Button>
 
                     <Button
-                        href="/admin/subscriptions/plans"
+                        href="/superadmin/subscriptions/plans"
                         variant="outline"
                         size="sm"
                     >

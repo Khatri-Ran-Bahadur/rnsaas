@@ -4,5 +4,6 @@
     "Audit": true,
     "SuperAdmin": true,
     "Subscription": true,
-    "Payment": true
+    "Payment": true,
+    "Media": true
 }

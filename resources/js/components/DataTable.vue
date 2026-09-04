@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue';
 import EmptyState from '@/components/EmptyState.vue';
 import Dropdown from '@/components/Dropdown.vue';
+import ListGridToggle from '@/components/ListGridToggle.vue';
+import PerPageSelector from '@/components/PerPageSelector.vue';
 import type { PaginatedData } from '@/types/tenancy';
 
 export interface TableColumn {
@@ -147,71 +149,14 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
             <!-- Right Controls -->
             <div class="flex items-center gap-2 self-end sm:self-auto">
                 <!-- Layout Mode Toggle -->
-                <div class="flex items-center rounded-lg border border-zinc-200/90 bg-white p-0.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900">
-                    <button
-                        type="button"
-                        class="rounded-md p-1.5 transition-colors"
-                        :class="[
-                            viewMode === 'list'
-                                ? 'bg-primary-600 text-white shadow-xs'
-                                : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
-                        ]"
-                        title="List View"
-                        @click="viewMode = 'list'"
-                    >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                    <button
-                        type="button"
-                        class="rounded-md p-1.5 transition-colors"
-                        :class="[
-                            viewMode === 'grid'
-                                ? 'bg-primary-600 text-white shadow-xs'
-                                : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
-                        ]"
-                        title="Grid View"
-                        @click="viewMode = 'grid'"
-                    >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                        </svg>
-                    </button>
-                </div>
+                <ListGridToggle v-model="viewMode" />
 
                 <!-- Per Page Selector -->
-                <Dropdown width="w-36">
-                    <template #trigger="{ isOpen }">
-                        <button
-                            type="button"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200/90 bg-white px-3 py-2 text-xs font-medium text-zinc-700 shadow-2xs transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                        >
-                            <span>{{ currentPerPage }} per page</span>
-                            <svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                    </template>
-
-                    <template #default="{ close }">
-                        <div class="py-1">
-                            <button
-                                v-for="opt in perPageOptions"
-                                :key="opt"
-                                type="button"
-                                class="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                                :class="{ 'font-semibold bg-zinc-50 dark:bg-zinc-800/80': currentPerPage === opt }"
-                                @click="selectPerPage(opt); close()"
-                            >
-                                <span>{{ opt }} per page</span>
-                                <svg v-if="currentPerPage === opt" class="h-3.5 w-3.5 text-zinc-900 dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </button>
-                        </div>
-                    </template>
-                </Dropdown>
+                <PerPageSelector
+                    :model-value="currentPerPage"
+                    :options="perPageOptions"
+                    @change="selectPerPage"
+                />
 
                 <!-- Filters -->
                 <slot name="filters">
@@ -245,7 +190,51 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                 </div>
             </div>
 
-            <!-- Table View -->
+            <!-- Grid View (when viewMode === 'grid') -->
+            <div v-else-if="items.length > 0 && viewMode === 'grid'" class="p-6 bg-zinc-50/30 dark:bg-zinc-950/30">
+                <slot name="grid" :items="items">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        <div
+                            v-for="(item, idx) in items"
+                            :key="item.id ?? idx"
+                            class="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-2xs hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 transition-all"
+                        >
+                            <slot name="grid-card" :item="item" :index="idx">
+                                <div>
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 font-bold text-sm text-zinc-800 uppercase dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200/80 dark:border-zinc-700">
+                                            {{ (item.name || item.title || 'D').substring(0, 2) }}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="font-semibold text-sm text-zinc-900 dark:text-white truncate">
+                                                {{ item.name || item.title || `Item #${item.id}` }}
+                                            </h3>
+                                            <p v-if="item.slug || item.public_id || item.email" class="text-xs text-zinc-400 truncate font-mono">
+                                                {{ item.slug || item.public_id || item.email }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2 text-xs text-zinc-600 dark:text-zinc-300">
+                                        <div v-for="col in columns.filter(c => c.key !== 'actions' && c.key !== columns[0]?.key).slice(0, 3)" :key="col.key">
+                                            <span class="text-zinc-400 dark:text-zinc-500 font-medium text-[11px] block">{{ col.label }}</span>
+                                            <slot :name="`cell(${col.key})`" :item="item" :value="item[col.key]">
+                                                <span>{{ item[col.key] ?? '—' }}</span>
+                                            </slot>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="$slots['cell(actions)']" class="mt-4 pt-3 border-t border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-end">
+                                    <slot name="cell(actions)" :item="item" />
+                                </div>
+                            </slot>
+                        </div>
+                    </div>
+                </slot>
+            </div>
+
+            <!-- Table View (when viewMode === 'list') -->
             <div v-else-if="items.length > 0" class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-zinc-600 dark:text-zinc-300">
                     <thead class="border-b border-zinc-100 bg-zinc-50/60 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-400">

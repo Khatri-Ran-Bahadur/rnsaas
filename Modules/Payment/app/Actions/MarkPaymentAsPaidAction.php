@@ -15,11 +15,11 @@ class MarkPaymentAsPaidAction
     ): PaymentTransaction {
         return DB::transaction(function () use ($payment): PaymentTransaction {
             if ($payment->status->isPaid()) {
-                throw new PaymentCannotBeMarkedAsPaidException();
+                throw new PaymentCannotBeMarkedAsPaidException;
             }
 
             if (! $payment->status->isPending()) {
-                throw new PaymentCannotBeMarkedAsPaidException();
+                throw new PaymentCannotBeMarkedAsPaidException;
             }
 
             $payment->update([

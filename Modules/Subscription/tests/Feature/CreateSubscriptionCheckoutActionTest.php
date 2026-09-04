@@ -3,9 +3,10 @@
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Payment\Enums\PaymentStatus;
 use Modules\Payment\Enums\PaymentType;
-use Modules\Payment\Models\PaymentTransaction;
 use Modules\Subscription\Actions\CreateSubscriptionCheckoutAction;
 use Modules\Subscription\Enums\SubscriptionStatus;
+use Modules\Subscription\Exceptions\InactivePlanException;
+use Modules\Subscription\Exceptions\TenantAlreadySubscribedException;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Models\TenantSubscription;
 use Modules\Tenancy\Models\Tenant;
@@ -70,7 +71,7 @@ it('does not create checkout when tenant already has active subscription', funct
             idempotencyKey: 'checkout-test-002',
         ))
         ->toThrow(
-            \Modules\Subscription\Exceptions\TenantAlreadySubscribedException::class,
+            TenantAlreadySubscribedException::class,
         );
 });
 
@@ -93,7 +94,7 @@ it('does not create checkout when tenant has pending subscription', function () 
             idempotencyKey: 'checkout-test-003',
         ))
         ->toThrow(
-            \Modules\Subscription\Exceptions\TenantAlreadySubscribedException::class,
+            TenantAlreadySubscribedException::class,
         );
 });
 
@@ -111,7 +112,7 @@ it('does not create checkout for inactive plan', function () {
             idempotencyKey: 'checkout-test-004',
         ))
         ->toThrow(
-            \Modules\Subscription\Exceptions\InactivePlanException::class,
+            InactivePlanException::class,
         );
 });
 

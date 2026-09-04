@@ -15,14 +15,14 @@ class ExpireSubscriptionAction
     ): TenantSubscription {
         return DB::transaction(function () use ($subscription): TenantSubscription {
             if (! $subscription->status->isActiveOrTrialing()) {
-                throw new SubscriptionCannotBeExpiredException();
+                throw new SubscriptionCannotBeExpiredException;
             }
 
             $expirationAt = $subscription->ends_at
                 ?? $subscription->current_period_ends_at;
 
             if ($expirationAt === null || $expirationAt->isFuture()) {
-                throw new SubscriptionCannotBeExpiredException();
+                throw new SubscriptionCannotBeExpiredException;
             }
 
             $subscription->update([

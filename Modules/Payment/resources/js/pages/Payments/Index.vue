@@ -5,9 +5,15 @@ import AdminLayout from "@/layouts/AdminLayout.vue";
 import StatsCard from "@/components/StatsCard.vue";
 import Badge from "@/components/Badge.vue";
 import Button from "@/components/Button.vue";
+import Select from "@/components/Select.vue";
+import Dropdown from "@/components/Dropdown.vue";
 import Modal from "@/components/Modal.vue";
 import Pagination from "@/components/Pagination.vue";
 import EmptyState from "@/components/EmptyState.vue";
+import ListGridToggle from "@/components/ListGridToggle.vue";
+import PerPageSelector from "@/components/PerPageSelector.vue";
+import SearchInput from "@/components/SearchInput.vue";
+import FilterButton from "@/components/FilterButton.vue";
 
 export interface TenantInfo {
 	id: number;
@@ -70,6 +76,7 @@ export interface Filters {
 	search?: string;
 	status?: string;
 	provider?: string;
+	per_page?: number | string;
 }
 
 const props = defineProps<{
@@ -84,10 +91,34 @@ const props = defineProps<{
 	};
 }>();
 
-// Filter states
+// View and filter states
+const viewMode = ref<"list" | "grid">("list");
 const search = ref(props.filters?.search ?? "");
 const status = ref(props.filters?.status ?? "");
 const provider = ref(props.filters?.provider ?? "");
+const perPage = ref(Number(props.filters?.per_page ?? 10));
+const showFilters = ref(false);
+
+const activeFiltersCount = computed(() => {
+	return [status.value, provider.value].filter(Boolean).length;
+});
+
+const statusOptions = [
+	{ label: "All Statuses", value: "" },
+	{ label: "Pending", value: "pending" },
+	{ label: "Paid", value: "paid" },
+	{ label: "Failed", value: "failed" },
+	{ label: "Refunded", value: "refunded" },
+];
+
+const providerOptions = [
+	{ label: "All Providers", value: "" },
+	{ label: "Bank Transfer", value: "bank_transfer" },
+	{ label: "Stripe", value: "stripe" },
+	{ label: "Razorpay", value: "razorpay" },
+	{ label: "Khalti", value: "khalti" },
+	{ label: "eSewa", value: "esewa" },
+];
 
 // Filter management
 const applyFilters = () => {
@@ -97,6 +128,7 @@ const applyFilters = () => {
 			search: search.value || undefined,
 			status: status.value || undefined,
 			provider: provider.value || undefined,
+			per_page: perPage.value !== 10 ? perPage.value : undefined,
 		},
 		{
 			preserveState: true,
@@ -106,6 +138,11 @@ const applyFilters = () => {
 	);
 };
 
+const handlePerPageChange = (newPerPage: number) => {
+	perPage.value = newPerPage;
+	applyFilters();
+};
+
 const clearFilters = () => {
 	search.value = "";
 	status.value = "";
@@ -113,11 +150,10 @@ const clearFilters = () => {
 	applyFilters();
 };
 
-// Summary metrics (utilizing server aggregates if available, otherwise total + page counts)
+// Summary metrics
 const summaryStats = computed(() => {
 	const totalCount = props.summary?.total ?? props.payments.total ?? 0;
 
-	// Check if server passed breakdown counts
 	if (props.summary?.pending !== undefined) {
 		return {
 			total: totalCount,
@@ -128,7 +164,6 @@ const summaryStats = computed(() => {
 		};
 	}
 
-	// Otherwise show exact total, and indicate server aggregate is pending for specific breakdowns
 	return {
 		total: totalCount,
 		pending: "—",
@@ -210,7 +245,7 @@ const copyToClipboard = async (text: string) => {
 			copiedId.value = null;
 		}, 2000);
 	} catch {
-		// Fallback or ignore
+		// Fallback
 	}
 };
 
@@ -268,8 +303,7 @@ const closeConfirmModal = () => {
 					</span>
 				</div>
 				<p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-					Manage subscription payments, bank transfers, and payment
-					verification.
+					Manage subscription payments, bank transfers, and payment verification.
 				</p>
 			</div>
 		</div>
@@ -332,11 +366,7 @@ const closeConfirmModal = () => {
 			<StatsCard
 				title="Paid"
 				:value="summaryStats.paid"
-				:subtitle="
-					summaryStats.paid === '—'
-						? 'Awaiting server aggregate'
-						: 'Successfully completed'
-				"
+				subtitle="Successfully completed"
 				badge-color="emerald"
 			>
 				<template #icon>
@@ -360,11 +390,7 @@ const closeConfirmModal = () => {
 			<StatsCard
 				title="Failed"
 				:value="summaryStats.failed"
-				:subtitle="
-					summaryStats.failed === '—'
-						? 'Awaiting server aggregate'
-						: 'Declined / Failed'
-				"
+				subtitle="Unsuccessful attempts"
 				badge-color="rose"
 			>
 				<template #icon>
@@ -388,11 +414,7 @@ const closeConfirmModal = () => {
 			<StatsCard
 				title="Refunded"
 				:value="summaryStats.refunded"
-				:subtitle="
-					summaryStats.refunded === '—'
-						? 'Awaiting server aggregate'
-						: 'Reversed payments'
-				"
+				subtitle="Reversed transactions"
 				badge-color="zinc"
 			>
 				<template #icon>
@@ -406,140 +428,157 @@ const closeConfirmModal = () => {
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+							d="M16 15v-1a4 4 0 00-4-4H4m0 0l3-3m-3 3l3 3m5 4v1a4 4 0 004 4h8m0 0l-3-3m3 3l-3 3"
 						/>
 					</svg>
 				</template>
 			</StatsCard>
 		</div>
 
-		<!-- Filter & Search Bar -->
+		<!-- Main Content Card (Accounting style: search + controls header, table/grid, and inside pagination) -->
 		<div
-			class="mt-6 rounded-xl border border-zinc-200 bg-white p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900"
+			class="mt-6 overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
 		>
-			<form
-				@submit.prevent="applyFilters"
-				class="flex flex-col lg:flex-row lg:items-center gap-3"
+			<!-- Search & Controls Header -->
+			<div
+				class="p-4 sm:p-5 border-b border-zinc-200/90 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900/60"
 			>
-				<!-- Search Input -->
-				<div class="relative flex-1">
-					<div
-						class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400"
-					>
-						<svg
-							class="h-4 w-4"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-							/>
-						</svg>
+				<div
+					class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4"
+				>
+					<!-- Search Input -->
+					<div class="flex-1 max-w-md">
+						<SearchInput
+							v-model="search"
+							placeholder="Search by ID, tenant, provider ref..."
+							@search="applyFilters"
+							@clear="clearFilters"
+						/>
 					</div>
-					<input
-						v-model="search"
-						type="text"
-						placeholder="Search payments..."
-						class="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder-zinc-400 focus:border-primary-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-500 dark:focus:border-primary-500"
-					/>
+
+					<!-- Right Controls -->
+					<div class="flex items-center gap-2.5 self-end sm:self-auto">
+						<!-- List / Grid Toggle -->
+						<ListGridToggle v-model="viewMode" />
+
+						<!-- Per Page Selector -->
+						<PerPageSelector
+							v-model="perPage"
+							@change="handlePerPageChange"
+						/>
+
+						<!-- Filter Button -->
+						<FilterButton
+							:show-filters="showFilters"
+							:count="activeFiltersCount"
+							@toggle="showFilters = !showFilters"
+						/>
+					</div>
 				</div>
+			</div>
 
-				<!-- Status Filter Dropdown -->
-				<div class="w-full sm:w-44">
-					<select
-						v-model="status"
-						class="w-full rounded-lg border border-zinc-200 bg-white py-2 px-3 text-sm text-zinc-900 focus:border-primary-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-primary-500"
-					>
-						<option value="">All Statuses</option>
-						<option value="pending">Pending</option>
-						<option value="paid">Paid</option>
-						<option value="failed">Failed</option>
-						<option value="refunded">Refunded</option>
-					</select>
+			<!-- Advanced Filters Row (Expandable) -->
+			<div
+				v-if="showFilters"
+				class="p-4 sm:p-5 bg-zinc-50/90 border-b border-zinc-200/90 dark:bg-zinc-900/90 dark:border-zinc-800"
+			>
+				<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+					<!-- Status Filter -->
+					<div>
+						<Select
+							v-model="status"
+							label="Status"
+							:options="statusOptions"
+							placeholder="All Statuses"
+						/>
+					</div>
+
+					<!-- Provider Filter -->
+					<div>
+						<Select
+							v-model="provider"
+							label="Provider"
+							:options="providerOptions"
+							placeholder="All Providers"
+						/>
+					</div>
+
+					<!-- Actions -->
+					<div class="flex items-center gap-2">
+						<Button
+							type="button"
+							variant="primary"
+							size="sm"
+							@click="applyFilters"
+						>
+							Apply Filters
+						</Button>
+						<Button
+							v-if="search || status || provider"
+							type="button"
+							variant="outline"
+							size="sm"
+							@click="clearFilters"
+						>
+							Clear
+						</Button>
+					</div>
 				</div>
+			</div>
 
-				<!-- Provider Filter Dropdown -->
-				<div class="w-full sm:w-44">
-					<select
-						v-model="provider"
-						class="w-full rounded-lg border border-zinc-200 bg-white py-2 px-3 text-sm text-zinc-900 focus:border-primary-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-primary-500"
-					>
-						<option value="">All Providers</option>
-						<option value="bank_transfer">Bank Transfer</option>
-					</select>
-				</div>
+			<!-- Content Area: Empty State -->
+			<div v-if="payments.data.length === 0" class="p-12 text-center">
+				<EmptyState
+					title="No payments found"
+					:description="
+						search || status || provider
+							? 'No payments matched the selected search criteria.'
+							: 'No payment transactions have been recorded yet.'
+					"
+				>
+					<template #actions>
+						<Button
+							v-if="search || status || provider"
+							variant="outline"
+							size="sm"
+							@click="clearFilters"
+						>
+							Reset Filters
+						</Button>
+					</template>
+				</EmptyState>
+			</div>
 
-				<!-- Action Buttons -->
-				<div class="flex items-center gap-2 shrink-0">
-					<Button type="submit" variant="primary" size="sm">
-						<template #prefix>
-							<svg
-								class="h-3.5 w-3.5"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-								/>
-							</svg>
-						</template>
-						<span>Search</span>
-					</Button>
-
-					<Button
-						v-if="search || status || provider"
-						type="button"
-						variant="outline"
-						size="sm"
-						@click="clearFilters"
-					>
-						<span>Clear</span>
-					</Button>
-				</div>
-			</form>
-		</div>
-
-		<!-- Payments Table Section -->
-		<div
-			class="mt-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900"
-		>
-			<div class="overflow-x-auto">
+			<!-- Content Area: List View (Table) -->
+			<div v-else-if="viewMode === 'list'" class="overflow-x-auto">
 				<table
-					class="w-full text-left text-sm text-zinc-600 dark:text-zinc-400"
+					class="w-full text-left text-sm text-zinc-600 dark:text-zinc-300"
 				>
 					<thead
-						class="border-b border-zinc-200 bg-zinc-50/75 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/75 dark:text-zinc-400"
+						class="border-b border-zinc-200 bg-zinc-100/75 text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300"
 					>
 						<tr>
-							<th scope="col" class="py-3.5 pl-4 pr-3 sm:pl-6">Payment</th>
-							<th scope="col" class="px-3 py-3.5">Tenant</th>
-							<th scope="col" class="px-3 py-3.5">Subscription / Plan</th>
-							<th scope="col" class="px-3 py-3.5">Provider</th>
-							<th scope="col" class="px-3 py-3.5">Amount</th>
-							<th scope="col" class="px-3 py-3.5">Status</th>
-							<th scope="col" class="px-3 py-3.5">Paid At</th>
-							<th scope="col" class="px-3 py-3.5">Created</th>
-							<th scope="col" class="py-3.5 pl-3 pr-4 sm:pr-6 text-right">
+							<th scope="col" class="h-11 px-4 text-left align-middle">Payment</th>
+							<th scope="col" class="h-11 px-4 text-left align-middle">Tenant</th>
+							<th scope="col" class="h-11 px-4 text-left align-middle">Subscription / Plan</th>
+							<th scope="col" class="h-11 px-4 text-left align-middle">Provider</th>
+							<th scope="col" class="h-11 px-4 text-left align-middle">Amount</th>
+							<th scope="col" class="h-11 px-4 text-left align-middle">Status</th>
+							<th scope="col" class="h-11 px-4 text-left align-middle">Paid At</th>
+							<th scope="col" class="h-11 px-4 text-left align-middle">Created</th>
+							<th scope="col" class="h-11 px-4 text-right align-middle">
 								Actions
 							</th>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+					<tbody class="divide-y divide-zinc-200/80 dark:divide-zinc-800/80">
 						<tr
 							v-for="item in payments.data"
 							:key="item.id"
-							class="transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40"
+							class="transition-colors hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40"
 						>
 							<!-- 1. Payment ID -->
-							<td class="py-4 pl-4 pr-3 sm:pl-6">
+							<td class="p-4 align-middle font-medium text-zinc-900 dark:text-zinc-100">
 								<div class="flex items-center gap-1.5">
 									<span
 										class="font-mono text-xs font-medium text-zinc-900 dark:text-zinc-100"
@@ -549,7 +588,7 @@ const closeConfirmModal = () => {
 									</span>
 									<button
 										type="button"
-										class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+										class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 cursor-pointer"
 										:title="
 											copiedId === item.public_id ? 'Copied!' : 'Copy full ID'
 										"
@@ -589,24 +628,29 @@ const closeConfirmModal = () => {
 
 							<!-- 2. Tenant -->
 							<td
-								class="px-3 py-4 font-medium text-zinc-900 dark:text-zinc-100"
+								class="p-4 align-middle font-medium text-zinc-900 dark:text-zinc-100"
 							>
-								<div class="truncate max-w-[160px]" :title="item.tenant?.name">
-									{{ item.tenant?.name ?? `Tenant #${item.tenant_id}` }}
+								<div class="flex items-center gap-2.5">
+									<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 font-bold text-xs text-zinc-700 uppercase dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200/60 dark:border-zinc-700">
+										{{ (item.tenant?.name ?? 'T').substring(0, 2) }}
+									</div>
+									<div class="truncate max-w-[160px]" :title="item.tenant?.name">
+										{{ item.tenant?.name ?? `Tenant #${item.tenant_id}` }}
+									</div>
 								</div>
 							</td>
 
 							<!-- 3. Subscription / Plan -->
-							<td class="px-3 py-4">
+							<td class="px-4 py-4 text-xs font-medium text-zinc-700 dark:text-zinc-300">
 								<div
 									v-if="item.subscription?.plan?.name"
-									class="font-medium text-zinc-900 dark:text-zinc-100"
+									class="font-semibold text-zinc-900 dark:text-zinc-100"
 								>
 									{{ item.subscription.plan.name }}
 								</div>
 								<div
 									v-else-if="item.subscription_id"
-									class="text-xs text-zinc-500 dark:text-zinc-400"
+									class="text-xs text-zinc-500 dark:text-zinc-400 font-mono"
 								>
 									Sub #{{ item.subscription_id }}
 								</div>
@@ -614,7 +658,7 @@ const closeConfirmModal = () => {
 							</td>
 
 							<!-- 4. Provider -->
-							<td class="px-3 py-4">
+							<td class="px-4 py-4">
 								<div
 									class="inline-flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-300"
 								>
@@ -625,31 +669,31 @@ const closeConfirmModal = () => {
 
 							<!-- 5. Amount -->
 							<td
-								class="px-3 py-4 font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap"
+								class="px-4 py-4 font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap"
 							>
 								{{ formatAmount(item.amount, item.currency) }}
 							</td>
 
 							<!-- 6. Status -->
-							<td class="px-3 py-4 whitespace-nowrap">
+							<td class="px-4 py-4 whitespace-nowrap">
 								<Badge
 									v-if="item.status === 'paid'"
-									variant="active"
+									variant="success"
 									label="Paid"
 								/>
 								<Badge
 									v-else-if="item.status === 'pending'"
-									variant="pending"
+									variant="warning"
 									label="Pending"
 								/>
 								<Badge
 									v-else-if="item.status === 'failed'"
-									variant="cancelled"
+									variant="danger"
 									label="Failed"
 								/>
 								<Badge
 									v-else-if="item.status === 'refunded'"
-									variant="neutral"
+									variant="default"
 									label="Refunded"
 								/>
 								<Badge v-else variant="default" :label="item.status" />
@@ -657,111 +701,207 @@ const closeConfirmModal = () => {
 
 							<!-- 7. Paid At -->
 							<td
-								class="px-3 py-4 font-mono text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400"
+								class="px-4 py-4 font-mono text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400"
 							>
 								{{ formatDate(item.paid_at) }}
 							</td>
 
 							<!-- 8. Created At -->
 							<td
-								class="px-3 py-4 font-mono text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400"
+								class="px-4 py-4 font-mono text-xs whitespace-nowrap text-zinc-500 dark:text-zinc-400"
 							>
 								{{ formatDate(item.created_at) }}
 							</td>
 
-							<!-- 9. Actions -->
-							<td class="py-4 pl-3 pr-4 sm:pr-6 text-right whitespace-nowrap">
-								<div class="flex items-center justify-end gap-2">
-									<!-- View Details Button -->
-									<Button
-										variant="outline"
-										size="xs"
-										title="View Details"
-										@click="openDetailModal(item)"
-									>
-										<span>View</span>
-									</Button>
-
-									<!-- Mark as Paid Button (Only for pending) -->
-									<Button
-										v-if="item.status === 'pending'"
-										variant="success"
-										size="xs"
-										title="Verify and mark as paid"
-										@click="openConfirmModal(item)"
-									>
-										<template #prefix>
-											<svg
-												class="h-3.5 w-3.5"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-											>
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M5 13l4 4L19 7"
-												/>
+							<!-- 9. Actions (Teleported 3-dots Dropdown) -->
+							<td class="p-4 align-middle text-right whitespace-nowrap">
+								<Dropdown align="right" width="w-48">
+									<template #trigger>
+										<button
+											type="button"
+											class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors cursor-pointer"
+											title="Actions"
+										>
+											<span class="sr-only">Open menu</span>
+											<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
 											</svg>
-										</template>
-										<span>Mark as Paid</span>
-									</Button>
-								</div>
-							</td>
-						</tr>
+										</button>
+									</template>
 
-						<!-- Empty State Row -->
-						<tr v-if="payments.data.length === 0">
-							<td colspan="9" class="py-12 p-10">
-								<EmptyState
-									title="No payments found"
-									:description="
-										search || status || provider
-											? 'No payments matched the selected search criteria.'
-											: 'No payment transactions have been recorded yet.'
-									"
-								>
-									<template #icon>
-										<svg
-											class="h-6 w-6"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="1.5"
-												d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-											/>
-										</svg>
+									<template #default="{ close }">
+										<div class="py-1 text-xs">
+											<!-- View Details -->
+											<button
+												type="button"
+												class="w-full flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md text-left cursor-pointer"
+												@click="openDetailModal(item); close()"
+											>
+												<svg class="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+												</svg>
+												<span>View Details</span>
+											</button>
+
+											<!-- Mark as Paid (Only for pending) -->
+											<button
+												v-if="item.status === 'pending'"
+												type="button"
+												class="w-full flex items-center gap-2.5 px-3 py-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40 transition-colors rounded-md text-left cursor-pointer"
+												@click="openConfirmModal(item); close()"
+											>
+												<svg class="h-4 w-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+												</svg>
+												<span>Mark as Paid</span>
+											</button>
+										</div>
 									</template>
-									<template #actions>
-										<Button
-											v-if="search || status || provider"
-											variant="outline"
-											size="sm"
-											@click="clearFilters"
-										>
-											Reset Filters
-										</Button>
-									</template>
-								</EmptyState>
+								</Dropdown>
 							</td>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 
-			<!-- Pagination Footer -->
-			<div class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
-				<Pagination
-					:links="payments.links"
-					:from="payments.from"
-					:to="payments.to"
-					:total="payments.total"
-				/>
+			<!-- Content Area: Grid View (Accounting-style Cards) -->
+			<div
+				v-else-if="viewMode === 'grid'"
+				class="p-5 bg-zinc-50/30 dark:bg-zinc-950/30"
+			>
+				<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+					<div
+						v-for="item in payments.data"
+						:key="item.id"
+						class="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-2xs hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 transition-all"
+					>
+						<!-- Top Info -->
+						<div>
+							<div class="flex items-center gap-3 mb-3">
+								<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 font-bold text-sm text-zinc-800 uppercase dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200/80 dark:border-zinc-700">
+									{{ (item.tenant?.name ?? 'T').substring(0, 2) }}
+								</div>
+								<div class="flex-1 min-w-0">
+									<h3 class="font-semibold text-sm text-zinc-900 dark:text-white truncate" :title="item.tenant?.name">
+										{{ item.tenant?.name ?? `Tenant #${item.tenant_id}` }}
+									</h3>
+									<span class="font-mono text-[11px] text-zinc-400 dark:text-zinc-500 truncate block">
+										{{ formatShortId(item.public_id) }}
+									</span>
+								</div>
+							</div>
+
+							<!-- Details -->
+							<div class="space-y-2 text-xs">
+								<div class="flex items-center justify-between">
+									<span class="text-zinc-500 dark:text-zinc-400 text-[11px] font-medium">Amount</span>
+									<span class="text-sm font-bold text-zinc-900 dark:text-white">
+										{{ formatAmount(item.amount, item.currency) }}
+									</span>
+								</div>
+
+								<div class="flex items-center justify-between pt-1">
+									<span class="text-zinc-500 dark:text-zinc-400 text-[11px] font-medium">Provider</span>
+									<span class="font-medium text-zinc-800 dark:text-zinc-200">
+										{{ formatProvider(item.provider) }}
+									</span>
+								</div>
+
+								<div v-if="item.subscription?.plan?.name" class="flex items-center justify-between pt-1">
+									<span class="text-zinc-500 dark:text-zinc-400 text-[11px] font-medium">Plan</span>
+									<span class="font-medium text-zinc-800 dark:text-zinc-200 truncate max-w-[120px]">
+										{{ item.subscription.plan.name }}
+									</span>
+								</div>
+
+								<div class="pt-1">
+									<span class="text-zinc-500 dark:text-zinc-400 block text-[11px] font-medium">Date</span>
+									<span class="font-mono text-zinc-600 dark:text-zinc-400 text-[11px]">
+										{{ formatDate(item.paid_at || item.created_at) }}
+									</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Card Footer -->
+						<div class="mt-4 pt-3 border-t border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+							<!-- Status Badge -->
+							<Badge
+								v-if="item.status === 'paid'"
+								variant="success"
+								label="Paid"
+							/>
+							<Badge
+								v-else-if="item.status === 'pending'"
+								variant="warning"
+								label="Pending"
+							/>
+							<Badge
+								v-else-if="item.status === 'failed'"
+								variant="danger"
+								label="Failed"
+							/>
+							<Badge
+								v-else-if="item.status === 'refunded'"
+								variant="default"
+								label="Refunded"
+							/>
+							<Badge v-else variant="default" :label="item.status" />
+
+							<!-- Actions Dropdown -->
+							<Dropdown align="right" width="w-48">
+								<template #trigger>
+									<button
+										type="button"
+										class="inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white transition-colors cursor-pointer"
+										title="Actions"
+									>
+										<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+										</svg>
+									</button>
+								</template>
+
+								<template #default="{ close }">
+									<div class="py-1 text-xs">
+										<button
+											type="button"
+											class="w-full flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md text-left cursor-pointer"
+											@click="openDetailModal(item); close()"
+										>
+											<svg class="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+											</svg>
+											<span>View Details</span>
+										</button>
+
+										<button
+											v-if="item.status === 'pending'"
+											type="button"
+											class="w-full flex items-center gap-2.5 px-3 py-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40 transition-colors rounded-md text-left cursor-pointer"
+											@click="openConfirmModal(item); close()"
+										>
+											<svg class="h-4 w-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+											</svg>
+											<span>Mark as Paid</span>
+										</button>
+									</div>
+								</template>
+							</Dropdown>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Card Footer Pagination (Inside the card container) -->
+			<div
+				v-if="payments.total > 0"
+				class="border-t border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+			>
+				<Pagination :data="payments" />
 			</div>
 		</div>
 
@@ -795,25 +935,25 @@ const closeConfirmModal = () => {
 					<div class="text-right">
 						<Badge
 							v-if="selectedPayment.status === 'paid'"
-							variant="active"
+							variant="success"
 							size="md"
 							label="Paid"
 						/>
 						<Badge
 							v-else-if="selectedPayment.status === 'pending'"
-							variant="pending"
+							variant="warning"
 							size="md"
 							label="Pending"
 						/>
 						<Badge
 							v-else-if="selectedPayment.status === 'failed'"
-							variant="cancelled"
+							variant="danger"
 							size="md"
 							label="Failed"
 						/>
 						<Badge
 							v-else-if="selectedPayment.status === 'refunded'"
-							variant="neutral"
+							variant="default"
 							size="md"
 							label="Refunded"
 						/>
@@ -846,7 +986,7 @@ const closeConfirmModal = () => {
 							}}</span>
 							<button
 								type="button"
-								class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 shrink-0 ml-2"
+								class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 shrink-0 ml-2 cursor-pointer"
 								title="Copy"
 								@click="copyToClipboard(selectedPayment.public_id)"
 							>
@@ -983,7 +1123,7 @@ const closeConfirmModal = () => {
 					</div>
 				</div>
 
-				<!-- Metadata Section (if present) -->
+				<!-- Metadata Section -->
 				<div
 					v-if="
 						selectedPayment.metadata &&

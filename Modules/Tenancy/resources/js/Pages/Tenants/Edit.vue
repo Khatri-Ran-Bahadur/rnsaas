@@ -39,7 +39,7 @@ const handleCountryChange = (countryCode: string | number) => {
 };
 
 const submit = () => {
-    form.put(`/tenants/${props.tenant.id}`);
+    form.put(`/admin/tenants/${props.tenant.id}`);
 };
 
 const industryOptions = [
@@ -59,8 +59,8 @@ const industryOptions = [
         :title="`Edit ${tenant.name}`"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Tenants', href: '/tenants' },
-            { label: tenant.name, href: `/tenants/${tenant.id}` },
+            { label: 'Organizations', href: '/admin/tenants' },
+            { label: tenant.name, href: `/admin/tenants/${tenant.id}` },
             { label: 'Edit' },
         ]"
     >
@@ -68,7 +68,7 @@ const industryOptions = [
         <div class="pb-6 border-b border-zinc-200 dark:border-zinc-800">
             <div class="flex items-center gap-3">
                 <Link
-                    :href="`/tenants/${tenant.id}`"
+                    :href="`/admin/tenants/${tenant.id}`"
                     class="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                 >
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,10 +77,10 @@ const industryOptions = [
                 </Link>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                        Edit {{ tenant.name }}
+                        Edit Organization: {{ tenant.name }}
                     </h1>
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        Update configuration and profile attributes for this organization.
+                        Update profile, workspace identifier, and regional defaults for this organization.
                     </p>
                 </div>
             </div>
@@ -91,15 +91,15 @@ const industryOptions = [
             <form class="space-y-8" @submit.prevent="submit">
                 <!-- Card 1: General Information -->
                 <Card
-                    title="General Information"
-                    description="Core identity and routing identifiers for this organization."
+                    title="Organization Information"
+                    description="Core identity, workspace name, and custom URL slug."
                 >
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <!-- Business Name -->
                         <div>
                             <TextInput
                                 v-model="form.name"
-                                label="Business Name"
+                                label="Organization Name"
                                 placeholder="e.g. Acme Corporation"
                                 :error="form.errors.name"
                                 required
@@ -110,7 +110,7 @@ const industryOptions = [
                         <div>
                             <TextInput
                                 v-model="form.slug"
-                                label="URL Slug"
+                                label="Workspace Slug / URL"
                                 prefix-addon="app.sathisaas.com/"
                                 :error="form.errors.slug"
                                 mono
@@ -133,8 +133,8 @@ const industryOptions = [
 
                 <!-- Card 2: Regional with Searchable Comboboxes -->
                 <Card
-                    title="Regional & Localization"
-                    description="Timezone, currency and regional settings applied to this tenant."
+                    title="Regional & Localization Defaults"
+                    description="Timezone, currency and regional settings configured for this organization."
                 >
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <!-- Country Combobox -->
@@ -191,7 +191,7 @@ const industryOptions = [
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <Button
-                        :href="`/tenants/${tenant.id}`"
+                        :href="`/admin/tenants/${tenant.id}`"
                         variant="outline"
                     >
                         Cancel

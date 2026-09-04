@@ -68,7 +68,7 @@ const handleCountryChange = (countryCode: string | number) => {
 };
 
 const submit = () => {
-    form.post('/tenants');
+    form.post('/admin/tenants');
 };
 
 const industryOptions = [
@@ -85,18 +85,18 @@ const industryOptions = [
 
 <template>
     <AdminLayout
-        title="Create Tenant"
+        title="Create Organization"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Tenants', href: '/tenants' },
-            { label: 'Create Tenant' },
+            { label: 'Organizations', href: '/admin/tenants' },
+            { label: 'New Organization' },
         ]"
     >
         <!-- Page Header -->
         <div class="pb-6 border-b border-zinc-200 dark:border-zinc-800">
             <div class="flex items-center gap-3">
                 <Link
-                    href="/tenants"
+                    href="/admin/tenants"
                     class="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                 >
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,10 +105,10 @@ const industryOptions = [
                 </Link>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                        Create Organization
+                        Create New Organization
                     </h1>
                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                        Register a new tenant organization on the SathiSaaS multi-tenant platform.
+                        Register a new client organization, establish its dedicated workspace, and configure regional defaults.
                     </p>
                 </div>
             </div>
@@ -119,15 +119,15 @@ const industryOptions = [
             <form class="space-y-8" @submit.prevent="submit">
                 <!-- Card 1: General Information -->
                 <Card
-                    title="General Information"
-                    description="Core identity and routing identifiers for this organization."
+                    title="Organization Information"
+                    description="Core business identity, workspace name, and custom URL slug."
                 >
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <!-- Business Name -->
                         <div>
                             <TextInput
                                 v-model="form.name"
-                                label="Business Name"
+                                label="Organization Name"
                                 placeholder="e.g. Acme Corporation"
                                 :error="form.errors.name"
                                 required
@@ -140,7 +140,7 @@ const industryOptions = [
                         <div>
                             <TextInput
                                 v-model="form.slug"
-                                label="URL Slug"
+                                label="Workspace Slug / URL"
                                 placeholder="acme-corp"
                                 prefix-addon="app.sathisaas.com/"
                                 :error="form.errors.slug"
@@ -165,8 +165,8 @@ const industryOptions = [
 
                 <!-- Card 2: Regional & Localization with Searchable Comboboxes -->
                 <Card
-                    title="Regional & Localization"
-                    description="Timezone, currency and regional settings applied to this tenant."
+                    title="Regional & Localization Defaults"
+                    description="Timezone, currency and regional settings configured for this organization."
                 >
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <!-- Country Combobox with flags & search -->
@@ -230,7 +230,7 @@ const industryOptions = [
                 <!-- Actions -->
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <Button
-                        href="/tenants"
+                        href="/admin/tenants"
                         variant="outline"
                     >
                         Cancel

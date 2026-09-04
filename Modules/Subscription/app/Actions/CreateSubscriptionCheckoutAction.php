@@ -32,7 +32,7 @@ class CreateSubscriptionCheckoutAction
             $idempotencyKey,
         ): PaymentTransaction {
             if (! $plan->is_active) {
-                throw new InactivePlanException();
+                throw new InactivePlanException;
             }
 
             $hasCurrentSubscription = $tenant
@@ -45,7 +45,7 @@ class CreateSubscriptionCheckoutAction
                 ->exists();
 
             if ($hasCurrentSubscription) {
-                throw new TenantAlreadySubscribedException();
+                throw new TenantAlreadySubscribedException;
             }
 
             $startsAt = now();

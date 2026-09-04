@@ -16,11 +16,17 @@ class PlanFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->unique()->randomElement([
-            'Starter Test',
-            'Business Test',
-            'Enterprise Test',
+        $baseName = fake()->randomElement([
+            'Starter',
+            'Business',
+            'Enterprise',
+            'Pro',
+            'Growth',
+            'Scale',
+            'Ultimate',
         ]);
+        $uniqueSuffix = fake()->unique()->numberBetween(1, 1000000);
+        $name = "{$baseName} {$uniqueSuffix}";
 
         return [
             'public_id' => (string) Str::ulid(),

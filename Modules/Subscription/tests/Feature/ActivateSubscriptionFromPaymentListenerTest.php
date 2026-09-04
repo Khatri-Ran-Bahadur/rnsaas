@@ -6,7 +6,7 @@ use Modules\Payment\Enums\PaymentType;
 use Modules\Payment\Events\PaymentPaid;
 use Modules\Payment\Models\PaymentTransaction;
 use Modules\Subscription\Enums\SubscriptionStatus;
-use Modules\Subscription\Events\SubscriptionActivated;
+use Modules\Subscription\Exceptions\SubscriptionCannotBeActivatedException;
 use Modules\Subscription\Listeners\ActivateSubscriptionFromPayment;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Models\TenantSubscription;
@@ -72,7 +72,7 @@ it('does not change an already active subscription', function () {
     expect(fn () => app(ActivateSubscriptionFromPayment::class)
         ->handle($event))
         ->toThrow(
-            \Modules\Subscription\Exceptions\SubscriptionCannotBeActivatedException::class,
+            SubscriptionCannotBeActivatedException::class,
         );
 
     $subscription->refresh();
@@ -107,7 +107,7 @@ it('does not activate subscription for unpaid payment', function () {
     expect(fn () => app(ActivateSubscriptionFromPayment::class)
         ->handle($event))
         ->toThrow(
-            \Modules\Subscription\Exceptions\SubscriptionCannotBeActivatedException::class,
+            SubscriptionCannotBeActivatedException::class,
         );
 
     $subscription->refresh();
@@ -115,7 +115,6 @@ it('does not activate subscription for unpaid payment', function () {
     expect($subscription->status)
         ->toBe(SubscriptionStatus::Pending);
 });
-
 
 it('activates the subscription when payment paid event is dispatched', function () {
     $tenant = Tenant::factory()->create();

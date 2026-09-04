@@ -29,4 +29,6 @@ Route::middleware(['auth', 'verified'])
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('/tenants', '/admin/tenants');
     Route::redirect('/tenants/create', '/admin/tenants/create');
+    Route::get('/tenants/{tenant}', fn ($tenant) => redirect("/admin/tenants/{$tenant}"));
+    Route::get('/tenants/{tenant}/edit', fn ($tenant) => redirect("/admin/tenants/{$tenant}/edit"));
 });

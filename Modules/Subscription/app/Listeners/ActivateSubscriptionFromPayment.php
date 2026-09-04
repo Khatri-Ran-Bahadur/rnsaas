@@ -13,6 +13,10 @@ class ActivateSubscriptionFromPayment
 
     public function handle(PaymentPaid $event): void
     {
+        if ($event->payment->subscription_id === null) {
+            return;
+        }
+
         $this->activateSubscription->handle(
             $event->payment,
         );

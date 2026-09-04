@@ -8,23 +8,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Payment\Models\PaymentTransaction;
 use Modules\Subscription\Enums\SubscriptionStatus;
 use Modules\Tenancy\Models\Tenant;
 
-/**
- * @property int $id
- * @property string $public_id
- * @property int $tenant_id
- * @property int $plan_id
- * @property SubscriptionStatus $status
- * @property \Carbon\CarbonInterface $starts_at
- * @property \Carbon\CarbonInterface|null $trial_ends_at
- * @property \Carbon\CarbonInterface $current_period_starts_at
- * @property \Carbon\CarbonInterface|null $current_period_ends_at
- * @property \Carbon\CarbonInterface|null $canceled_at
- * @property \Carbon\CarbonInterface|null $ends_at
- * @property array<string, mixed>|null $metadata
- */
 #[Fillable([
     'public_id',
     'tenant_id',
@@ -73,6 +61,60 @@ class TenantSubscription extends Model
     }
 
     #[Scope]
+    protected function search(Builder $query, ?string $search): void
+    {
+        if ($search === null || $search === '') {
+            return;
+        }
+
+        $query->whereHas(
+            'tenant',
+            fn (Builder $tenantQuery) => $tenantQuery
+                ->where('name', 'like', "%{$search}%"),
+        );
+    }
+
+    #[Scope]
+    protected function withStatus(
+        Builder $query,
+        ?string $status,
+    ): void {
+        if ($status === null || $status === '') {
+            return;
+        }
+
+        $query->where('status', $status);
+    }
+
+    #[Scope]
+    protected function forPlan(
+        Builder $query,
+        ?int $planId,
+    ): void {
+        if ($planId === null) {
+            return;
+        }
+
+        $query->where('plan_id', $planId);
+    }
+
+    #[Scope]
+    protected function withBillingCycle(
+        Builder $query,
+        ?string $billingCycle,
+    ): void {
+        if ($billingCycle === null || $billingCycle === '') {
+            return;
+        }
+
+        $query->whereHas(
+            'plan',
+            fn (Builder $planQuery) => $planQuery
+                ->where('billing_cycle', $billingCycle),
+        );
+    }
+
+    #[Scope]
     protected function activeOrTrialing(Builder $query): void
     {
         $query->whereIn('status', [
@@ -81,32 +123,21 @@ class TenantSubscription extends Model
         ]);
     }
 
-    #[Scope]
-    protected function current(Builder $query): void
-    {
-        $query
-            ->activeOrTrialing()
-            ->where('starts_at', '<=', now())
-            ->where(function (Builder $query): void {
-                $query
-                    ->whereNull('current_period_ends_at')
-                    ->orWhere('current_period_ends_at', '>', now());
-            });
-    }
-
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(
-            Tenant::class,
-            'tenant_id',
-        );
+        return $this->belongsTo(Tenant::class);
     }
 
     public function plan(): BelongsTo
     {
-        return $this->belongsTo(
-            Plan::class,
-            'plan_id',
+        return $this->belongsTo(Plan::class, 'plan_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(
+            PaymentTransaction::class,
+            'subscription_id',
         );
     }
 }

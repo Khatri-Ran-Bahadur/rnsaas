@@ -2,9 +2,9 @@
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Audit\Models\AuditLog;
+use Modules\Subscription\Enums\SubscriptionStatus;
 use Modules\Subscription\Events\SubscriptionActivated;
 use Modules\Subscription\Listeners\RecordSubscriptionActivated;
-use Modules\Subscription\Enums\SubscriptionStatus;
 use Modules\Subscription\Models\TenantSubscription;
 use Modules\Tenancy\Models\Tenant;
 

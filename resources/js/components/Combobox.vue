@@ -122,12 +122,12 @@ onBeforeUnmount(() => {
             type="button"
             :disabled="disabled"
             :class="[
-                'flex w-full items-center justify-between rounded-lg bg-white py-2.5 px-3.5 text-left text-sm transition-all duration-150 border border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800',
+                'flex h-10 w-full items-center justify-between rounded-lg bg-white px-3.5 text-left text-sm transition-all duration-150 border border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800',
                 disabled ? 'opacity-50 cursor-not-allowed bg-zinc-50 dark:bg-zinc-900' : 'cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700',
                 error
                     ? 'border-rose-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
-                    : 'focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 dark:focus:border-zinc-600 dark:focus:ring-zinc-600',
-                isOpen ? 'border-zinc-400 ring-1 ring-zinc-400 dark:border-zinc-600 dark:ring-zinc-600' : 'shadow-2xs',
+                    : 'focus:border-primary-500 focus:ring-1 focus:ring-primary-500/20 dark:focus:border-primary-500',
+                isOpen ? 'border-primary-500 ring-1 ring-primary-500/20 dark:border-primary-500' : 'shadow-2xs',
             ]"
             @click="toggleDropdown"
         >
@@ -213,14 +213,14 @@ onBeforeUnmount(() => {
                         :class="[
                             'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs transition-colors',
                             modelValue === opt.value
-                                ? 'bg-zinc-100 text-zinc-900 font-medium dark:bg-zinc-800 dark:text-white'
+                                ? 'bg-primary-50 text-primary-900 font-semibold dark:bg-primary-950/60 dark:text-primary-200'
                                 : 'text-zinc-700 hover:bg-zinc-50/80 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/60 dark:hover:text-white',
                             opt.disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer',
                         ]"
                         @click="selectOption(opt)"
                     >
                         <!-- Left Checkmark Indicator (Visible when selected) -->
-                        <div class="w-4 shrink-0 flex items-center justify-center text-zinc-900 dark:text-white">
+                        <div class="w-4 shrink-0 flex items-center justify-center text-primary-600 dark:text-primary-400">
                             <svg
                                 v-if="modelValue === opt.value"
                                 class="h-3.5 w-3.5"

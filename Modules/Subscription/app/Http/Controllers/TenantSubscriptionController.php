@@ -5,9 +5,12 @@ namespace Modules\Subscription\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Subscription\Actions\CancelSubscriptionAction;
 use Modules\Subscription\Actions\CreateSubscriptionAction;
+use Modules\Subscription\Enums\SubscriptionStatus;
 use Modules\Subscription\Http\Requests\StoreTenantSubscriptionRequest;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Models\TenantSubscription;
@@ -17,19 +20,59 @@ class TenantSubscriptionController extends Controller
 {
     public function index(Request $request): Response
     {
+        $perPage = $request->integer('per_page') ?: 10;
+        $perPage = min(max($perPage, 5), 100);
+
         $subscriptions = TenantSubscription::query()
             ->with([
                 'tenant:id,public_id,name',
                 'plan:id,public_id,name,price,currency,billing_cycle',
             ])
-            ->latest()
-            ->paginate(15)
+            ->search($request->string('search')->value())
+            ->withStatus($request->string('status')->value())
+            ->forPlan($request->integer('plan') ?: null)
+            ->withBillingCycle(
+                $request->string('billing_cycle')->value(),
+            )
+            ->latest('created_at')
+            ->paginate($perPage)
             ->withQueryString();
+
+        $plans = Plan::query()
+            ->select([
+                'id',
+                'name',
+                'billing_cycle',
+            ])
+            ->orderBy('name')
+            ->get();
+
+        $summary = [
+            'total' => TenantSubscription::query()->count(),
+            'active' => TenantSubscription::query()->where('status', SubscriptionStatus::Active)->count(),
+            'trialing' => TenantSubscription::query()->where('status', SubscriptionStatus::Trialing)->count(),
+            'pending' => TenantSubscription::query()->where('status', SubscriptionStatus::Pending)->count(),
+            'canceled_or_expired' => TenantSubscription::query()->whereIn('status', [
+                SubscriptionStatus::Canceled,
+                SubscriptionStatus::Expired,
+            ])->count(),
+        ];
 
         return Inertia::render(
             'Subscription/Subscriptions/Index',
             [
                 'subscriptions' => $subscriptions,
+                'plans' => $plans,
+                'summary' => $summary,
+                'filters' => [
+                    'search' => $request->string('search')->value(),
+                    'status' => $request->string('status')->value(),
+                    'plan' => $request->integer('plan') ?: null,
+                    'billing_cycle' => $request
+                        ->string('billing_cycle')
+                        ->value(),
+                    'per_page' => $perPage,
+                ],
             ],
         );
     }
@@ -82,13 +125,11 @@ class TenantSubscriptionController extends Controller
             ->active()
             ->findOrFail($validated['plan_id']);
 
-        $subscription = $action->handle(
-            $tenant,
-            $plan,
-            $validated['starts_at']
-                ? \Illuminate\Support\Carbon::parse(
-                    $validated['starts_at'],
-                )
+        $action->handle(
+            tenant: $tenant,
+            plan: $plan,
+            startsAt: filled($validated['starts_at'])
+                ? Carbon::parse($validated['starts_at'])
                 : null,
         );
 
@@ -106,6 +147,21 @@ class TenantSubscriptionController extends Controller
         $subscription->load([
             'tenant:id,public_id,name',
             'plan:id,public_id,name,price,currency,billing_cycle,trial_days',
+            'payments' => fn ($query) => $query
+                ->latest('created_at')
+                ->select([
+                    'id',
+                    'public_id',
+                    'tenant_id',
+                    'subscription_id',
+                    'provider',
+                    'amount',
+                    'currency',
+                    'status',
+                    'type',
+                    'paid_at',
+                    'created_at',
+                ]),
         ]);
 
         return Inertia::render(
@@ -113,6 +169,18 @@ class TenantSubscriptionController extends Controller
             [
                 'subscription' => $subscription,
             ],
+        );
+    }
+
+    public function cancel(
+        TenantSubscription $subscription,
+        CancelSubscriptionAction $action,
+    ): RedirectResponse {
+        $action->handle($subscription);
+
+        return back()->with(
+            'success',
+            'Subscription was successfully canceled.',
         );
     }
 }

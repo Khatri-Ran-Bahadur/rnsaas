@@ -2,6 +2,7 @@
 
 namespace Modules\Payment\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ use Modules\Tenancy\Models\Tenant;
  * @property string $currency
  * @property PaymentStatus $status
  * @property PaymentType $type
- * @property \Carbon\CarbonInterface|null $paid_at
+ * @property CarbonInterface|null $paid_at
  * @property array<string, mixed>|null $metadata
  */
 #[Fillable([

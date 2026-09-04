@@ -75,7 +75,7 @@ const formatDate = (dateStr: string) => {
         :title="tenant.name"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/admin/dashboard' },
-            { label: 'Tenants', href: '/tenants' },
+            { label: 'Organizations', href: '/admin/tenants' },
             { label: tenant.name },
         ]"
     >
@@ -133,7 +133,7 @@ const formatDate = (dateStr: string) => {
                     </Button>
 
                     <Button
-                        :href="`/tenants/${tenant.id}/edit`"
+                        :href="`/admin/tenants/${tenant.id}/edit`"
                         variant="outline"
                         size="sm"
                     >
@@ -234,7 +234,7 @@ const formatDate = (dateStr: string) => {
                             <h2 class="text-base font-semibold text-zinc-900 dark:text-white">Organization Details</h2>
                             <p class="text-xs text-zinc-500 dark:text-zinc-400">Core business profile and categorization.</p>
                         </div>
-                        <Button :href="`/tenants/${tenant.id}/edit`" variant="outline" size="xs">
+                        <Button :href="`/admin/tenants/${tenant.id}/edit`" variant="outline" size="xs">
                             Edit Details
                         </Button>
                     </div>
@@ -334,7 +334,7 @@ const formatDate = (dateStr: string) => {
                             Organization Members
                         </h2>
                         <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                            Users and administrators with access to this tenant account.
+                            Users and administrators with access to this organization account.
                         </p>
                     </div>
 
@@ -435,7 +435,7 @@ const formatDate = (dateStr: string) => {
                 <div v-else class="p-8">
                     <EmptyState
                         title="No members assigned"
-                        description="This tenant organization currently has no associated users or members."
+                        description="This organization currently has no associated users or members."
                     >
                         <template #actions>
                             <Button
@@ -475,7 +475,7 @@ const formatDate = (dateStr: string) => {
                             <div class="pt-0.5 space-y-1">
                                 <p class="text-sm font-semibold text-zinc-900 dark:text-white">Organization Provisioned</p>
                                 <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                                    Initial tenant organization registered with public ULID <code class="font-mono font-medium text-zinc-800 dark:text-zinc-200">{{ tenant.public_id }}</code>
+                                    Initial organization registered with public ULID <code class="font-mono font-medium text-zinc-800 dark:text-zinc-200">{{ tenant.public_id }}</code>
                                 </p>
                                 <span class="inline-block text-[11px] font-mono text-zinc-400">{{ formatDate(tenant.created_at) }}</span>
                             </div>

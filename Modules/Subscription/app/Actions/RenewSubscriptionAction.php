@@ -20,19 +20,19 @@ class RenewSubscriptionAction
             $renewedAt,
         ): TenantSubscription {
             if (! $subscription->status->isActiveOrTrialing()) {
-                throw new SubscriptionCannotBeRenewedException();
+                throw new SubscriptionCannotBeRenewedException;
             }
 
             if ($subscription->current_period_ends_at === null) {
-                throw new SubscriptionCannotBeRenewedException();
+                throw new SubscriptionCannotBeRenewedException;
             }
 
             if ($subscription->canceled_at !== null) {
-                throw new SubscriptionCannotBeRenewedException();
+                throw new SubscriptionCannotBeRenewedException;
             }
 
             if ($subscription->current_period_ends_at->isFuture()) {
-                throw new SubscriptionCannotBeRenewedException();
+                throw new SubscriptionCannotBeRenewedException;
             }
 
             $renewedAt ??= now();
@@ -47,7 +47,7 @@ class RenewSubscriptionAction
             };
 
             if ($periodEndsAt === null) {
-                throw new SubscriptionCannotBeRenewedException();
+                throw new SubscriptionCannotBeRenewedException;
             }
 
             $subscription->update([

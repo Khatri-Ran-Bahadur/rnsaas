@@ -13,6 +13,6 @@ class SubscriptionActivated
 
     public function __construct(
         public TenantSubscription $subscription,
-        public string $previousStatus,
+        public string $previousStatus = 'pending',
     ) {}
 }

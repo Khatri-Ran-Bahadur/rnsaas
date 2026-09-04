@@ -12,11 +12,14 @@ class PaymentController extends Controller
 {
     public function index(Request $request): Response
     {
+        $perPage = $request->integer('per_page') ?: 10;
+        $perPage = min(max($perPage, 5), 100);
+
         $payments = PaymentTransaction::query()
             ->with([
                 'tenant:id,name',
                 'subscription:id,public_id,plan_id,status',
-                'subscription.plan:id,name',
+                'subscription.plan:id,name,price,currency,billing_cycle',
             ])
             ->when(
                 $request->filled('status'),
@@ -57,7 +60,7 @@ class PaymentController extends Controller
                 },
             )
             ->latest('created_at')
-            ->paginate(20)
+            ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('Payment/Payments/Index', [
@@ -66,6 +69,7 @@ class PaymentController extends Controller
                 'search' => $request->string('search')->value(),
                 'status' => $request->string('status')->value(),
                 'provider' => $request->string('provider')->value(),
+                'per_page' => $perPage,
             ],
         ]);
     }

@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Modules\Audit\Models\AuditLog;
 use Modules\Subscription\Actions\CancelSubscriptionAction;
 use Modules\Subscription\Enums\SubscriptionStatus;
+use Modules\Subscription\Events\TenantSubscriptionCanceled;
 use Modules\Subscription\Exceptions\SubscriptionCannotBeCanceledException;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Models\TenantSubscription;
@@ -105,7 +108,7 @@ it('cannot cancel a past due subscription', function () {
 });
 
 it('dispatches the subscription canceled event', function () {
-    \Illuminate\Support\Facades\Event::fake();
+    Event::fake();
 
     $subscription = TenantSubscription::factory()->create([
         'status' => SubscriptionStatus::Active,
@@ -116,10 +119,10 @@ it('dispatches the subscription canceled event', function () {
     $subscription = app(CancelSubscriptionAction::class)
         ->handle($subscription);
 
-    \Illuminate\Support\Facades\Event::assertDispatched(
-        \Modules\Subscription\Events\TenantSubscriptionCanceled::class,
+    Event::assertDispatched(
+        TenantSubscriptionCanceled::class,
         function (
-            \Modules\Subscription\Events\TenantSubscriptionCanceled $event
+            TenantSubscriptionCanceled $event
         ) use ($subscription): bool {
             return $event->subscription->is($subscription);
         },
@@ -136,7 +139,7 @@ it('records an audit log when a subscription is canceled', function () {
     $subscription = app(CancelSubscriptionAction::class)
         ->handle($subscription);
 
-    $auditLog = \Modules\Audit\Models\AuditLog::query()
+    $auditLog = AuditLog::query()
         ->where('auditable_type', $subscription->getMorphClass())
         ->where('auditable_id', $subscription->id)
         ->where('event', 'subscription.canceled')

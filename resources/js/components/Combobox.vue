@@ -67,7 +67,9 @@ const filteredOptions = computed(() => {
 });
 
 const selectedOption = computed(() => {
-    return formattedOptions.value.find((opt) => opt.value === props.modelValue);
+    return formattedOptions.value.find(
+        (opt) => String(opt.value).trim().toLowerCase() === String(props.modelValue ?? '').trim().toLowerCase()
+    );
 });
 
 const toggleDropdown = () => {

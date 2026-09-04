@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\SuperAdmin\Http\Controllers\DashboardController;
+use Modules\SuperAdmin\Http\Controllers\PlatformSettingsController;
 use Modules\SuperAdmin\Http\Controllers\UserController;
 
 foreach (['superadmin', 'admin'] as $prefix) {
@@ -22,6 +23,18 @@ foreach (['superadmin', 'admin'] as $prefix) {
             Route::get('/users', [UserController::class, 'index'])
                 ->middleware('permission:users.view')
                 ->name('users.index');
+
+            Route::get('/settings', [PlatformSettingsController::class, 'index'])
+                ->middleware('permission:settings.view')
+                ->name('settings.index');
+
+            Route::put('/settings', [PlatformSettingsController::class, 'update'])
+                ->middleware('permission:settings.update')
+                ->name('settings.update');
+
+            Route::post('/settings/cache/clear', [PlatformSettingsController::class, 'clearCache'])
+                ->middleware('permission:settings.update')
+                ->name('settings.cache.clear');
         });
 }
 

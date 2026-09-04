@@ -10,10 +10,18 @@ return new class extends Migration
     {
         Schema::create('platform_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('key', 100)->unique();
+
+            $table->string('group', 50);
+            $table->string('key', 100);
             $table->text('value')->nullable();
-            $table->string('type', 30)->default('string');
+
+            $table->string('type', 20)->default('string');
+            $table->boolean('is_secret')->default(false);
+
             $table->timestamps();
+
+            $table->unique(['group', 'key']);
+            $table->index(['group', 'key']);
         });
     }
 

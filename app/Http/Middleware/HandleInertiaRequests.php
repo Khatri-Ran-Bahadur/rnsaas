@@ -42,6 +42,58 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'platform' => $this->platformBranding(),
         ];
+    }
+
+    /**
+     * Resolve platform branding settings for global Inertia props.
+     *
+     * @return array{name: string, logo_url: ?string, favicon_url: ?string}
+     */
+    private function platformBranding(): array
+    {
+        try {
+            if (! class_exists(\Modules\SuperAdmin\Services\PlatformSettings::class)) {
+                return [
+                    'name' => config('app.name', 'SathiSaaS'),
+                    'logo_url' => null,
+                    'favicon_url' => null,
+                ];
+            }
+
+            /** @var \Modules\SuperAdmin\Services\PlatformSettings $settings */
+            $settings = app(\Modules\SuperAdmin\Services\PlatformSettings::class);
+            $branding = $settings->group('branding');
+            $general = $settings->group('general');
+
+            $logoUrl = $branding['logo_url'] ?? null;
+            if (! empty($branding['logo_media_id']) && class_exists(\Modules\Media\Models\Media::class)) {
+                $media = \Modules\Media\Models\Media::query()->find($branding['logo_media_id']);
+                if ($media) {
+                    $logoUrl = $media->url;
+                }
+            }
+
+            $faviconUrl = $branding['favicon_url'] ?? null;
+            if (! empty($branding['favicon_media_id']) && class_exists(\Modules\Media\Models\Media::class)) {
+                $media = \Modules\Media\Models\Media::query()->find($branding['favicon_media_id']);
+                if ($media) {
+                    $faviconUrl = $media->url;
+                }
+            }
+
+            return [
+                'name' => $general['platform_name'] ?? config('app.name', 'SathiSaaS'),
+                'logo_url' => $logoUrl,
+                'favicon_url' => $faviconUrl,
+            ];
+        } catch (\Throwable) {
+            return [
+                'name' => config('app.name', 'SathiSaaS'),
+                'logo_url' => null,
+                'favicon_url' => null,
+            ];
+        }
     }
 }

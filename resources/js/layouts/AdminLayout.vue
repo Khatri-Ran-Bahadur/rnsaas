@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { useTheme } from '@/composables/useTheme';
 import AdminSidebar from '@/components/AdminSidebar.vue';
@@ -22,11 +22,31 @@ const page = usePage();
 const flashSuccess = computed(() => (page.props.flash as any)?.success);
 const flashError = computed(() => (page.props.flash as any)?.error);
 const showFlash = ref(true);
+
+const platformFavicon = computed(() => (page.props.platform as any)?.favicon_url);
+
+watch(
+    platformFavicon,
+    (faviconUrl) => {
+        if (faviconUrl && typeof document !== 'undefined') {
+            let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = faviconUrl;
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <template>
     <div class="min-h-screen bg-zinc-50 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200">
-        <Head :title="title" />
+        <Head :title="title">
+            <link v-if="platformFavicon" rel="icon" :href="platformFavicon" />
+        </Head>
 
         <!-- Sidebar Component (Desktop & Mobile Drawer) -->
         <AdminSidebar

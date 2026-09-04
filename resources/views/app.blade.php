@@ -5,9 +5,31 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        @php
+            $dynamicFavicon = null;
+            try {
+                if (class_exists(\Modules\SuperAdmin\Services\PlatformSettings::class)) {
+                    $platformSettings = app(\Modules\SuperAdmin\Services\PlatformSettings::class);
+                    $favId = $platformSettings->get('branding', 'favicon_media_id');
+                    if ($favId && class_exists(\Modules\Media\Models\Media::class)) {
+                        $dynamicFavicon = \Modules\Media\Models\Media::query()->find($favId)?->url;
+                    }
+                    if (!$dynamicFavicon) {
+                        $dynamicFavicon = $platformSettings->get('branding', 'favicon_url');
+                    }
+                }
+            } catch (\Throwable) {
+                $dynamicFavicon = null;
+            }
+        @endphp
+        @if ($dynamicFavicon)
+            <link rel="icon" href="{{ $dynamicFavicon }}">
+            <link rel="apple-touch-icon" href="{{ $dynamicFavicon }}">
+        @else
+            <link rel="icon" href="/favicon.ico" sizes="any">
+            <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        @endif
 
         <script>
             (function () {

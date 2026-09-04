@@ -46,6 +46,10 @@ class SuperAdminDatabaseSeeder extends Seeder
             'media.directories.delete',
             'media.manage-any',
             'media.manage-own',
+
+            'settings.view',
+            'settings.update',
+            'settings.cache.clear',
         ];
 
         $permissionModels = collect($permissions)

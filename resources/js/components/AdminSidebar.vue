@@ -21,6 +21,12 @@ const isRouteActive = (pattern: string) => {
     return currentUrl.value.startsWith(pattern);
 };
 
+const platform = computed(() => (page.props.platform as any) ?? {
+    name: 'SathiSaaS',
+    logo_url: null,
+    favicon_url: null,
+});
+
 const user = computed(() => (page.props.auth as any)?.user ?? {
     name: 'Super Admin',
     email: 'admin@sathisaas.com',
@@ -57,17 +63,33 @@ const logout = () => {
             ]"
         >
             <!-- Brand Header -->
-            <div class="flex h-16 shrink-0 items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800">
-                <Link href="/superadmin/dashboard" class="flex items-center gap-3 group" @click="emit('closeMobile')">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-white font-bold tracking-wider shadow-xs shadow-primary-500/25">
-                        S
+            <div class="flex h-16 shrink-0 items-center justify-between px-5 border-b border-zinc-200 dark:border-zinc-800">
+                <Link href="/superadmin/dashboard" class="flex items-center gap-3 group min-w-0" @click="emit('closeMobile')">
+                    <!-- Dynamic Platform Logo -->
+                    <div
+                        v-if="platform.logo_url"
+                        class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200/80 bg-white p-1 dark:border-zinc-800 dark:bg-zinc-950 shadow-xs"
+                    >
+                        <img
+                            :src="platform.logo_url"
+                            :alt="platform.name || 'Platform Logo'"
+                            class="h-full w-full object-contain"
+                        />
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-base tracking-tight text-zinc-900 dark:text-white">SathiSaaS</span>
-                            <span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">SUPERADMIN</span>
+                    <div
+                        v-else
+                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white font-bold tracking-wider shadow-xs shadow-primary-500/25"
+                    >
+                        {{ (platform.name || 'S').charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-sm tracking-tight text-zinc-900 dark:text-white truncate" :title="platform.name || 'SathiSaaS'">
+                                {{ platform.name || 'SathiSaaS' }}
+                            </span>
+                            <span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 shrink-0">SUPERADMIN</span>
                         </div>
-                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Platform Management</p>
+                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">Platform Management</p>
                     </div>
                 </Link>
 
@@ -291,8 +313,15 @@ const logout = () => {
                         </span>
                     </Link>
 
-                    <div
-                        class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 dark:text-zinc-500 cursor-not-allowed select-none"
+                    <Link
+                        href="/superadmin/settings"
+                        :class="[
+                            'group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                            isRouteActive('/superadmin/settings') || isRouteActive('/admin/settings')
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
                     >
                         <div class="flex items-center gap-3">
                             <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -301,8 +330,7 @@ const logout = () => {
                             </svg>
                             <span>Platform Settings</span>
                         </div>
-                        <span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">Soon</span>
-                    </div>
+                    </Link>
                 </div>
             </div>
 

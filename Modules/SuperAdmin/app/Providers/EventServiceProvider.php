@@ -3,6 +3,7 @@
 namespace Modules\SuperAdmin\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Modules\SuperAdmin\Listeners\SecurityAuthSubscriber;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -12,6 +13,16 @@ class EventServiceProvider extends ServiceProvider
      * @var array<string, array<int, string>>
      */
     protected $listen = [];
+
+    /**
+     * Event subscribers for the module.
+     *
+     * @var array<int, class-string>
+     */
+    protected $subscribe = [
+        SecurityAuthSubscriber::class,
+    ];
+
 
     /**
      * Indicates if events should be discovered.

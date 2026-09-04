@@ -6,6 +6,7 @@ use Modules\SuperAdmin\Http\Controllers\EmailSettingsController;
 use Modules\SuperAdmin\Http\Controllers\PlatformSettingsController;
 use Modules\SuperAdmin\Http\Controllers\RoleController;
 use Modules\SuperAdmin\Http\Controllers\UserController;
+use Modules\SuperAdmin\Http\Controllers\SecurityController;
 
 foreach (['superadmin', 'admin'] as $prefix) {
     $namePrefix = $prefix === 'superadmin' ? 'superadmin.' : 'admin.';
@@ -73,7 +74,19 @@ foreach (['superadmin', 'admin'] as $prefix) {
             Route::delete('/roles/{role}', [RoleController::class, 'destroy'])
                 ->middleware('permission:roles.delete')
                 ->name('roles.destroy');
+
+            Route::get('security', [SecurityController::class, 'index'])
+            ->middleware('permission:security.view')
+            ->name('security.index');
+
+            Route::post(
+            'security/sessions/{session}/revoke',
+            [SecurityController::class, 'revokeSession'],
+        )
+            ->middleware('permission:security.sessions.revoke')
+            ->name('security.sessions.revoke');
         });
+
 }
 
 Route::middleware(['auth', 'superadmin'])->group(function () {

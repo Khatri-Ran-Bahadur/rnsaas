@@ -55,6 +55,9 @@ class SuperAdminDatabaseSeeder extends Seeder
             'roles.create',
             'roles.update',
             'roles.delete',
+
+            'security.view',
+'security.sessions.revoke',
         ];
 
         $permissionModels = collect($permissions)

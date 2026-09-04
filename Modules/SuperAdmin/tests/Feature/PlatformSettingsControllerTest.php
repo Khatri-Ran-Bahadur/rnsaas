@@ -37,6 +37,8 @@ it('allows a super admin to view platform settings', function (): void {
                 ->has('settings.mail')
                 ->has('timezones')
                 ->has('currencies')
+                ->has('platform')
+                ->has('platform.name')
         );
 });
 

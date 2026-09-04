@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import StatsCard from '@/components/StatsCard.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import Select from '@/components/Select.vue';
-import Modal from '@/components/Modal.vue';
 import Pagination from '@/components/Pagination.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import SearchInput from '@/components/SearchInput.vue';
@@ -59,10 +58,6 @@ const search = ref(props.filters?.search ?? '');
 const selectedRole = ref(props.filters?.role ?? '');
 const isFiltering = ref(false);
 
-// Read-only Details Modal State
-const selectedUser = ref<UserItem | null>(null);
-const isDetailModalOpen = ref(false);
-
 const roleOptions = computed(() => [
     { label: 'All Roles', value: '' },
     ...props.roles.map((r) => ({ label: r.name, value: r.name })),
@@ -102,16 +97,6 @@ const clearFilters = () => {
     applyFilters();
 };
 
-const openUserDetails = (user: UserItem) => {
-    selectedUser.value = user;
-    isDetailModalOpen.value = true;
-};
-
-const closeUserDetails = () => {
-    isDetailModalOpen.value = false;
-    selectedUser.value = null;
-};
-
 // Utilities
 const getInitials = (name: string): string => {
     if (!name) return 'U';
@@ -128,17 +113,6 @@ const formatDate = (dateStr?: string | null): string => {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
-    });
-};
-
-const formatDateTime = (dateStr?: string | null): string => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
     });
 };
 
@@ -362,21 +336,19 @@ const getRoleBadgeVariant = (roleName: string) => {
                                 {{ formatDate(user.created_at) }}
                             </td>
 
-                            <!-- Read-Only Action Area -->
+                            <!-- Action Area: Link to dedicated user details page -->
                             <td class="py-4 pl-3 pr-5 text-right">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    class="h-8 px-2.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                                    title="View Profile Details"
-                                    @click="openUserDetails(user)"
+                                <Link
+                                    :href="`/superadmin/users/${user.id}`"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/60 dark:hover:text-white transition-colors shadow-2xs"
+                                    title="View User Details"
                                 >
-                                    <svg class="h-4 w-4 mr-1 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                     <span>View</span>
-                                </Button>
+                                </Link>
                             </td>
                         </tr>
                     </tbody>
@@ -410,93 +382,5 @@ const getRoleBadgeVariant = (roleName: string) => {
                 <Pagination :data="users" />
             </div>
         </div>
-
-        <!-- Read-Only User Details Modal -->
-        <Modal
-            :show="isDetailModalOpen"
-            title="User Account Details"
-            description="Platform user metadata and organization memberships"
-            max-width="md"
-            @close="closeUserDetails"
-        >
-            <div v-if="selectedUser" class="space-y-4 py-2">
-                <!-- User Profile Header in Modal -->
-                <div class="flex items-center gap-3.5 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-950/70 dark:text-primary-300 ring-2 ring-primary-500/20">
-                        {{ getInitials(selectedUser.name) }}
-                    </div>
-                    <div class="min-w-0">
-                        <h4 class="font-semibold text-zinc-900 dark:text-white truncate">
-                            {{ selectedUser.name }}
-                        </h4>
-                        <p class="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                            {{ selectedUser.email }}
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Details Grid -->
-                <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 space-y-3 text-xs">
-                    <div class="flex items-center justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
-                        <span class="text-zinc-500 dark:text-zinc-400">Account ID</span>
-                        <span class="font-mono font-medium text-zinc-800 dark:text-zinc-200">#{{ selectedUser.id }}</span>
-                    </div>
-
-                    <div class="flex items-center justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
-                        <span class="text-zinc-500 dark:text-zinc-400">Email Verification</span>
-                        <div>
-                            <Badge
-                                v-if="selectedUser.email_verified_at"
-                                variant="active"
-                                label="Verified"
-                            />
-                            <Badge
-                                v-else
-                                variant="neutral"
-                                label="Unverified"
-                            />
-                        </div>
-                    </div>
-
-                    <div v-if="selectedUser.email_verified_at" class="flex items-center justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
-                        <span class="text-zinc-500 dark:text-zinc-400">Verified At</span>
-                        <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ formatDateTime(selectedUser.email_verified_at) }}</span>
-                    </div>
-
-                    <div class="flex items-center justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
-                        <span class="text-zinc-500 dark:text-zinc-400">Organizations</span>
-                        <span class="font-semibold text-zinc-900 dark:text-white">{{ selectedUser.tenants_count }}</span>
-                    </div>
-
-                    <div class="flex items-start justify-between py-1 border-b border-zinc-100 dark:border-zinc-800">
-                        <span class="text-zinc-500 dark:text-zinc-400 pt-0.5">Assigned Roles</span>
-                        <div class="flex flex-wrap justify-end gap-1 max-w-[200px]">
-                            <template v-if="selectedUser.roles && selectedUser.roles.length > 0">
-                                <Badge
-                                    v-for="role in selectedUser.roles"
-                                    :key="role.id"
-                                    :variant="getRoleBadgeVariant(role.name)"
-                                    :label="role.name"
-                                />
-                            </template>
-                            <span v-else class="text-zinc-400 italic">No roles</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between py-1">
-                        <span class="text-zinc-500 dark:text-zinc-400">Joined Date</span>
-                        <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ formatDateTime(selectedUser.created_at) }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <template #footer>
-                <div class="flex items-center justify-end">
-                    <Button variant="outline" size="sm" @click="closeUserDetails">
-                        <span>Close</span>
-                    </Button>
-                </div>
-            </template>
-        </Modal>
     </AdminLayout>
 </template>

@@ -24,6 +24,10 @@ foreach (['superadmin', 'admin'] as $prefix) {
                 ->middleware('permission:users.view')
                 ->name('users.index');
 
+            Route::get('/users/{user}', [UserController::class, 'show'])
+                ->middleware('permission:users.view')
+                ->name('users.show');
+
             Route::get('/settings', [PlatformSettingsController::class, 'index'])
                 ->middleware('permission:settings.view')
                 ->name('settings.index');

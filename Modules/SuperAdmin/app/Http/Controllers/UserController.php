@@ -59,4 +59,39 @@ class UserController
             ],
         ]);
     }
+
+    public function show(Request $request, User $user): Response
+    {
+        $user->load([
+            'roles:id,name',
+            'tenants',
+        ]);
+
+        return Inertia::render('SuperAdmin/Users/Show', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar_url' => null,
+                'account_status' => 'active',
+                'email_verified_at' => $user->email_verified_at?->toISOString(),
+                'created_at' => $user->created_at->toISOString(),
+                'last_login_at' => null,
+                'roles' => $user->roles->map(fn ($role) => [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                ])->values()->all(),
+                'organizations' => $user->tenants->map(fn ($tenant) => [
+                    'id' => $tenant->id,
+                    'name' => $tenant->name,
+                    'slug' => $tenant->slug ?? null,
+                    'role' => 'Member',
+                    'status' => $tenant->pivot->status ?? 'active',
+                    'joined_at' => $tenant->pivot->joined_at ?? $tenant->pivot->created_at?->toISOString(),
+                ])->values()->all(),
+                'sessions' => [],
+                'password_set' => true,
+            ],
+        ]);
+    }
 }

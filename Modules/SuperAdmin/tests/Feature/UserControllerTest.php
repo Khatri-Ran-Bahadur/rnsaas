@@ -133,3 +133,48 @@ it('denies users without users view permission', function (): void {
 
     $response->assertForbidden();
 });
+
+it('allows super admins to view user details page', function (): void {
+    $targetUser = User::factory()->create([
+        'name' => 'Alice Wonderland',
+        'email' => 'alice@example.com',
+    ]);
+
+    $manager = Role::findOrCreate('Manager', 'web');
+    $targetUser->assignRole($manager);
+
+    $tenant = Tenant::factory()->create(['name' => 'Acme Corp']);
+    $tenant->users()->attach($targetUser->id, [
+        'status' => 'active',
+        'joined_at' => now(),
+    ]);
+
+    $response = $this
+        ->actingAs($this->superAdmin)
+        ->get(route('superadmin.users.show', $targetUser));
+
+    $response
+        ->assertOk()
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->component('SuperAdmin/Users/Show')
+                ->where('user.id', $targetUser->id)
+                ->where('user.name', 'Alice Wonderland')
+                ->where('user.email', 'alice@example.com')
+                ->has('user.roles', 1)
+                ->where('user.roles.0.name', 'Manager')
+                ->has('user.organizations', 1)
+                ->where('user.organizations.0.name', 'Acme Corp')
+        );
+});
+
+it('denies users without users view permission from viewing user details', function (): void {
+    $targetUser = User::factory()->create();
+    $unauthorizedUser = User::factory()->create();
+
+    $response = $this
+        ->actingAs($unauthorizedUser)
+        ->get(route('superadmin.users.show', $targetUser));
+
+    $response->assertForbidden();
+});

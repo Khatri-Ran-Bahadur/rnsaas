@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Modules\Media\Models\Media;
+use Modules\SuperAdmin\Services\PlatformSettings;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -54,7 +56,7 @@ class HandleInertiaRequests extends Middleware
     private function platformBranding(): array
     {
         try {
-            if (! class_exists(\Modules\SuperAdmin\Services\PlatformSettings::class)) {
+            if (! class_exists(PlatformSettings::class)) {
                 return [
                     'name' => config('app.name', 'SathiSaaS'),
                     'logo_url' => null,
@@ -62,22 +64,22 @@ class HandleInertiaRequests extends Middleware
                 ];
             }
 
-            /** @var \Modules\SuperAdmin\Services\PlatformSettings $settings */
-            $settings = app(\Modules\SuperAdmin\Services\PlatformSettings::class);
+            /** @var PlatformSettings $settings */
+            $settings = app(PlatformSettings::class);
             $branding = $settings->group('branding');
             $general = $settings->group('general');
 
             $logoUrl = $branding['logo_url'] ?? null;
-            if (! empty($branding['logo_media_id']) && class_exists(\Modules\Media\Models\Media::class)) {
-                $media = \Modules\Media\Models\Media::query()->find($branding['logo_media_id']);
+            if (! empty($branding['logo_media_id']) && class_exists(Media::class)) {
+                $media = Media::query()->find($branding['logo_media_id']);
                 if ($media) {
                     $logoUrl = $media->url;
                 }
             }
 
             $faviconUrl = $branding['favicon_url'] ?? null;
-            if (! empty($branding['favicon_media_id']) && class_exists(\Modules\Media\Models\Media::class)) {
-                $media = \Modules\Media\Models\Media::query()->find($branding['favicon_media_id']);
+            if (! empty($branding['favicon_media_id']) && class_exists(Media::class)) {
+                $media = Media::query()->find($branding['favicon_media_id']);
                 if ($media) {
                     $faviconUrl = $media->url;
                 }

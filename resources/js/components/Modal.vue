@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, watch } from 'vue';
+import { onMounted, onBeforeUnmount, watch, computed } from 'vue';
 
 const props = withDefaults(
     defineProps<{
         show: boolean;
         title?: string;
         description?: string;
-        maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+        maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl';
     }>(),
     {
         show: false,
@@ -54,13 +54,28 @@ onBeforeUnmount(() => {
     }
 });
 
-const maxWidthClass = {
-    sm: 'sm:max-w-sm',
-    md: 'sm:max-w-md',
-    lg: 'sm:max-w-lg',
-    xl: 'sm:max-w-xl',
-    '2xl': 'sm:max-w-2xl',
-}[props.maxWidth];
+const maxWidthClass = computed(() => {
+    switch (props.maxWidth) {
+        case 'sm':
+            return 'sm:max-w-sm';
+        case 'md':
+            return 'sm:max-w-md';
+        case 'lg':
+            return 'sm:max-w-lg';
+        case 'xl':
+            return 'sm:max-w-xl';
+        case '2xl':
+            return 'sm:max-w-2xl';
+        case '3xl':
+            return 'sm:max-w-3xl';
+        case '4xl':
+            return 'sm:max-w-4xl';
+        case '5xl':
+            return 'sm:max-w-5xl';
+        default:
+            return 'sm:max-w-md';
+    }
+});
 </script>
 
 <template>

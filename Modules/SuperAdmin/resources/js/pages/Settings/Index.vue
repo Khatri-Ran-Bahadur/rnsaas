@@ -19,6 +19,8 @@ import {
     LOCALE_OPTIONS,
 } from '@/constants/referenceData';
 import { useTheme, AVAILABLE_COLOR_THEMES } from '@/composables/useTheme';
+import CacheSettings from './Components/CacheSettings.vue';
+import StorageSettings from './Components/StorageSettings.vue';
 
 const { colorTheme, setColorTheme } = useTheme();
 
@@ -54,12 +56,8 @@ interface SettingsData {
         from_name?: string | null;
         password_configured?: boolean;
     };
-    storage?: {
-        default_disk?: string;
-        storage_used?: string;
-        available_storage?: string;
-        health?: string;
-    };
+    storage?: Record<string, any>;
+    cache?: Record<string, any>;
     security?: Record<string, any>;
     health?: Record<string, any>;
 }
@@ -264,38 +262,9 @@ const removeBrandingItem = (target: 'logo' | 'favicon' | 'login_logo') => {
     }
 };
 
-// Modals for Cache / Test Email
-const showClearCacheModal = ref(false);
-const cacheTargetToClear = ref<string>('all');
+// Modals for Test Email
 const showTestEmailModal = ref(false);
 const testEmailAddress = ref('');
-const clearingCache = ref(false);
-
-const handleClearCacheConfirm = () => {
-    if (cacheTargetToClear.value === 'Platform Settings') {
-        clearingCache.value = true;
-        const url = window.location.pathname.startsWith('/admin')
-            ? '/admin/settings/cache/clear'
-            : '/superadmin/settings/cache/clear';
-
-        router.post(url, {}, {
-            preserveScroll: true,
-            onSuccess: () => {
-                clearingCache.value = false;
-                showClearCacheModal.value = false;
-                showToast('Platform settings cache cleared successfully.');
-            },
-            onError: () => {
-                clearingCache.value = false;
-                showClearCacheModal.value = false;
-                showToast('Failed to clear platform settings cache.', 'error');
-            },
-        });
-    } else {
-        showClearCacheModal.value = false;
-        showToast(`${cacheTargetToClear.value} cache flush endpoint is not implemented on the backend.`, 'error');
-    }
-};
 
 // Submit Handler
 const savingSection = ref<string | null>(null);
@@ -1199,157 +1168,13 @@ const saveSection = (sectionName: string) => {
                     </div>
 
                     <!-- SECTION 5: CACHE -->
-                    <div v-show="activeTab === 'cache'" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <div class="border-b border-zinc-200 pb-4 dark:border-zinc-800">
-                            <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                                Cache Management
-                            </h2>
-                            <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                Manage and flush cached configurations, routes, views, and cached platform settings.
-                            </p>
-                        </div>
-
-                        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <!-- Platform Settings Cache -->
-                            <div class="flex flex-col justify-between rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
-                                <div>
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Platform Settings Cache</h3>
-                                        <Badge variant="success">Active</Badge>
-                                    </div>
-                                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        Stores cached platform settings in memory. Auto-clears on setting updates.
-                                    </p>
-                                </div>
-                                <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        @click="cacheTargetToClear = 'Platform Settings'; showClearCacheModal = true;"
-                                    >
-                                        Clear Settings Cache
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <!-- Application Cache -->
-                            <div class="flex flex-col justify-between rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
-                                <div>
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Application Cache</h3>
-                                        <Badge variant="outline">Redis / File</Badge>
-                                    </div>
-                                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        General application and query cache used across tenant services.
-                                    </p>
-                                </div>
-                                <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        @click="cacheTargetToClear = 'Application'; showClearCacheModal = true;"
-                                    >
-                                        Flush App Cache
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <!-- Configuration Cache -->
-                            <div class="flex flex-col justify-between rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
-                                <div>
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Configuration Cache</h3>
-                                        <Badge variant="outline">Bootstrap</Badge>
-                                    </div>
-                                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        Cached framework and package configuration files.
-                                    </p>
-                                </div>
-                                <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        @click="cacheTargetToClear = 'Configuration'; showClearCacheModal = true;"
-                                    >
-                                        Clear Config Cache
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <!-- Route Cache -->
-                            <div class="flex flex-col justify-between rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
-                                <div>
-                                    <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Route & View Cache</h3>
-                                        <Badge variant="outline">Routes</Badge>
-                                    </div>
-                                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        Pre-compiled routing tables and Blade template caches.
-                                    </p>
-                                </div>
-                                <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        @click="cacheTargetToClear = 'Route and View'; showClearCacheModal = true;"
-                                    >
-                                        Clear Route Cache
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+                    <div v-show="activeTab === 'cache'">
+                        <CacheSettings :cache="props.settings?.cache" />
                     </div>
 
                     <!-- SECTION 6: STORAGE -->
-                    <div v-show="activeTab === 'storage'" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <div class="border-b border-zinc-200 pb-4 dark:border-zinc-800">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <div>
-                                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                                        Storage & Assets Overview
-                                    </h2>
-                                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                        Review disk allocation, filesystem driver, and explore the central Media Library.
-                                    </p>
-                                </div>
-
-                                <Link
-                                    href="/superadmin/media"
-                                    class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-primary-500"
-                                >
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <span>Open Media Library</span>
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-                                <span class="text-xs font-medium text-zinc-400">Default Filesystem Disk</span>
-                                <p class="mt-1 text-lg font-bold text-zinc-800 dark:text-zinc-200">
-                                    {{ props.settings?.storage?.default_disk || 'public (local)' }}
-                                </p>
-                            </div>
-
-                            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-                                <span class="text-xs font-medium text-zinc-400">Storage Used</span>
-                                <p class="mt-1 text-lg font-bold text-zinc-800 dark:text-zinc-200">
-                                    {{ props.settings?.storage?.storage_used || 'Not available' }}
-                                </p>
-                            </div>
-
-                            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-                                <span class="text-xs font-medium text-zinc-400">Storage Health</span>
-                                <div class="mt-1 flex items-center gap-2">
-                                    <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                                    <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                                        {{ props.settings?.storage?.health || 'Operational' }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                    <div v-show="activeTab === 'storage'">
+                        <StorageSettings :storage="props.settings?.storage" />
                     </div>
 
                     <!-- SECTION 7: SECURITY -->
@@ -1501,34 +1326,7 @@ const saveSection = (sectionName: string) => {
             @select="handleMediaSelected"
         />
 
-        <!-- Clear Cache Confirmation Modal -->
-        <Modal
-            :show="showClearCacheModal"
-            title="Confirm Cache Flush"
-            description="Flushing cache might temporarily increase server load as items are re-compiled."
-            max-width="md"
-            @close="showClearCacheModal = false"
-        >
-            <div class="space-y-4">
-                <p class="text-sm text-zinc-600 dark:text-zinc-400">
-                    Are you sure you want to clear the <strong>{{ cacheTargetToClear }}</strong> cache?
-                </p>
 
-                <div class="flex justify-end gap-2 pt-2">
-                    <Button variant="secondary" @click="showClearCacheModal = false">
-                        Cancel
-                    </Button>
-                    <button
-                        type="button"
-                        class="rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-500 disabled:opacity-50"
-                        :disabled="clearingCache"
-                        @click="handleClearCacheConfirm"
-                    >
-                        {{ clearingCache ? 'Clearing...' : 'Confirm & Clear' }}
-                    </button>
-                </div>
-            </div>
-        </Modal>
 
         <!-- Send Test Email Modal (UI only as backend route not invented) -->
         <Modal

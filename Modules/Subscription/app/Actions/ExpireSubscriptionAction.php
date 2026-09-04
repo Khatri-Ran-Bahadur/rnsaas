@@ -14,6 +14,8 @@ class ExpireSubscriptionAction
         TenantSubscription $subscription,
     ): TenantSubscription {
         return DB::transaction(function () use ($subscription): TenantSubscription {
+            $subscription->refresh();
+
             if (! $subscription->status->isActiveOrTrialing()) {
                 throw new SubscriptionCannotBeExpiredException;
             }
@@ -25,10 +27,20 @@ class ExpireSubscriptionAction
                 throw new SubscriptionCannotBeExpiredException;
             }
 
-            $subscription->update([
-                'status' => SubscriptionStatus::Expired,
-                'ends_at' => $subscription->ends_at ?? $expirationAt,
-            ]);
+            $updated = TenantSubscription::query()
+                ->whereKey($subscription->getKey())
+                ->whereIn('status', [
+                    SubscriptionStatus::Active->value,
+                    SubscriptionStatus::Trialing->value,
+                ])
+                ->update([
+                    'status' => SubscriptionStatus::Expired->value,
+                    'ends_at' => $subscription->ends_at ?? $expirationAt,
+                ]);
+
+            if ($updated !== 1) {
+                throw new SubscriptionCannotBeExpiredException;
+            }
 
             $subscription->refresh();
 

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\SuperAdmin\Http\Controllers\DashboardController;
 use Modules\SuperAdmin\Http\Controllers\EmailSettingsController;
 use Modules\SuperAdmin\Http\Controllers\PlatformSettingsController;
+use Modules\SuperAdmin\Http\Controllers\RoleController;
 use Modules\SuperAdmin\Http\Controllers\UserController;
 
 foreach (['superadmin', 'admin'] as $prefix) {
@@ -48,6 +49,30 @@ foreach (['superadmin', 'admin'] as $prefix) {
             Route::post('/settings/email/test-connection', [EmailSettingsController::class, 'testConnection'])
                 ->middleware('permission:settings.update')
                 ->name('settings.email.test-connection');
+
+            Route::get('/roles', [RoleController::class, 'index'])
+                ->middleware('permission:roles.view')
+                ->name('roles.index');
+
+            Route::get('/roles/create', [RoleController::class, 'create'])
+                ->middleware('permission:roles.create')
+                ->name('roles.create');
+
+            Route::post('/roles', [RoleController::class, 'store'])
+                ->middleware('permission:roles.create')
+                ->name('roles.store');
+
+            Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])
+                ->middleware('permission:roles.update')
+                ->name('roles.edit');
+
+            Route::put('/roles/{role}', [RoleController::class, 'update'])
+                ->middleware('permission:roles.update')
+                ->name('roles.update');
+
+            Route::delete('/roles/{role}', [RoleController::class, 'destroy'])
+                ->middleware('permission:roles.delete')
+                ->name('roles.destroy');
         });
 }
 

@@ -190,6 +190,21 @@ const logout = () => {
                         </svg>
                         <span>Users</span>
                     </Link>
+                    <Link
+                        href="/superadmin/roles"
+                        :class="[
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                            isRouteActive('/superadmin/roles')
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Roles</span>
+                    </Link>
                 </div>
 
                 <!-- Section: Subscriptions & Plans -->

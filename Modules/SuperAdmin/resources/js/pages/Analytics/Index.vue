@@ -2,649 +2,1259 @@
 import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
+import StatsCard from '@/components/StatsCard.vue';
+import Card from '@/components/Card.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import DatePicker from '@/components/DatePicker.vue';
+
+// ─── TypeScript Interfaces ──────────────────────────────────────────────────
 
 export interface AnalyticsSummary {
-    total_organizations?: number;
-    active_organizations?: number;
-    total_users?: number;
-    active_subscriptions?: number;
-    monthly_recurring_revenue?: string | number;
-    total_payments?: string | number;
+    organizations: number;
+    users: number;
+    subscriptions: number;
+    revenue: number;
+    currency: string;
 }
 
-export interface TopMetrics {
-    new_organizations?: number | string;
-    new_users?: number | string;
-    new_subscriptions?: number | string;
-    churn_rate?: string | number;
-    renewals?: number | string;
-}
-
-export interface ChartDataPoint {
-    date: string;
+export interface TrendDataPoint {
+    month: string; // "YYYY-MM"
     value: number;
-    formatted_value?: string;
 }
 
-export interface PlanBreakdownItem {
-    plan_name: string;
-    subscribers: number;
-    revenue: string | number;
-    percentage: number;
+export interface SubscriptionDistributionItem {
+    id: number;
+    name: string;
+    value: number;
 }
 
-export interface StatusBreakdownItem {
-    status: string;
-    count: number;
-    percentage?: number;
+export interface RecentGrowth {
+    organizations: number;
+    users: number;
+    subscriptions: number;
+    payments: number;
 }
 
-export interface PaymentStatusBreakdownItem {
-    status: string;
-    count: number;
-    amount?: string | number;
-    percentage?: number;
+export interface PlatformAnalyticsData {
+    summary: AnalyticsSummary;
+    revenue: TrendDataPoint[];
+    organizations: TrendDataPoint[];
+    subscriptions: TrendDataPoint[];
+    subscription_distribution: SubscriptionDistributionItem[];
+    recent_growth: RecentGrowth;
 }
 
-export interface AnalyticsData {
-    summary?: AnalyticsSummary;
-    top_metrics?: TopMetrics;
-    trends?: {
-        organization_growth?: ChartDataPoint[];
-        user_growth?: ChartDataPoint[];
-        subscription_growth?: ChartDataPoint[];
-        revenue?: ChartDataPoint[];
-        payment_volume?: ChartDataPoint[];
-    };
-    breakdowns?: {
-        plans?: PlanBreakdownItem[];
-        organization_status?: StatusBreakdownItem[];
-        payment_status?: PaymentStatusBreakdownItem[];
-    };
+export interface AnalyticsFilters {
+    from?: string | null;
+    to?: string | null;
 }
 
-interface Props {
-    analytics?: AnalyticsData;
-    currentRange?: string;
+export interface Props {
+    analytics?: PlatformAnalyticsData;
+    filters?: AnalyticsFilters;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    analytics: undefined,
-    currentRange: '30 Days',
+    analytics: () => ({
+        summary: {
+            organizations: 0,
+            users: 0,
+            subscriptions: 0,
+            revenue: 0,
+            currency: 'USD',
+        },
+        revenue: [],
+        organizations: [],
+        subscriptions: [],
+        subscription_distribution: [],
+        recent_growth: {
+            organizations: 0,
+            users: 0,
+            subscriptions: 0,
+            payments: 0,
+        },
+    }),
+    filters: () => ({
+        from: null,
+        to: null,
+    }),
 });
 
-// Date Range Filter
-const dateRanges = ['Today', '7 Days', '30 Days', '90 Days', '12 Months', 'Custom'];
-const selectedRange = ref(props.currentRange || '30 Days');
-const isChangingRange = ref(false);
+// ─── Safe Fallbacks & Computed Analytics ────────────────────────────────────
 
-const setRange = (range: string) => {
-    selectedRange.value = range;
-    isChangingRange.value = true;
-    setTimeout(() => {
-        isChangingRange.value = false;
-    }, 350);
+const summary = computed(() => props.analytics?.summary ?? {
+    organizations: 0,
+    users: 0,
+    subscriptions: 0,
+    revenue: 0,
+    currency: 'USD',
+});
+
+const revenueTrend = computed(() => props.analytics?.revenue ?? []);
+const organizationTrend = computed(() => props.analytics?.organizations ?? []);
+const subscriptionTrend = computed(() => props.analytics?.subscriptions ?? []);
+const subscriptionDistribution = computed(() => props.analytics?.subscription_distribution ?? []);
+const recentGrowth = computed(() => props.analytics?.recent_growth ?? {
+    organizations: 0,
+    users: 0,
+    subscriptions: 0,
+    payments: 0,
+});
+
+// ─── Formatting Helpers ─────────────────────────────────────────────────────
+
+const formatCurrency = (amount?: number | null, currency = 'USD'): string => {
+    const num = Number(amount || 0);
+    try {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency || 'USD',
+            maximumFractionDigits: 2,
+        }).format(num);
+    } catch {
+        return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
 };
 
-// Tooltip State for Charts
-const activeTooltip = ref<{
-    chartId: string;
-    point: ChartDataPoint;
+const formatNumber = (num?: number | null): string => {
+    return Number(num || 0).toLocaleString('en-US');
+};
+
+const formatCompact = (val: number, isCurrency = false, currency = 'USD'): string => {
+    if (val === 0) return isCurrency ? '$0' : '0';
+    if (Math.abs(val) >= 1_000_000) {
+        const str = (val / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+        return isCurrency ? `$${str}` : str;
+    }
+    if (Math.abs(val) >= 1_000) {
+        const str = (val / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+        return isCurrency ? `$${str}` : str;
+    }
+    return isCurrency ? formatCurrency(val, currency) : String(Math.round(val));
+};
+
+const formatMonth = (monthStr: string, mode: 'short' | 'full' = 'short'): string => {
+    if (!monthStr) return '';
+    const parts = monthStr.split('-');
+    if (parts.length !== 2) return monthStr;
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const date = new Date(year, month, 1);
+    if (isNaN(date.getTime())) return monthStr;
+
+    if (mode === 'full') {
+        return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+};
+
+// ─── Date Range Filtering ───────────────────────────────────────────────────
+
+const isFiltering = ref(false);
+const showCustomRange = ref(Boolean(props.filters?.from && props.filters?.to));
+
+const customFrom = ref<string | null>(props.filters?.from ?? null);
+const customTo = ref<string | null>(props.filters?.to ?? null);
+
+const activeRangeKey = computed(() => {
+    if (showCustomRange.value) return 'custom';
+    if (!props.filters?.from && !props.filters?.to) return 'all';
+    return 'custom';
+});
+
+const applyDateFilter = (from?: string | null, to?: string | null) => {
+    isFiltering.value = true;
+    const targetUrl = typeof window !== 'undefined' ? window.location.pathname : '/admin/analytics';
+
+    router.get(
+        targetUrl,
+        {
+            from: from || undefined,
+            to: to || undefined,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            onFinish: () => {
+                isFiltering.value = false;
+            },
+        },
+    );
+};
+
+const setPreset = (preset: '30d' | '90d' | '12m' | 'ytd' | 'all') => {
+    showCustomRange.value = false;
+    const today = new Date();
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+
+    if (preset === 'all') {
+        applyDateFilter(null, null);
+        return;
+    }
+
+    if (preset === '30d') {
+        const fromDate = new Date();
+        fromDate.setDate(today.getDate() - 30);
+        applyDateFilter(formatDate(fromDate), formatDate(today));
+        return;
+    }
+
+    if (preset === '90d') {
+        const fromDate = new Date();
+        fromDate.setDate(today.getDate() - 90);
+        applyDateFilter(formatDate(fromDate), formatDate(today));
+        return;
+    }
+
+    if (preset === '12m') {
+        const fromDate = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+        const toDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        applyDateFilter(formatDate(fromDate), formatDate(toDate));
+        return;
+    }
+
+    if (preset === 'ytd') {
+        const fromDate = new Date(today.getFullYear(), 0, 1);
+        applyDateFilter(formatDate(fromDate), formatDate(today));
+    }
+};
+
+const submitCustomRange = () => {
+    if (!customFrom.value || !customTo.value) return;
+    applyDateFilter(customFrom.value, customTo.value);
+};
+
+const refreshData = () => {
+    isFiltering.value = true;
+    router.reload({
+        onFinish: () => {
+            isFiltering.value = false;
+        },
+    });
+};
+
+// ─── SVG Chart Visualizations & Calculations ────────────────────────────────
+
+// 1. Revenue Area Chart
+const revenueSvg = computed(() => {
+    const data = revenueTrend.value;
+    if (data.length === 0) return null;
+
+    const width = 800;
+    const height = 240;
+    const pad = { top: 25, right: 30, bottom: 40, left: 65 };
+    const chartW = width - pad.left - pad.right;
+    const chartH = height - pad.top - pad.bottom;
+
+    const rawMax = Math.max(...data.map((d) => d.value), 0);
+    // Determine pleasant round max value for scale
+    const order = rawMax > 0 ? Math.pow(10, Math.floor(Math.log10(rawMax))) : 100;
+    const niceMax = rawMax > 0 ? Math.ceil(rawMax / order) * order : 100;
+
+    const points = data.map((d, i) => {
+        const x = pad.left + (i / Math.max(data.length - 1, 1)) * chartW;
+        const y = pad.top + (1 - (d.value / (niceMax || 1))) * chartH;
+        return {
+            x,
+            y,
+            month: d.month,
+            value: d.value,
+            formatted: formatCurrency(d.value, summary.value.currency),
+        };
+    });
+
+    // Build smooth SVG path
+    let linePath = '';
+    if (points.length === 1) {
+        linePath = `M ${pad.left} ${points[0].y} L ${width - pad.right} ${points[0].y}`;
+    } else {
+        linePath = points.reduce((acc, curr, i, arr) => {
+            if (i === 0) return `M ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
+            const prev = arr[i - 1];
+            const cpx1 = prev.x + (curr.x - prev.x) / 2;
+            const cpy1 = prev.y;
+            const cpx2 = prev.x + (curr.x - prev.x) / 2;
+            const cpy2 = curr.y;
+            return `${acc} C ${cpx1.toFixed(1)} ${cpy1.toFixed(1)}, ${cpx2.toFixed(1)} ${cpy2.toFixed(1)}, ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
+        }, '');
+    }
+
+    const baselineY = height - pad.bottom;
+    const areaPath = `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${baselineY} L ${points[0].x.toFixed(1)} ${baselineY} Z`;
+
+    // 4 Y-axis gridline increments
+    const gridLines = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+        const val = niceMax * ratio;
+        const y = pad.top + (1 - ratio) * chartH;
+        return {
+            y,
+            label: formatCompact(val, true, summary.value.currency),
+        };
+    });
+
+    return {
+        width,
+        height,
+        points,
+        linePath,
+        areaPath,
+        gridLines,
+        pad,
+    };
+});
+
+// Hover state for revenue chart
+const activeRevenuePoint = ref<{
+    month: string;
+    value: number;
+    formatted: string;
     x: number;
     y: number;
 } | null>(null);
 
-const showTooltip = (chartId: string, point: ChartDataPoint, event: MouseEvent) => {
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    activeTooltip.value = {
-        chartId,
-        point,
-        x: rect.left + rect.width / 2,
-        y: rect.top - 10,
+// 2. Dual Growth Charts (Organizations & Subscriptions)
+const createGrowthSvg = (data: TrendDataPoint[], color: string) => {
+    if (data.length === 0) return null;
+
+    const width = 450;
+    const height = 180;
+    const pad = { top: 20, right: 20, bottom: 35, left: 45 };
+    const chartW = width - pad.left - pad.right;
+    const chartH = height - pad.top - pad.bottom;
+
+    const rawMax = Math.max(...data.map((d) => d.value), 0);
+    const niceMax = rawMax > 0 ? (rawMax <= 5 ? 5 : Math.ceil(rawMax / 5) * 5) : 5;
+
+    const points = data.map((d, i) => {
+        const x = pad.left + (i / Math.max(data.length - 1, 1)) * chartW;
+        const y = pad.top + (1 - (d.value / (niceMax || 1))) * chartH;
+        return {
+            x,
+            y,
+            month: d.month,
+            value: d.value,
+        };
+    });
+
+    let linePath = '';
+    if (points.length === 1) {
+        linePath = `M ${pad.left} ${points[0].y} L ${width - pad.right} ${points[0].y}`;
+    } else {
+        linePath = points.reduce((acc, curr, i, arr) => {
+            if (i === 0) return `M ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
+            const prev = arr[i - 1];
+            const cpx1 = prev.x + (curr.x - prev.x) / 2;
+            const cpy1 = prev.y;
+            const cpx2 = prev.x + (curr.x - prev.x) / 2;
+            const cpy2 = curr.y;
+            return `${acc} C ${cpx1.toFixed(1)} ${cpy1.toFixed(1)}, ${cpx2.toFixed(1)} ${cpy2.toFixed(1)}, ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
+        }, '');
+    }
+
+    const baselineY = height - pad.bottom;
+    const areaPath = `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${baselineY} L ${points[0].x.toFixed(1)} ${baselineY} Z`;
+
+    const gridLines = [0, 0.5, 1].map((ratio) => {
+        const val = Math.round(niceMax * ratio);
+        const y = pad.top + (1 - ratio) * chartH;
+        return {
+            y,
+            label: String(val),
+        };
+    });
+
+    return {
+        width,
+        height,
+        points,
+        linePath,
+        areaPath,
+        gridLines,
+        color,
+        pad,
     };
 };
 
-const hideTooltip = () => {
-    activeTooltip.value = null;
-};
+const orgSvg = computed(() => createGrowthSvg(organizationTrend.value, '#3b82f6'));
+const subSvg = computed(() => createGrowthSvg(subscriptionTrend.value, '#8b5cf6'));
 
-// Safe fallback analytics representation when backend data is not yet provided
-const data = computed<AnalyticsData>(() => {
-    if (props.analytics && Object.keys(props.analytics).length > 0) {
-        return props.analytics;
-    }
+const activeOrgPoint = ref<{ month: string; value: number; x: number; y: number } | null>(null);
+const activeSubPoint = ref<{ month: string; value: number; x: number; y: number } | null>(null);
 
-    // Default baseline telemetry
+// 3. Subscription Distribution Donut Chart
+const PLAN_COLORS = [
+    '#4f46e5', // Indigo
+    '#10b981', // Emerald
+    '#f59e0b', // Amber
+    '#0284c7', // Sky Blue
+    '#ec4899', // Pink
+    '#8b5cf6', // Purple
+    '#06b6d4', // Cyan
+    '#64748b', // Slate
+];
+
+const distributionData = computed(() => {
+    const items = subscriptionDistribution.value;
+    const total = items.reduce((sum, item) => sum + item.value, 0);
+
+    let cumulativeAngle = 0;
+    const radius = 80;
+    const strokeWidth = 26;
+    const circumference = 2 * Math.PI * radius; // ~502.65
+
+    const slices = items.map((item, index) => {
+        const color = PLAN_COLORS[index % PLAN_COLORS.length];
+        const percentage = total > 0 ? (item.value / total) * 100 : 0;
+        const dashLength = (percentage / 100) * circumference;
+        const dashOffset = -cumulativeAngle * circumference;
+
+        cumulativeAngle += percentage / 100;
+
+        return {
+            ...item,
+            color,
+            percentage: Number(percentage.toFixed(1)),
+            dashArray: `${dashLength} ${circumference}`,
+            dashOffset,
+        };
+    });
+
     return {
-        summary: {
-            total_organizations: 48,
-            active_organizations: 42,
-            total_users: 312,
-            active_subscriptions: 38,
-            monthly_recurring_revenue: '$4,280.00',
-            total_payments: '$51,360.00',
-        },
-        top_metrics: {
-            new_organizations: 6,
-            new_users: 28,
-            new_subscriptions: 5,
-            churn_rate: '1.8%',
-            renewals: 33,
-        },
-        trends: {
-            organization_growth: [
-                { date: 'Week 1', value: 34, formatted_value: '34 Orgs' },
-                { date: 'Week 2', value: 38, formatted_value: '38 Orgs' },
-                { date: 'Week 3', value: 43, formatted_value: '43 Orgs' },
-                { date: 'Week 4', value: 48, formatted_value: '48 Orgs' },
-            ],
-            user_growth: [
-                { date: 'Week 1', value: 240, formatted_value: '240 Users' },
-                { date: 'Week 2', value: 265, formatted_value: '265 Users' },
-                { date: 'Week 3', value: 290, formatted_value: '290 Users' },
-                { date: 'Week 4', value: 312, formatted_value: '312 Users' },
-            ],
-            subscription_growth: [
-                { date: 'Week 1', value: 28, formatted_value: '28 Active' },
-                { date: 'Week 2', value: 32, formatted_value: '32 Active' },
-                { date: 'Week 3', value: 35, formatted_value: '35 Active' },
-                { date: 'Week 4', value: 38, formatted_value: '38 Active' },
-            ],
-            revenue: [
-                { date: 'Week 1', value: 3100, formatted_value: '$3,100' },
-                { date: 'Week 2', value: 3550, formatted_value: '$3,550' },
-                { date: 'Week 3', value: 3900, formatted_value: '$3,900' },
-                { date: 'Week 4', value: 4280, formatted_value: '$4,280' },
-            ],
-            payment_volume: [
-                { date: 'Week 1', value: 18, formatted_value: '18 Payments' },
-                { date: 'Week 2', value: 24, formatted_value: '24 Payments' },
-                { date: 'Week 3', value: 27, formatted_value: '27 Payments' },
-                { date: 'Week 4', value: 31, formatted_value: '31 Payments' },
-            ],
-        },
-        breakdowns: {
-            plans: [
-                { plan_name: 'Enterprise Plus', subscribers: 12, revenue: '$2,400.00', percentage: 56 },
-                { plan_name: 'Pro Organization', subscribers: 18, revenue: '$1,440.00', percentage: 34 },
-                { plan_name: 'Starter Cloud', subscribers: 8, revenue: '$440.00', percentage: 10 },
-            ],
-            organization_status: [
-                { status: 'Active', count: 42, percentage: 87.5 },
-                { status: 'Pending', count: 4, percentage: 8.3 },
-                { status: 'Suspended', count: 2, percentage: 4.2 },
-                { status: 'Revoked', count: 0, percentage: 0 },
-            ],
-            payment_status: [
-                { status: 'Paid', count: 184, amount: '$48,200.00', percentage: 94 },
-                { status: 'Pending', count: 6, amount: '$1,800.00', percentage: 3.5 },
-                { status: 'Failed', count: 3, amount: '$760.00', percentage: 1.5 },
-                { status: 'Refunded', count: 2, amount: '$600.00', percentage: 1.0 },
-            ],
-        },
+        total,
+        slices,
+        radius,
+        strokeWidth,
+        circumference,
     };
 });
 
-// Helper to compute SVG coordinates for trend lines
-const computePolylinePoints = (points: ChartDataPoint[] = [], width = 300, height = 70) => {
-    if (!points || points.length === 0) return '';
-    const values = points.map((p) => p.value);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min || 1;
-
-    return points
-        .map((p, i) => {
-            const x = (i / (points.length - 1 || 1)) * width;
-            const y = height - ((p.value - min) / range) * (height - 15) - 8;
-            return `${x.toFixed(1)},${y.toFixed(1)}`;
-        })
-        .join(' ');
-};
-
-const getStatusBadgeVariant = (status: string): 'active' | 'pending' | 'suspended' | 'cancelled' | 'neutral' => {
-    switch (status.toLowerCase()) {
-        case 'active':
-        case 'paid':
-            return 'active';
-        case 'pending':
-            return 'pending';
-        case 'suspended':
-            return 'suspended';
-        case 'revoked':
-        case 'failed':
-        case 'refunded':
-            return 'cancelled';
-        default:
-            return 'neutral';
-    }
-};
+const activeDonutSlice = ref<number | null>(null);
 </script>
 
 <template>
-    <AdminLayout>
+    <AdminLayout
+        title="Platform Analytics"
+        :breadcrumbs="[
+            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Analytics' },
+        ]"
+    >
         <Head title="Platform Analytics - SathiSaaS SuperAdmin" />
 
-        <div class="space-y-6 pb-12">
-            <!-- Header -->
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 pb-5 dark:border-zinc-800">
+        <div class="space-y-8 pb-16">
+            <!-- ─── 1. Page Header ───────────────────────────────────────────── -->
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-zinc-200 pb-6 dark:border-zinc-800">
                 <div>
-                    <h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
-                        Platform Analytics
-                    </h1>
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                        Understand organization growth, subscriptions, revenue, users, and platform activity.
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                            Platform Analytics
+                        </h1>
+                        <span
+                            class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
+                        >
+                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                            Live Telemetry
+                        </span>
+                    </div>
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                        Monitor platform growth, revenue, subscriptions, and organization activity.
                     </p>
                 </div>
 
-                <!-- Date Range Selector -->
-                <div class="flex flex-wrap items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50/70 p-1 dark:border-zinc-800 dark:bg-zinc-950/60 shadow-2xs">
-                    <button
-                        v-for="range in dateRanges"
-                        :key="range"
-                        type="button"
-                        :class="[
-                            'rounded-lg px-2.5 py-1 text-xs font-medium transition-all',
-                            selectedRange === range
-                                ? 'bg-white text-zinc-900 shadow-xs dark:bg-zinc-800 dark:text-white font-semibold'
-                                : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
-                        ]"
-                        @click="setRange(range)"
+                <!-- Right Controls: Date Presets & Refresh -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- Preset Selector Tabs -->
+                    <div class="flex items-center rounded-xl border border-zinc-200 bg-zinc-50/80 p-1 dark:border-zinc-800 dark:bg-zinc-900/80 shadow-2xs">
+                        <button
+                            type="button"
+                            :class="[
+                                'rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer',
+                                activeRangeKey === 'all'
+                                    ? 'bg-white text-zinc-900 font-semibold shadow-xs dark:bg-zinc-800 dark:text-white'
+                                    : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100',
+                            ]"
+                            @click="setPreset('all')"
+                        >
+                            All Time
+                        </button>
+                        <button
+                            type="button"
+                            :class="[
+                                'rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer',
+                                !showCustomRange && filters?.from && filters?.to
+                                    ? 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
+                                    : '',
+                            ]"
+                            @click="setPreset('30d')"
+                        >
+                            30 Days
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-all cursor-pointer"
+                            @click="setPreset('90d')"
+                        >
+                            90 Days
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-all cursor-pointer"
+                            @click="setPreset('12m')"
+                        >
+                            12 Months
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-all cursor-pointer"
+                            @click="setPreset('ytd')"
+                        >
+                            YTD
+                        </button>
+                        <button
+                            type="button"
+                            :class="[
+                                'rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer',
+                                showCustomRange
+                                    ? 'bg-white text-zinc-900 font-semibold shadow-xs dark:bg-zinc-800 dark:text-white'
+                                    : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100',
+                            ]"
+                            @click="showCustomRange = !showCustomRange"
+                        >
+                            Custom
+                        </button>
+                    </div>
+
+                    <!-- Refresh Button -->
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        :loading="isFiltering"
+                        title="Reload Analytics"
+                        @click="refreshData"
                     >
-                        {{ range }}
-                    </button>
-                </div>
-            </div>
-
-            <!-- Loading Indicator during range filter -->
-            <div v-if="isChangingRange" class="flex justify-center py-10">
-                <div class="flex items-center gap-3 text-xs text-zinc-400">
-                    <svg class="h-5 w-5 animate-spin text-primary-600" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Refreshing analytics telemetry...</span>
-                </div>
-            </div>
-
-            <div v-else class="space-y-6">
-                <!-- 1. SUMMARY CARDS (6 Cards Grid) -->
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                    <!-- Total Organizations -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800/80 dark:bg-zinc-900">
-                        <span class="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Total Orgs</span>
-                        <p class="mt-2 text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            {{ data.summary?.total_organizations ?? '0' }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-zinc-400">Registered tenants</p>
-                    </div>
-
-                    <!-- Active Organizations -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800/80 dark:bg-zinc-900">
-                        <span class="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Active Orgs</span>
-                        <p class="mt-2 text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                            {{ data.summary?.active_organizations ?? '0' }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-zinc-400">Operational status</p>
-                    </div>
-
-                    <!-- Total Users -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800/80 dark:bg-zinc-900">
-                        <span class="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Total Users</span>
-                        <p class="mt-2 text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            {{ data.summary?.total_users ?? '0' }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-zinc-400">Platform identities</p>
-                    </div>
-
-                    <!-- Active Subscriptions -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800/80 dark:bg-zinc-900">
-                        <span class="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Active Subs</span>
-                        <p class="mt-2 text-xl font-bold text-blue-600 dark:text-blue-400">
-                            {{ data.summary?.active_subscriptions ?? '0' }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-zinc-400">Current paid tiers</p>
-                    </div>
-
-                    <!-- Monthly Recurring Revenue -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800/80 dark:bg-zinc-900">
-                        <span class="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">MRR</span>
-                        <p class="mt-2 text-xl font-bold text-purple-600 dark:text-purple-400 truncate">
-                            {{ data.summary?.monthly_recurring_revenue ?? '$0.00' }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-zinc-400">Recurring run-rate</p>
-                    </div>
-
-                    <!-- Total Payments -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800/80 dark:bg-zinc-900">
-                        <span class="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Total Payments</span>
-                        <p class="mt-2 text-xl font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                            {{ data.summary?.total_payments ?? '$0.00' }}
-                        </p>
-                        <p class="mt-1 text-[11px] text-zinc-400">Aggregated gross</p>
-                    </div>
-                </div>
-
-                <!-- TOP METRICS HIGHLIGHTS (If backend provides) -->
-                <div
-                    v-if="data.top_metrics"
-                    class="rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/40"
-                >
-                    <div class="flex items-center gap-2 mb-3">
-                        <svg class="h-4 w-4 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
-                        <span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Growth & Retention Highlights</span>
+                        <span class="hidden sm:inline">Refresh</span>
+                    </Button>
+                </div>
+            </div>
+
+            <!-- Custom Date Range Sub-Bar -->
+            <div
+                v-if="showCustomRange"
+                class="flex flex-wrap items-center gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/75 p-4 dark:border-zinc-800 dark:bg-zinc-900/60"
+            >
+                <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    Custom Date Range:
+                </span>
+                <div class="w-40 sm:w-48">
+                    <DatePicker
+                        v-model="customFrom"
+                        placeholder="From date"
+                    />
+                </div>
+                <span class="text-zinc-400 text-xs">to</span>
+                <div class="w-40 sm:w-48">
+                    <DatePicker
+                        v-model="customTo"
+                        placeholder="To date"
+                    />
+                </div>
+                <Button
+                    variant="primary"
+                    size="sm"
+                    :disabled="!customFrom || !customTo || isFiltering"
+                    @click="submitCustomRange"
+                >
+                    Apply Filter
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="setPreset('all')"
+                >
+                    Reset
+                </Button>
+            </div>
+
+            <!-- ─── 2. Overview Cards (4 Primary Cards) ───────────────────────── -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <!-- A. Organizations -->
+                <StatsCard
+                    title="Organizations"
+                    :value="formatNumber(summary.organizations)"
+                    subtitle="Total organizations created in period"
+                    badge-color="blue"
+                >
+                    <template #icon>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </template>
+                </StatsCard>
+
+                <!-- B. Users -->
+                <StatsCard
+                    title="Platform Users"
+                    :value="formatNumber(summary.users)"
+                    subtitle="Total users created in period"
+                    badge-color="indigo"
+                >
+                    <template #icon>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </template>
+                </StatsCard>
+
+                <!-- C. Subscriptions -->
+                <StatsCard
+                    title="Subscriptions"
+                    :value="formatNumber(summary.subscriptions)"
+                    subtitle="Total subscriptions created in period"
+                    badge-color="amber"
+                >
+                    <template #icon>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </template>
+                </StatsCard>
+
+                <!-- D. Revenue -->
+                <StatsCard
+                    title="Paid Revenue"
+                    :value="formatCurrency(summary.revenue, summary.currency)"
+                    subtitle="Total paid revenue in period"
+                    badge-color="emerald"
+                >
+                    <template #icon>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </template>
+                </StatsCard>
+            </div>
+
+            <!-- ─── 3. Revenue Trend Chart (Large Section) ────────────────────── -->
+            <Card :no-padding="true">
+                <template #header>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
+                        <div>
+                            <div class="flex items-center gap-2.5">
+                                <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
+                                    Revenue Trend
+                                </h2>
+                                <Badge variant="active" label="Paid Transactions" size="sm" />
+                            </div>
+                            <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                Paid revenue over time.
+                            </p>
+                        </div>
+
+                        <!-- Highlight Total -->
+                        <div class="text-left sm:text-right">
+                            <span class="text-xs text-zinc-500 dark:text-zinc-400">Period Total:</span>
+                            <span class="ml-1.5 font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                                {{ formatCurrency(summary.revenue, summary.currency) }}
+                            </span>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Chart Container -->
+                <div class="p-6">
+                    <!-- Empty State -->
+                    <div v-if="!revenueSvg || revenueTrend.length === 0" class="py-12">
+                        <EmptyState
+                            title="No revenue data available"
+                            description="No paid transactions recorded for this period."
+                        >
+                            <template #icon>
+                                <svg class="h-6 w-6 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </template>
+                        </EmptyState>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-5 text-xs">
-                        <div class="rounded-xl bg-white p-3 dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800">
-                            <span class="text-[10px] text-zinc-400 uppercase font-semibold">New Orgs</span>
-                            <p class="mt-1 text-sm font-bold text-zinc-800 dark:text-zinc-200">+{{ data.top_metrics.new_organizations ?? 0 }}</p>
+                    <!-- Interactive SVG Chart -->
+                    <div v-else class="relative w-full overflow-hidden">
+                        <!-- Floating Tooltip -->
+                        <div
+                            v-if="activeRevenuePoint"
+                            class="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full transform rounded-xl border border-zinc-200 bg-white/95 px-3 py-2 text-xs shadow-lg backdrop-blur-xs dark:border-zinc-700 dark:bg-zinc-800/95 transition-all"
+                            :style="{
+                                left: `${(activeRevenuePoint.x / revenueSvg.width) * 100}%`,
+                                top: `${(activeRevenuePoint.y / revenueSvg.height) * 100 - 6}%`,
+                            }"
+                        >
+                            <p class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+                                {{ formatMonth(activeRevenuePoint.month, 'full') }}
+                            </p>
+                            <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                {{ activeRevenuePoint.formatted }}
+                            </p>
                         </div>
-                        <div class="rounded-xl bg-white p-3 dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800">
-                            <span class="text-[10px] text-zinc-400 uppercase font-semibold">New Users</span>
-                            <p class="mt-1 text-sm font-bold text-zinc-800 dark:text-zinc-200">+{{ data.top_metrics.new_users ?? 0 }}</p>
-                        </div>
-                        <div class="rounded-xl bg-white p-3 dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800">
-                            <span class="text-[10px] text-zinc-400 uppercase font-semibold">New Subs</span>
-                            <p class="mt-1 text-sm font-bold text-zinc-800 dark:text-zinc-200">+{{ data.top_metrics.new_subscriptions ?? 0 }}</p>
-                        </div>
-                        <div class="rounded-xl bg-white p-3 dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800">
-                            <span class="text-[10px] text-zinc-400 uppercase font-semibold">Churn Rate</span>
-                            <p class="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">{{ data.top_metrics.churn_rate ?? '0%' }}</p>
-                        </div>
-                        <div class="rounded-xl bg-white p-3 dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800 col-span-2 sm:col-span-1">
-                            <span class="text-[10px] text-zinc-400 uppercase font-semibold">Renewals</span>
-                            <p class="mt-1 text-sm font-bold text-zinc-800 dark:text-zinc-200">{{ data.top_metrics.renewals ?? 0 }}</p>
-                        </div>
+
+                        <!-- SVG Area & Curve -->
+                        <svg
+                            class="w-full h-64 overflow-visible"
+                            :viewBox="`0 0 ${revenueSvg.width} ${revenueSvg.height}`"
+                            preserveAspectRatio="none"
+                        >
+                            <defs>
+                                <linearGradient id="revenue-gradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.28" />
+                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.01" />
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Horizontal Gridlines -->
+                            <g class="stroke-zinc-200/80 dark:stroke-zinc-800/80 stroke-dasharray-[2,4]">
+                                <line
+                                    v-for="(grid, i) in revenueSvg.gridLines"
+                                    :key="i"
+                                    :x1="revenueSvg.pad.left"
+                                    :y1="grid.y"
+                                    :x2="revenueSvg.width - revenueSvg.pad.right"
+                                    :y2="grid.y"
+                                    stroke-width="1"
+                                />
+                            </g>
+
+                            <!-- Y-Axis Labels -->
+                            <g class="fill-zinc-400 dark:fill-zinc-500 text-[11px] font-medium text-right select-none">
+                                <text
+                                    v-for="(grid, i) in revenueSvg.gridLines"
+                                    :key="i"
+                                    :x="revenueSvg.pad.left - 12"
+                                    :y="grid.y + 4"
+                                    text-anchor="end"
+                                >
+                                    {{ grid.label }}
+                                </text>
+                            </g>
+
+                            <!-- Area Gradient Fill -->
+                            <path
+                                :d="revenueSvg.areaPath"
+                                fill="url(#revenue-gradient)"
+                            />
+
+                            <!-- Line Path -->
+                            <path
+                                :d="revenueSvg.linePath"
+                                fill="none"
+                                stroke="#10b981"
+                                stroke-width="3"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+
+                            <!-- Vertical Hover Guideline -->
+                            <line
+                                v-if="activeRevenuePoint"
+                                :x1="activeRevenuePoint.x"
+                                :y1="revenueSvg.pad.top"
+                                :x2="activeRevenuePoint.x"
+                                :y2="revenueSvg.height - revenueSvg.pad.bottom"
+                                stroke="#10b981"
+                                stroke-width="1.5"
+                                stroke-dasharray="3,3"
+                                class="opacity-70"
+                            />
+
+                            <!-- Interactive Points -->
+                            <g>
+                                <circle
+                                    v-for="(pt, idx) in revenueSvg.points"
+                                    :key="idx"
+                                    :cx="pt.x"
+                                    :cy="pt.y"
+                                    :r="activeRevenuePoint?.month === pt.month ? 6.5 : 4"
+                                    class="cursor-pointer transition-all duration-150"
+                                    :class="activeRevenuePoint?.month === pt.month
+                                        ? 'fill-emerald-500 stroke-4 stroke-white dark:stroke-zinc-900'
+                                        : 'fill-white stroke-2.5 stroke-emerald-500 dark:fill-zinc-900'"
+                                    @mouseenter="activeRevenuePoint = pt"
+                                    @mouseleave="activeRevenuePoint = null"
+                                />
+                            </g>
+
+                            <!-- X-Axis Labels -->
+                            <g class="fill-zinc-400 dark:fill-zinc-500 text-[11px] select-none">
+                                <text
+                                    v-for="(pt, idx) in revenueSvg.points"
+                                    :key="idx"
+                                    :x="pt.x"
+                                    :y="revenueSvg.height - 12"
+                                    text-anchor="middle"
+                                >
+                                    {{ formatMonth(pt.month) }}
+                                </text>
+                            </g>
+                        </svg>
                     </div>
                 </div>
+            </Card>
 
-                <!-- 2. TREND CHARTS (5 Charts Grid) -->
-                <div>
-                    <div class="flex items-center gap-2 mb-3">
-                        <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            Performance Trends
-                        </h2>
-                        <span class="text-xs text-zinc-400">({{ selectedRange }})</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <!-- Trend 1: Organization Growth -->
-                        <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">1. Organization Growth</span>
-                                <Badge variant="active" label="Rising" size="sm" />
+            <!-- ─── 4. Organization & Subscription Growth ─────────────────────── -->
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <!-- Organization Growth -->
+                <Card :no-padding="true">
+                    <template #header>
+                        <div class="flex items-center justify-between w-full">
+                            <div>
+                                <h3 class="text-base font-semibold text-zinc-900 dark:text-white">
+                                    Organization Growth
+                                </h3>
+                                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                    New tenants onboarded per month.
+                                </p>
                             </div>
+                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                                {{ summary.organizations }} Total
+                            </span>
+                        </div>
+                    </template>
 
-                            <!-- SVG Chart Visualization -->
-                            <div class="mt-4 h-24 w-full">
-                                <svg class="h-full w-full overflow-visible" viewBox="0 0 300 70" preserveAspectRatio="none">
-                                    <polyline
-                                        fill="none"
-                                        stroke="#10b981"
-                                        stroke-width="2.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        :points="computePolylinePoints(data.trends?.organization_growth)"
-                                    />
-                                    <circle
-                                        v-for="(pt, idx) in data.trends?.organization_growth || []"
-                                        :key="idx"
-                                        :cx="((idx / ((data.trends?.organization_growth?.length || 1) - 1 || 1)) * 300)"
-                                        :cy="70 - ((pt.value - 30) / 25) * 55 - 8"
-                                        r="4"
-                                        class="cursor-pointer fill-emerald-500 hover:r-6 transition-all"
-                                        @mouseenter="showTooltip('org', pt, $event)"
-                                        @mouseleave="hideTooltip"
-                                    />
-                                </svg>
-                            </div>
-
-                            <!-- Date Labels -->
-                            <div class="mt-3 flex items-center justify-between text-[10px] text-zinc-400 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                                <span v-for="pt in data.trends?.organization_growth || []" :key="pt.date">
-                                    {{ pt.date }}
-                                </span>
-                            </div>
+                    <div class="p-6">
+                        <div v-if="!orgSvg || organizationTrend.length === 0" class="py-10">
+                            <EmptyState
+                                title="No organization data"
+                                description="No organizations were created during this timeframe."
+                            />
                         </div>
 
-                        <!-- Trend 2: User Growth -->
-                        <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">2. User Growth</span>
-                                <Badge variant="active" label="Consistent" size="sm" />
-                            </div>
-
-                            <div class="mt-4 h-24 w-full">
-                                <svg class="h-full w-full overflow-visible" viewBox="0 0 300 70" preserveAspectRatio="none">
-                                    <polyline
-                                        fill="none"
-                                        stroke="#3b82f6"
-                                        stroke-width="2.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        :points="computePolylinePoints(data.trends?.user_growth)"
-                                    />
-                                    <circle
-                                        v-for="(pt, idx) in data.trends?.user_growth || []"
-                                        :key="idx"
-                                        :cx="((idx / ((data.trends?.user_growth?.length || 1) - 1 || 1)) * 300)"
-                                        :cy="70 - ((pt.value - 220) / 100) * 55 - 8"
-                                        r="4"
-                                        class="cursor-pointer fill-blue-500 hover:r-6 transition-all"
-                                        @mouseenter="showTooltip('users', pt, $event)"
-                                        @mouseleave="hideTooltip"
-                                    />
-                                </svg>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-[10px] text-zinc-400 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                                <span v-for="pt in data.trends?.user_growth || []" :key="pt.date">
-                                    {{ pt.date }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Trend 3: Subscription Growth -->
-                        <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">3. Subscription Growth</span>
-                                <Badge variant="active" label="Growing" size="sm" />
-                            </div>
-
-                            <div class="mt-4 h-24 w-full">
-                                <svg class="h-full w-full overflow-visible" viewBox="0 0 300 70" preserveAspectRatio="none">
-                                    <polyline
-                                        fill="none"
-                                        stroke="#8b5cf6"
-                                        stroke-width="2.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        :points="computePolylinePoints(data.trends?.subscription_growth)"
-                                    />
-                                    <circle
-                                        v-for="(pt, idx) in data.trends?.subscription_growth || []"
-                                        :key="idx"
-                                        :cx="((idx / ((data.trends?.subscription_growth?.length || 1) - 1 || 1)) * 300)"
-                                        :cy="70 - ((pt.value - 25) / 18) * 55 - 8"
-                                        r="4"
-                                        class="cursor-pointer fill-purple-500 hover:r-6 transition-all"
-                                        @mouseenter="showTooltip('subs', pt, $event)"
-                                        @mouseleave="hideTooltip"
-                                    />
-                                </svg>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-[10px] text-zinc-400 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                                <span v-for="pt in data.trends?.subscription_growth || []" :key="pt.date">
-                                    {{ pt.date }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Trend 4: Revenue -->
-                        <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">4. Revenue</span>
-                                <Badge variant="active" label="MRR Trajectory" size="sm" />
-                            </div>
-
-                            <div class="mt-4 h-24 w-full">
-                                <svg class="h-full w-full overflow-visible" viewBox="0 0 300 70" preserveAspectRatio="none">
-                                    <polyline
-                                        fill="none"
-                                        stroke="#f59e0b"
-                                        stroke-width="2.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        :points="computePolylinePoints(data.trends?.revenue)"
-                                    />
-                                    <circle
-                                        v-for="(pt, idx) in data.trends?.revenue || []"
-                                        :key="idx"
-                                        :cx="((idx / ((data.trends?.revenue?.length || 1) - 1 || 1)) * 300)"
-                                        :cy="70 - ((pt.value - 3000) / 1500) * 55 - 8"
-                                        r="4"
-                                        class="cursor-pointer fill-amber-500 hover:r-6 transition-all"
-                                        @mouseenter="showTooltip('rev', pt, $event)"
-                                        @mouseleave="hideTooltip"
-                                    />
-                                </svg>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-[10px] text-zinc-400 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                                <span v-for="pt in data.trends?.revenue || []" :key="pt.date">
-                                    {{ pt.date }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Trend 5: Payment Volume -->
-                        <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">5. Payment Volume</span>
-                                <Badge variant="active" label="Transactions" size="sm" />
-                            </div>
-
-                            <div class="mt-4 h-24 w-full">
-                                <svg class="h-full w-full overflow-visible" viewBox="0 0 300 70" preserveAspectRatio="none">
-                                    <polyline
-                                        fill="none"
-                                        stroke="#06b6d4"
-                                        stroke-width="2.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        :points="computePolylinePoints(data.trends?.payment_volume)"
-                                    />
-                                    <circle
-                                        v-for="(pt, idx) in data.trends?.payment_volume || []"
-                                        :key="idx"
-                                        :cx="((idx / ((data.trends?.payment_volume?.length || 1) - 1 || 1)) * 300)"
-                                        :cy="70 - ((pt.value - 15) / 20) * 55 - 8"
-                                        r="4"
-                                        class="cursor-pointer fill-cyan-500 hover:r-6 transition-all"
-                                        @mouseenter="showTooltip('vol', pt, $event)"
-                                        @mouseleave="hideTooltip"
-                                    />
-                                </svg>
-                            </div>
-
-                            <div class="mt-3 flex items-center justify-between text-[10px] text-zinc-400 border-t border-zinc-100 pt-2 dark:border-zinc-800">
-                                <span v-for="pt in data.trends?.payment_volume || []" :key="pt.date">
-                                    {{ pt.date }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. BREAKDOWNS SECTION (Plans, Org Status, Payment Status) -->
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <!-- Breakdown 1: Subscription Plans -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-                        <div class="border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-                                Subscription Plans
-                            </h3>
-                            <p class="text-[11px] text-zinc-400">Distribution by active subscription tier</p>
-                        </div>
-
-                        <div class="space-y-3 text-xs">
+                        <div v-else class="relative w-full overflow-hidden">
+                            <!-- Tooltip -->
                             <div
-                                v-for="item in data.breakdowns?.plans || []"
-                                :key="item.plan_name"
-                                class="rounded-xl border border-zinc-100 p-3 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-1.5"
+                                v-if="activeOrgPoint"
+                                class="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full transform rounded-lg border border-zinc-200 bg-white/95 px-2.5 py-1.5 text-xs shadow-md backdrop-blur-xs dark:border-zinc-700 dark:bg-zinc-800/95"
+                                :style="{
+                                    left: `${(activeOrgPoint.x / orgSvg.width) * 100}%`,
+                                    top: `${(activeOrgPoint.y / orgSvg.height) * 100 - 8}%`,
+                                }"
+                            >
+                                <p class="text-[10px] text-zinc-500 dark:text-zinc-400">
+                                    {{ formatMonth(activeOrgPoint.month, 'full') }}
+                                </p>
+                                <p class="font-bold text-blue-600 dark:text-blue-400">
+                                    {{ activeOrgPoint.value }} {{ activeOrgPoint.value === 1 ? 'organization' : 'organizations' }}
+                                </p>
+                            </div>
+
+                            <svg
+                                class="w-full h-48 overflow-visible"
+                                :viewBox="`0 0 ${orgSvg.width} ${orgSvg.height}`"
+                                preserveAspectRatio="none"
+                            >
+                                <defs>
+                                    <linearGradient id="org-gradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25" />
+                                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.01" />
+                                    </linearGradient>
+                                </defs>
+
+                                <g class="stroke-zinc-200/80 dark:stroke-zinc-800/80 stroke-dasharray-[2,4]">
+                                    <line
+                                        v-for="(grid, i) in orgSvg.gridLines"
+                                        :key="i"
+                                        :x1="orgSvg.pad.left"
+                                        :y1="grid.y"
+                                        :x2="orgSvg.width - orgSvg.pad.right"
+                                        :y2="grid.y"
+                                        stroke-width="1"
+                                    />
+                                </g>
+
+                                <g class="fill-zinc-400 dark:fill-zinc-500 text-[10px] select-none">
+                                    <text
+                                        v-for="(grid, i) in orgSvg.gridLines"
+                                        :key="i"
+                                        :x="orgSvg.pad.left - 8"
+                                        :y="grid.y + 3"
+                                        text-anchor="end"
+                                    >
+                                        {{ grid.label }}
+                                    </text>
+                                </g>
+
+                                <path :d="orgSvg.areaPath" fill="url(#org-gradient)" />
+
+                                <path
+                                    :d="orgSvg.linePath"
+                                    fill="none"
+                                    stroke="#3b82f6"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                                <circle
+                                    v-for="(pt, idx) in orgSvg.points"
+                                    :key="idx"
+                                    :cx="pt.x"
+                                    :cy="pt.y"
+                                    :r="activeOrgPoint?.month === pt.month ? 5.5 : 3.5"
+                                    class="cursor-pointer transition-all duration-150"
+                                    :class="activeOrgPoint?.month === pt.month
+                                        ? 'fill-blue-500 stroke-3 stroke-white dark:stroke-zinc-900'
+                                        : 'fill-white stroke-2 stroke-blue-500 dark:fill-zinc-900'"
+                                    @mouseenter="activeOrgPoint = pt"
+                                    @mouseleave="activeOrgPoint = null"
+                                />
+
+                                <g class="fill-zinc-400 dark:fill-zinc-500 text-[10px] select-none">
+                                    <text
+                                        v-for="(pt, idx) in orgSvg.points"
+                                        :key="idx"
+                                        :x="pt.x"
+                                        :y="orgSvg.height - 10"
+                                        text-anchor="middle"
+                                    >
+                                        {{ formatMonth(pt.month) }}
+                                    </text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </Card>
+
+                <!-- Subscription Growth -->
+                <Card :no-padding="true">
+                    <template #header>
+                        <div class="flex items-center justify-between w-full">
+                            <div>
+                                <h3 class="text-base font-semibold text-zinc-900 dark:text-white">
+                                    Subscription Growth
+                                </h3>
+                                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                    New subscription tiers activated.
+                                </p>
+                            </div>
+                            <span class="inline-flex items-center rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
+                                {{ summary.subscriptions }} Total
+                            </span>
+                        </div>
+                    </template>
+
+                    <div class="p-6">
+                        <div v-if="!subSvg || subscriptionTrend.length === 0" class="py-10">
+                            <EmptyState
+                                title="No subscription data"
+                                description="No subscriptions were created during this timeframe."
+                            />
+                        </div>
+
+                        <div v-else class="relative w-full overflow-hidden">
+                            <!-- Tooltip -->
+                            <div
+                                v-if="activeSubPoint"
+                                class="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full transform rounded-lg border border-zinc-200 bg-white/95 px-2.5 py-1.5 text-xs shadow-md backdrop-blur-xs dark:border-zinc-700 dark:bg-zinc-800/95"
+                                :style="{
+                                    left: `${(activeSubPoint.x / subSvg.width) * 100}%`,
+                                    top: `${(activeSubPoint.y / subSvg.height) * 100 - 8}%`,
+                                }"
+                            >
+                                <p class="text-[10px] text-zinc-500 dark:text-zinc-400">
+                                    {{ formatMonth(activeSubPoint.month, 'full') }}
+                                </p>
+                                <p class="font-bold text-purple-600 dark:text-purple-400">
+                                    {{ activeSubPoint.value }} {{ activeSubPoint.value === 1 ? 'subscription' : 'subscriptions' }}
+                                </p>
+                            </div>
+
+                            <svg
+                                class="w-full h-48 overflow-visible"
+                                :viewBox="`0 0 ${subSvg.width} ${subSvg.height}`"
+                                preserveAspectRatio="none"
+                            >
+                                <defs>
+                                    <linearGradient id="sub-gradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.25" />
+                                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.01" />
+                                    </linearGradient>
+                                </defs>
+
+                                <g class="stroke-zinc-200/80 dark:stroke-zinc-800/80 stroke-dasharray-[2,4]">
+                                    <line
+                                        v-for="(grid, i) in subSvg.gridLines"
+                                        :key="i"
+                                        :x1="subSvg.pad.left"
+                                        :y1="grid.y"
+                                        :x2="subSvg.width - subSvg.pad.right"
+                                        :y2="grid.y"
+                                        stroke-width="1"
+                                    />
+                                </g>
+
+                                <g class="fill-zinc-400 dark:fill-zinc-500 text-[10px] select-none">
+                                    <text
+                                        v-for="(grid, i) in subSvg.gridLines"
+                                        :key="i"
+                                        :x="subSvg.pad.left - 8"
+                                        :y="grid.y + 3"
+                                        text-anchor="end"
+                                    >
+                                        {{ grid.label }}
+                                    </text>
+                                </g>
+
+                                <path :d="subSvg.areaPath" fill="url(#sub-gradient)" />
+
+                                <path
+                                    :d="subSvg.linePath"
+                                    fill="none"
+                                    stroke="#8b5cf6"
+                                    stroke-width="2.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                                <circle
+                                    v-for="(pt, idx) in subSvg.points"
+                                    :key="idx"
+                                    :cx="pt.x"
+                                    :cy="pt.y"
+                                    :r="activeSubPoint?.month === pt.month ? 5.5 : 3.5"
+                                    class="cursor-pointer transition-all duration-150"
+                                    :class="activeSubPoint?.month === pt.month
+                                        ? 'fill-purple-500 stroke-3 stroke-white dark:stroke-zinc-900'
+                                        : 'fill-white stroke-2 stroke-purple-500 dark:fill-zinc-900'"
+                                    @mouseenter="activeSubPoint = pt"
+                                    @mouseleave="activeSubPoint = null"
+                                />
+
+                                <g class="fill-zinc-400 dark:fill-zinc-500 text-[10px] select-none">
+                                    <text
+                                        v-for="(pt, idx) in subSvg.points"
+                                        :key="idx"
+                                        :x="pt.x"
+                                        :y="subSvg.height - 10"
+                                        text-anchor="middle"
+                                    >
+                                        {{ formatMonth(pt.month) }}
+                                    </text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+
+            <!-- ─── 5. Subscription Distribution (Donut & Plan Legend) ────────── -->
+            <Card :no-padding="true">
+                <template #header>
+                    <div class="flex items-center justify-between w-full">
+                        <div>
+                            <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
+                                Subscription Distribution
+                            </h2>
+                            <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                Active and trialing subscriptions by plan.
+                            </p>
+                        </div>
+                        <span class="text-xs text-zinc-500 dark:text-zinc-400">
+                            {{ distributionData.total }} Total Active Tiers
+                        </span>
+                    </div>
+                </template>
+
+                <div class="p-6">
+                    <div v-if="distributionData.slices.length === 0" class="py-12">
+                        <EmptyState
+                            title="No active subscription plans"
+                            description="No tenants are currently subscribed to active or trialing plans."
+                        />
+                    </div>
+
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <!-- Left: SVG Donut Visualization -->
+                        <div class="flex flex-col items-center justify-center relative py-4">
+                            <svg class="h-60 w-60 -rotate-90 transform overflow-visible" viewBox="0 0 220 220">
+                                <!-- Background Track -->
+                                <circle
+                                    cx="110"
+                                    cy="110"
+                                    :r="distributionData.radius"
+                                    fill="transparent"
+                                    class="stroke-zinc-100 dark:stroke-zinc-800/80"
+                                    :stroke-width="distributionData.strokeWidth"
+                                />
+
+                                <!-- Slices -->
+                                <circle
+                                    v-for="slice in distributionData.slices"
+                                    :key="slice.id"
+                                    cx="110"
+                                    cy="110"
+                                    :r="distributionData.radius"
+                                    fill="transparent"
+                                    :stroke="slice.color"
+                                    :stroke-width="activeDonutSlice === slice.id ? distributionData.strokeWidth + 4 : distributionData.strokeWidth"
+                                    :stroke-dasharray="slice.dashArray"
+                                    :stroke-dashoffset="slice.dashOffset"
+                                    stroke-linecap="round"
+                                    class="transition-all duration-300 cursor-pointer"
+                                    @mouseenter="activeDonutSlice = slice.id"
+                                    @mouseleave="activeDonutSlice = null"
+                                />
+                            </svg>
+
+                            <!-- Center Total & Label -->
+                            <div class="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+                                <span class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                                    {{ formatNumber(distributionData.total) }}
+                                </span>
+                                <span class="text-xs font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                                    Active Subs
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Right: Legend / Breakdown List -->
+                        <div class="space-y-3.5">
+                            <div
+                                v-for="slice in distributionData.slices"
+                                :key="slice.id"
+                                class="rounded-xl border border-zinc-100 p-3.5 transition-all dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-800/30"
+                                :class="{
+                                    'ring-2 ring-primary-500/50 bg-white dark:bg-zinc-800': activeDonutSlice === slice.id,
+                                }"
+                                @mouseenter="activeDonutSlice = slice.id"
+                                @mouseleave="activeDonutSlice = null"
                             >
                                 <div class="flex items-center justify-between">
-                                    <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ item.plan_name }}</span>
-                                    <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ item.percentage }}%</span>
+                                    <div class="flex items-center gap-2.5">
+                                        <span
+                                            class="h-3 w-3 rounded-full shrink-0"
+                                            :style="{ backgroundColor: slice.color }"
+                                        />
+                                        <span class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                                            {{ slice.name }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                            {{ slice.value }} {{ slice.value === 1 ? 'sub' : 'subs' }}
+                                        </span>
+                                        <span class="rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                            {{ slice.percentage }}%
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between text-[11px] text-zinc-400">
-                                    <span>{{ item.subscribers }} subscribers</span>
-                                    <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ item.revenue }}</span>
-                                </div>
-                                <div class="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
-                                    <div class="h-full rounded-full bg-primary-600" :style="{ width: `${item.percentage}%` }" />
+
+                                <!-- Progress Bar -->
+                                <div class="mt-2.5 h-1.5 w-full rounded-full bg-zinc-200/80 dark:bg-zinc-700/60 overflow-hidden">
+                                    <div
+                                        class="h-full rounded-full transition-all duration-500"
+                                        :style="{
+                                            width: `${slice.percentage}%`,
+                                            backgroundColor: slice.color,
+                                        }"
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </Card>
 
-                    <!-- Breakdown 2: Organization Status -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-                        <div class="border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-                                Organization Status
-                            </h3>
-                            <p class="text-[11px] text-zinc-400">Active vs suspended tenant workspaces</p>
+            <!-- ─── 6. Recent 30-Day Growth ───────────────────────────────────── -->
+            <div>
+                <div class="mb-4">
+                    <h2 class="text-base font-semibold text-zinc-900 dark:text-white">
+                        Last 30 Days
+                    </h2>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                        Platform velocity and conversion activity across key indicators.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <!-- 1. Recent Organizations -->
+                    <div class="rounded-xl border border-zinc-200/80 bg-white p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                New Organizations
+                            </span>
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </span>
                         </div>
-
-                        <div class="space-y-3 text-xs">
-                            <div
-                                v-for="item in data.breakdowns?.organization_status || []"
-                                :key="item.status"
-                                class="flex items-center justify-between p-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <Badge :variant="getStatusBadgeVariant(item.status)" :label="item.status" size="sm" />
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ item.count }}</span>
-                                    <span v-if="item.percentage !== undefined" class="text-zinc-400 text-[11px]">({{ item.percentage }}%)</span>
-                                </div>
-                            </div>
+                        <div class="mt-3 flex items-baseline gap-2">
+                            <span class="text-2xl font-bold text-zinc-900 dark:text-white">
+                                +{{ recentGrowth.organizations }}
+                            </span>
+                            <span class="text-[11px] text-zinc-400">past 30d</span>
                         </div>
                     </div>
 
-                    <!-- Breakdown 3: Payment Status -->
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-4">
-                        <div class="border-b border-zinc-100 pb-3 dark:border-zinc-800">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-                                Payment Status
-                            </h3>
-                            <p class="text-[11px] text-zinc-400">Settled vs pending invoice transactions</p>
+                    <!-- 2. Recent Users -->
+                    <div class="rounded-xl border border-zinc-200/80 bg-white p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                New Users
+                            </span>
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </span>
                         </div>
+                        <div class="mt-3 flex items-baseline gap-2">
+                            <span class="text-2xl font-bold text-zinc-900 dark:text-white">
+                                +{{ recentGrowth.users }}
+                            </span>
+                            <span class="text-[11px] text-zinc-400">past 30d</span>
+                        </div>
+                    </div>
 
-                        <div class="space-y-3 text-xs">
-                            <div
-                                v-for="item in data.breakdowns?.payment_status || []"
-                                :key="item.status"
-                                class="flex items-center justify-between p-3 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <Badge :variant="getStatusBadgeVariant(item.status)" :label="item.status" size="sm" />
-                                </div>
-                                <div class="text-right">
-                                    <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ item.count }} txns</span>
-                                    <p v-if="item.amount" class="text-[11px] text-zinc-400 font-mono">{{ item.amount }}</p>
-                                </div>
-                            </div>
+                    <!-- 3. Recent Subscriptions -->
+                    <div class="rounded-xl border border-zinc-200/80 bg-white p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                New Subscriptions
+                            </span>
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mt-3 flex items-baseline gap-2">
+                            <span class="text-2xl font-bold text-zinc-900 dark:text-white">
+                                +{{ recentGrowth.subscriptions }}
+                            </span>
+                            <span class="text-[11px] text-zinc-400">past 30d</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Recent Payments -->
+                    <div class="rounded-xl border border-zinc-200/80 bg-white p-4 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                Processed Payments
+                            </span>
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="mt-3 flex items-baseline gap-2">
+                            <span class="text-2xl font-bold text-zinc-900 dark:text-white">
+                                +{{ recentGrowth.payments }}
+                            </span>
+                            <span class="text-[11px] text-zinc-400">transactions</span>
                         </div>
                     </div>
                 </div>

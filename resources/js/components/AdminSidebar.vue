@@ -128,6 +128,22 @@ const logout = () => {
                         </svg>
                         <span>Dashboard</span>
                     </Link>
+
+                    <Link
+                        href="/admin/analytics"
+                        :class="[
+                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                            isRouteActive('/admin/analytics') || isRouteActive('/superadmin/analytics')
+                                ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
+                                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                        ]"
+                        @click="emit('closeMobile')"
+                    >
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span>Analytics</span>
+                    </Link>
                 </div>
 
                 <!-- Section: Multi-Tenancy Management -->

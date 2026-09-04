@@ -7,6 +7,7 @@ use Modules\SuperAdmin\Http\Controllers\PlatformSettingsController;
 use Modules\SuperAdmin\Http\Controllers\RoleController;
 use Modules\SuperAdmin\Http\Controllers\UserController;
 use Modules\SuperAdmin\Http\Controllers\SecurityController;
+use Modules\SuperAdmin\Http\Controllers\PlatformAnalyticsController;
 
 foreach (['superadmin', 'admin'] as $prefix) {
     $namePrefix = $prefix === 'superadmin' ? 'superadmin.' : 'admin.';
@@ -85,6 +86,13 @@ foreach (['superadmin', 'admin'] as $prefix) {
         )
             ->middleware('permission:security.sessions.revoke')
             ->name('security.sessions.revoke');
+
+            Route::get(
+            'analytics',
+            [PlatformAnalyticsController::class, 'index'],
+        )
+            ->middleware('permission:analytics.view')
+            ->name('analytics.index');
         });
 
 }

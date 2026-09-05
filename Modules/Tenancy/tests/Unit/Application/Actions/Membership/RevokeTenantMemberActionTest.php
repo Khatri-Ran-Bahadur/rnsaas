@@ -5,7 +5,6 @@ namespace Modules\Tenancy\Tests\Unit\Application\Actions\Membership;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use LogicException;
 use Modules\Tenancy\Application\Actions\Membership\RevokeTenantMemberAction;
 use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 use Modules\Tenancy\Domain\Events\TenantMembershipStatusChanged;

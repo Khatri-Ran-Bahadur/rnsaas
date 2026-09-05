@@ -23,7 +23,6 @@ class EventServiceProvider extends ServiceProvider
         SecurityAuthSubscriber::class,
     ];
 
-
     /**
      * Indicates if events should be discovered.
      *

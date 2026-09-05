@@ -199,7 +199,7 @@ class PlatformAnalyticsService
     /**
      * Group records by calendar month.
      *
-     * @param Collection<int, object> $rows
+     * @param  Collection<int, object>  $rows
      */
     private function groupByMonth(
         Collection $rows,

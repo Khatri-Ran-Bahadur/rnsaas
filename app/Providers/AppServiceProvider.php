@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Tenancy\CurrentTenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Date;
@@ -9,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
-use App\Support\Tenancy\CurrentTenant;
 
 class AppServiceProvider extends ServiceProvider
 {

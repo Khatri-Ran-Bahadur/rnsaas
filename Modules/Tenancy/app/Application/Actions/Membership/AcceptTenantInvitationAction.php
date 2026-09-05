@@ -45,7 +45,7 @@ final class AcceptTenantInvitationAction
                 ]);
 
             if ($updated !== 1) {
-                throw new TenantMembershipConcurrencyException();
+                throw new TenantMembershipConcurrencyException;
             }
 
             $membership->refresh();

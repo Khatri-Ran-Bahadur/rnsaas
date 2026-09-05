@@ -20,7 +20,7 @@ function createSuperAdminUser(): User
 test('superadmin can access subscription plans index', function () {
     $admin = createSuperAdminUser();
 
-    $response = $this->actingAs($admin)->get('/admin/subscriptions/plans');
+    $response = $this->actingAs($admin)->get('/superadmin/subscriptions/plans');
 
     $response->assertOk();
 });
@@ -28,7 +28,7 @@ test('superadmin can access subscription plans index', function () {
 test('superadmin can access create plan page', function () {
     $admin = createSuperAdminUser();
 
-    $response = $this->actingAs($admin)->get('/admin/subscriptions/plans/create');
+    $response = $this->actingAs($admin)->get('/superadmin/subscriptions/plans/create');
 
     $response->assertOk();
 });
@@ -45,7 +45,7 @@ test('superadmin can create a new plan with features', function () {
         'sort_order' => 1,
     ]);
 
-    $response = $this->actingAs($admin)->post('/admin/subscriptions/plans', [
+    $response = $this->actingAs($admin)->post('/superadmin/subscriptions/plans', [
         'name' => 'Pro Plan',
         'slug' => 'pro-plan',
         'description' => 'Pro plan description',
@@ -84,10 +84,10 @@ test('superadmin can access edit plan page and update it', function () {
         'sort_order' => 1,
     ]);
 
-    $response = $this->actingAs($admin)->get("/admin/subscriptions/plans/{$plan->id}/edit");
+    $response = $this->actingAs($admin)->get("/superadmin/subscriptions/plans/{$plan->id}/edit");
     $response->assertOk();
 
-    $updateResponse = $this->actingAs($admin)->put("/admin/subscriptions/plans/{$plan->id}", [
+    $updateResponse = $this->actingAs($admin)->put("/superadmin/subscriptions/plans/{$plan->id}", [
         'name' => 'Updated Plan Name',
         'slug' => 'old-plan-name',
         'description' => 'New description',

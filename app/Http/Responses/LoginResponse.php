@@ -49,13 +49,7 @@ class LoginResponse implements LoginResponseContract
             }
         }
 
-        // If user has no active organization membership, log out and inform them
-        auth()->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login')->withErrors([
-            'email' => 'You do not belong to an active organization.',
-        ]);
+        // If user has no specific dashboard, redirect to intended or default home
+        return redirect()->intended(config('fortify.home', '/'));
     }
 }

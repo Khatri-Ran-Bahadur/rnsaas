@@ -14,7 +14,7 @@ beforeEach(function () {
 });
 
 test('guest is redirected to login', function () {
-    $response = $this->get('/admin/dashboard');
+    $response = $this->get('/superadmin/dashboard');
 
     $response
         ->assertRedirect('/login');
@@ -25,7 +25,7 @@ test('normal user cannot access superadmin area', function () {
 
     $response = $this
         ->actingAs($user)
-        ->get('/admin/dashboard');
+        ->get('/superadmin/dashboard');
 
     $response->assertForbidden();
 });
@@ -37,7 +37,7 @@ test('superadmin can access superadmin area', function () {
 
     $response = $this
         ->actingAs($user)
-        ->get('/admin/dashboard');
+        ->get('/superadmin/dashboard');
 
     $response->assertOk();
 });

@@ -46,7 +46,7 @@ final class ReactivateTenantMemberAction
                 ]);
 
             if ($updated !== 1) {
-                throw new TenantMembershipConcurrencyException();
+                throw new TenantMembershipConcurrencyException;
             }
 
             $membership->refresh();

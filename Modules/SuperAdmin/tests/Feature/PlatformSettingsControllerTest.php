@@ -24,7 +24,7 @@ beforeEach(function (): void {
 it('allows a super admin to view platform settings', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.settings.index'));
+        ->get(route('superadmin.settings.index'));
 
     $response
         ->assertOk()
@@ -45,7 +45,7 @@ it('allows a super admin to view platform settings', function (): void {
 it('updates general platform settings', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->put(route('admin.settings.update'), [
+        ->put(route('superadmin.settings.update'), [
             'general' => [
                 'platform_name' => 'SathiSaaS Pro',
                 'support_email' => 'support@example.com',
@@ -112,7 +112,7 @@ it('does not overwrite an existing mail password with a blank value', function (
 
     $this
         ->actingAs($this->superAdmin)
-        ->put(route('admin.settings.update'), [
+        ->put(route('superadmin.settings.update'), [
             'general' => [
                 'platform_name' => 'SathiSaaS',
                 'support_email' => null,
@@ -143,7 +143,7 @@ it('does not overwrite an existing mail password with a blank value', function (
 it('validates invalid timezone', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->put(route('admin.settings.update'), [
+        ->put(route('superadmin.settings.update'), [
             'general' => [
                 'platform_name' => 'SathiSaaS',
                 'support_email' => null,
@@ -169,7 +169,7 @@ it('denies users without settings permission', function (): void {
 
     $response = $this
         ->actingAs($user)
-        ->get(route('admin.settings.index'));
+        ->get(route('superadmin.settings.index'));
 
     $response->assertForbidden();
 });
@@ -177,7 +177,7 @@ it('denies users without settings permission', function (): void {
 it('allows a super admin to clear platform settings cache', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->post(route('admin.settings.cache.clear'));
+        ->post(route('superadmin.settings.cache.clear'));
 
     $response
         ->assertSessionHas(
@@ -189,7 +189,7 @@ it('allows a super admin to clear platform settings cache', function (): void {
 it('updates and persists branding platform settings across page refresh', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->put(route('admin.settings.update'), [
+        ->put(route('superadmin.settings.update'), [
             'general' => [
                 'platform_name' => 'SathiSaaS Pro',
                 'support_email' => 'support@example.com',
@@ -224,7 +224,7 @@ it('updates and persists branding platform settings across page refresh', functi
     // Assert that index reloads with the updated branding
     $indexResponse = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.settings.index'));
+        ->get(route('superadmin.settings.index'));
 
     $indexResponse
         ->assertOk()
@@ -248,7 +248,7 @@ it('resolves branding media urls dynamically from Media models', function (): vo
 
     $this
         ->actingAs($this->superAdmin)
-        ->put(route('admin.settings.update'), [
+        ->put(route('superadmin.settings.update'), [
             'general' => [
                 'platform_name' => 'SathiSaaS',
                 'timezone' => 'UTC',
@@ -272,7 +272,7 @@ it('resolves branding media urls dynamically from Media models', function (): vo
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.settings.index'));
+        ->get(route('superadmin.settings.index'));
 
     $response
         ->assertOk()

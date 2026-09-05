@@ -34,7 +34,7 @@ it('allows a superadmin to view audit logs', function () {
         'created_at' => now(),
     ]);
 
-    $response = $this->get('/admin/audit-logs');
+    $response = $this->get('/superadmin/audit-logs');
 
     $response->assertOk();
     $page = $response->viewData('page');
@@ -46,13 +46,13 @@ it('returns 403 forbidden for normal authenticated users without superadmin role
         'email_verified_at' => now(),
     ]);
 
-    $response = $this->actingAs($user)->get('/admin/audit-logs');
+    $response = $this->actingAs($user)->get('/superadmin/audit-logs');
 
     $response->assertForbidden();
 });
 
 it('redirects unauthenticated guests to login', function () {
-    $response = $this->get('/admin/audit-logs');
+    $response = $this->get('/superadmin/audit-logs');
 
     $response->assertRedirect('/login');
 });
@@ -67,7 +67,7 @@ it('paginates audit logs with 20 records per page by default', function () {
         ]);
     }
 
-    $responsePage1 = $this->get('/admin/audit-logs');
+    $responsePage1 = $this->get('/superadmin/audit-logs');
     $responsePage1->assertOk();
 
     $logsPage1 = $responsePage1->viewData('page')['props']['auditLogs'];
@@ -75,7 +75,7 @@ it('paginates audit logs with 20 records per page by default', function () {
     expect($logsPage1['per_page'])->toBe(20);
     expect(count($logsPage1['data']))->toBe(20);
 
-    $responsePage2 = $this->get('/admin/audit-logs?page=2');
+    $responsePage2 = $this->get('/superadmin/audit-logs?page=2');
     $responsePage2->assertOk();
 
     $logsPage2 = $responsePage2->viewData('page')['props']['auditLogs'];
@@ -95,7 +95,7 @@ it('filters audit logs by event name', function () {
         'created_at' => now(),
     ]);
 
-    $response = $this->get('/admin/audit-logs?event=subscription.canceled');
+    $response = $this->get('/superadmin/audit-logs?event=subscription.canceled');
     $response->assertOk();
 
     $logs = $response->viewData('page')['props']['auditLogs'];
@@ -121,7 +121,7 @@ it('filters audit logs by tenant', function () {
         'created_at' => now(),
     ]);
 
-    $response = $this->get("/admin/audit-logs?tenant_id={$tenantA->id}");
+    $response = $this->get("/superadmin/audit-logs?tenant_id={$tenantA->id}");
     $response->assertOk();
 
     $logs = $response->viewData('page')['props']['auditLogs'];
@@ -151,22 +151,22 @@ it('supports search by event, request id, tenant name, and actor', function () {
     ]);
 
     // 1. Search by event name
-    $resEvent = $this->get('/admin/audit-logs?search=special.event');
+    $resEvent = $this->get('/superadmin/audit-logs?search=special.event');
     $resEvent->assertOk();
     expect($resEvent->viewData('page')['props']['auditLogs']['total'])->toBe(1);
 
     // 2. Search by request ID
-    $resReq = $this->get('/admin/audit-logs?search=xyz-unique-99');
+    $resReq = $this->get('/superadmin/audit-logs?search=xyz-unique-99');
     $resReq->assertOk();
     expect($resReq->viewData('page')['props']['auditLogs']['total'])->toBe(1);
 
     // 3. Search by tenant name
-    $resTenant = $this->get('/admin/audit-logs?search=Acme');
+    $resTenant = $this->get('/superadmin/audit-logs?search=Acme');
     $resTenant->assertOk();
     expect($resTenant->viewData('page')['props']['auditLogs']['total'])->toBe(1);
 
     // 4. Search by actor email
-    $resActor = $this->get('/admin/audit-logs?search=jane@example.com');
+    $resActor = $this->get('/superadmin/audit-logs?search=jane@example.com');
     $resActor->assertOk();
     expect($resActor->viewData('page')['props']['auditLogs']['total'])->toBe(1);
 });
@@ -190,12 +190,12 @@ it('filters audit logs by date range', function () {
     ]);
 
     // Test date_from filter
-    $resFrom = $this->get('/admin/audit-logs?date_from='.now()->subDays(3)->toDateString());
+    $resFrom = $this->get('/superadmin/audit-logs?date_from='.now()->subDays(3)->toDateString());
     $resFrom->assertOk();
     expect($resFrom->viewData('page')['props']['auditLogs']['total'])->toBe(2);
 
     // Test date_to filter
-    $resTo = $this->get('/admin/audit-logs?date_to='.now()->subDays(5)->toDateString());
+    $resTo = $this->get('/superadmin/audit-logs?date_to='.now()->subDays(5)->toDateString());
     $resTo->assertOk();
     expect($resTo->viewData('page')['props']['auditLogs']['total'])->toBe(1);
     expect($resTo->viewData('page')['props']['auditLogs']['data'][0]['event'])->toBe('event.past');
@@ -211,7 +211,7 @@ it('preserves query strings across pagination links', function () {
         ]);
     }
 
-    $response = $this->get('/admin/audit-logs?event=membership.invited&page=2');
+    $response = $this->get('/superadmin/audit-logs?event=membership.invited&page=2');
     $response->assertOk();
 
     $logs = $response->viewData('page')['props']['auditLogs'];
@@ -241,7 +241,7 @@ it('returns audit detail data with actor, tenant, values, and metadata correctly
         'created_at' => now(),
     ]);
 
-    $response = $this->get('/admin/audit-logs');
+    $response = $this->get('/superadmin/audit-logs');
     $response->assertOk();
 
     $logData = $response->viewData('page')['props']['auditLogs']['data'][0];
@@ -267,15 +267,15 @@ it('verifies no mutation or delete endpoints exist for audit logs', function () 
         'created_at' => now(),
     ]);
 
-    // POST /admin/audit-logs (creation not allowed)
-    $this->post('/admin/audit-logs', ['event' => 'hack'])->assertStatus(405);
+    // POST /superadmin/audit-logs (creation not allowed)
+    $this->post('/superadmin/audit-logs', ['event' => 'hack'])->assertStatus(405);
 
-    // PUT /admin/audit-logs/{id} (mutation not allowed)
-    $this->put("/admin/audit-logs/{$log->id}", ['event' => 'tamper'])->assertStatus(404);
+    // PUT /superadmin/audit-logs/{id} (mutation not allowed)
+    $this->put("/superadmin/audit-logs/{$log->id}", ['event' => 'tamper'])->assertStatus(404);
 
-    // PATCH /admin/audit-logs/{id} (mutation not allowed)
-    $this->patch("/admin/audit-logs/{$log->id}", ['event' => 'tamper'])->assertStatus(404);
+    // PATCH /superadmin/audit-logs/{id} (mutation not allowed)
+    $this->patch("/superadmin/audit-logs/{$log->id}", ['event' => 'tamper'])->assertStatus(404);
 
-    // DELETE /admin/audit-logs/{id} (deletion not allowed)
-    $this->delete("/admin/audit-logs/{$log->id}")->assertStatus(404);
+    // DELETE /superadmin/audit-logs/{id} (deletion not allowed)
+    $this->delete("/superadmin/audit-logs/{$log->id}")->assertStatus(404);
 });

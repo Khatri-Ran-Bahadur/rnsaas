@@ -33,7 +33,7 @@ beforeEach(function (): void {
 it('allows a super admin to view the security center', function (): void {
     $response = $this
         ->actingAs($this->user)
-        ->get('/admin/security');
+        ->get('/superadmin/security');
 
     $response
         ->assertSuccessful()
@@ -74,7 +74,7 @@ it('returns authentication events in the security center', function (): void {
 
     $response = $this
         ->actingAs($this->user)
-        ->get('/admin/security');
+        ->get('/superadmin/security');
 
     $response
         ->assertSuccessful()
@@ -103,7 +103,7 @@ it('does not expose password data through the security center', function (): voi
 
     $response = $this
         ->actingAs($this->user)
-        ->get('/admin/security');
+        ->get('/superadmin/security');
 
     $response
         ->assertSuccessful()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import StatsCard from '@/components/StatsCard.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
@@ -269,7 +269,7 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Subscriptions"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -894,5 +894,5 @@ const formatStatusLabel = (status: SubscriptionItem['status']) => {
                 </div>
             </template>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,7 +71,7 @@ const confirmDelete = () => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Role Management"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -344,5 +344,5 @@ const confirmDelete = () => {
                 </div>
             </div>
         </Transition>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

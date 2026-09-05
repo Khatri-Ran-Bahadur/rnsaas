@@ -2,11 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Payment\Models\PaymentTransaction;
-use Modules\Subscription\Models\SubscriptionPlan;
-use Modules\Subscription\Models\TenantSubscription;
 use Modules\SuperAdmin\Services\PlatformAnalyticsService;
-use Modules\Tenancy\Models\Tenant;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -52,7 +48,7 @@ it('returns platform analytics overview', function (): void {
 it('allows a super admin to view platform analytics', function (): void {
     $response = $this
         ->actingAs($this->user)
-        ->get('/admin/analytics');
+        ->get('/superadmin/analytics');
 
     $response
         ->assertSuccessful()
@@ -71,7 +67,7 @@ it('does not allow users without analytics permission', function (): void {
 
     $response = $this
         ->actingAs($user)
-        ->get('/admin/analytics');
+        ->get('/superadmin/analytics');
 
     $response->assertForbidden();
 });

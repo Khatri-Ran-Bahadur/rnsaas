@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import StatsCard from '@/components/StatsCard.vue';
 import Badge from '@/components/Badge.vue';
 import EmptyState from '@/components/EmptyState.vue';
@@ -46,7 +46,7 @@ const formatDate = (dateStr?: string) => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Super Admin Dashboard"
         :breadcrumbs="[{ label: 'Dashboard' }]"
     >
@@ -341,5 +341,5 @@ const formatDate = (dateStr?: string) => {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

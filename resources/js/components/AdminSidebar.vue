@@ -130,10 +130,10 @@ const logout = () => {
                     </Link>
 
                     <Link
-                        href="/admin/analytics"
+                        href="/superadmin/analytics"
                         :class="[
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/analytics') || isRouteActive('/superadmin/analytics')
+                            isRouteActive('/superadmin/analytics')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -317,10 +317,10 @@ const logout = () => {
                     </p>
 
                     <Link
-                        href="/admin/security"
+                        href="/superadmin/security"
                         :class="[
                             'group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            isRouteActive('/admin/security')
+                            isRouteActive('/superadmin/security')
                                 ? 'bg-primary-600 text-white font-semibold shadow-xs shadow-primary-500/25'
                                 : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                         ]"
@@ -335,7 +335,7 @@ const logout = () => {
                         <span
                             :class="[
                                 'rounded px-1.5 py-0.5 text-[10px]',
-                                isRouteActive('/admin/security')
+                                isRouteActive('/superadmin/security')
                                     ? 'bg-white/20 text-white'
                                     : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
                             ]"

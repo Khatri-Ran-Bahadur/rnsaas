@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Card from '@/components/Card.vue';
 import Button from '@/components/Button.vue';
 import TextInput from '@/components/TextInput.vue';
@@ -117,7 +117,7 @@ const submit = () => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         :title="`Edit ${plan.name} Plan`"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -381,5 +381,5 @@ const submit = () => {
                 </div>
             </form>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

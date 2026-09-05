@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Button from '@/components/Button.vue';
 import TextInput from '@/components/TextInput.vue';
 import Select from '@/components/Select.vue';
@@ -55,7 +55,7 @@ const industryOptions = [
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         :title="`Edit ${tenant.name}`"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -206,5 +206,5 @@ const industryOptions = [
                 </div>
             </form>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import StatsCard from '@/components/StatsCard.vue';
 import Card from '@/components/Card.vue';
 import Badge from '@/components/Badge.vue';
@@ -136,7 +136,7 @@ const hasActiveFilters = computed(() => Boolean(search.value || selectedEvent.va
 const applyFilters = () => {
     isSearching.value = true;
     router.get(
-        '/admin/security',
+        '/superadmin/security',
         {
             search: search.value || undefined,
             event: selectedEvent.value || undefined,
@@ -226,7 +226,7 @@ const confirmRevokeSession = () => {
     isRevoking.value = true;
 
     router.post(
-        `/admin/security/sessions/${sessionToRevoke.value.id}/revoke`,
+        `/superadmin/security/sessions/${sessionToRevoke.value.id}/revoke`,
         {},
         {
             preserveScroll: true,
@@ -394,10 +394,10 @@ const getInitials = (name?: string | null): string => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Security Center"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
             { label: 'Security Center' },
         ]"
     >
@@ -1057,5 +1057,5 @@ const getInitials = (name?: string | null): string => {
                 </Button>
             </template>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

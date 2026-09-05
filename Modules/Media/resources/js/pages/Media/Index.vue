@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Button from '@/components/Button.vue';
 import Modal from '@/components/Modal.vue';
 import Badge from '@/components/Badge.vue';
@@ -457,7 +457,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <AdminLayout>
+    <SuperAdminLayout>
         <Head title="Media Library - SuperAdmin" />
 
         <!-- Notification Toast -->
@@ -1325,5 +1325,5 @@ onMounted(() => {
                 </div>
             </div>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

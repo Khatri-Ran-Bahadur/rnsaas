@@ -2,10 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Modules\Media\Models\Media;
 use Modules\SuperAdmin\Services\PlatformSettings;
+use Modules\Tenancy\Domain\Enums\TenantStatus;
+use Modules\Tenancy\Models\Tenant;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -51,6 +54,54 @@ class HandleInertiaRequests extends Middleware
                 'info' => fn () => $request->session()->get('info'),
             ],
             'platform' => $this->platformBranding(),
+            'current_tenant' => function () {
+                try {
+                    $currentTenant = app(CurrentTenant::class);
+                    if (! $currentTenant->has()) {
+                        return null;
+                    }
+
+                    $tenant = $currentTenant->get();
+
+                    return [
+                        'id' => $tenant->id,
+                        'public_id' => $tenant->public_id,
+                        'name' => $tenant->name,
+                        'slug' => $tenant->slug,
+                        'status' => $tenant->status instanceof TenantStatus ? $tenant->status->value : (string) $tenant->status,
+                        'timezone' => $tenant->timezone,
+                        'currency' => $tenant->currency,
+                    ];
+                } catch (\Throwable) {
+                    return null;
+                }
+            },
+            'user_tenants' => function () use ($request) {
+                $user = $request->user();
+                if (! $user) {
+                    return [];
+                }
+
+                return $user->tenants()
+                    ->wherePivot('status', 'active')
+                    ->get(['tenants.id', 'tenants.public_id', 'tenants.name', 'tenants.slug'])
+                    ->toArray();
+            },
+            'impersonation' => function () use ($request) {
+                $tenantId = $request->session()->get('impersonated_tenant_id');
+                if (! $tenantId) {
+                    return null;
+                }
+
+                $tenant = Tenant::query()->find($tenantId);
+
+                return [
+                    'is_impersonating' => true,
+                    'tenant_id' => $tenantId,
+                    'tenant_name' => $tenant?->name ?? 'Organization',
+                    'by_user_id' => $request->session()->get('impersonated_by_user_id'),
+                ];
+            },
         ];
     }
 

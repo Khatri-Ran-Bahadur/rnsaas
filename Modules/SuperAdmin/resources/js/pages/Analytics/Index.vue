@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import StatsCard from '@/components/StatsCard.vue';
 import Card from '@/components/Card.vue';
 import Badge from '@/components/Badge.vue';
@@ -166,7 +166,7 @@ const activeRangeKey = computed(() => {
 
 const applyDateFilter = (from?: string | null, to?: string | null) => {
     isFiltering.value = true;
-    const targetUrl = typeof window !== 'undefined' ? window.location.pathname : '/admin/analytics';
+    const targetUrl = typeof window !== 'undefined' ? window.location.pathname : '/superadmin/analytics';
 
     router.get(
         targetUrl,
@@ -435,10 +435,10 @@ const activeDonutSlice = ref<number | null>(null);
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Platform Analytics"
         :breadcrumbs="[
-            { label: 'Dashboard', href: '/admin/dashboard' },
+            { label: 'Dashboard', href: '/superadmin/dashboard' },
             { label: 'Analytics' },
         ]"
     >
@@ -1260,5 +1260,5 @@ const activeDonutSlice = ref<number | null>(null);
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

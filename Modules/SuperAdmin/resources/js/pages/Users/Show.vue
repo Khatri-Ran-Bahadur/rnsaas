@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import Modal from '@/components/Modal.vue';
@@ -182,7 +182,7 @@ const getRoleBadgeVariant = (roleName: string) => {
 </script>
 
 <template>
-    <AdminLayout>
+    <SuperAdminLayout>
         <Head :title="`${userData.name} - User Details`" />
 
         <div class="space-y-6 pb-12">
@@ -625,5 +625,5 @@ const getRoleBadgeVariant = (roleName: string) => {
                 </div>
             </div>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

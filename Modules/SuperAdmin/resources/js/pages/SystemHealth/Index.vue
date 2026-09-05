@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Card from '@/components/Card.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
@@ -278,11 +278,7 @@ const handleRefresh = async () => {
 
     refreshStatus.value = 'loading';
 
-    // Resolve URL based on current routing prefix
-    const isSuperAdminPrefix = window.location.pathname.startsWith('/superadmin');
-    const checkEndpoint = isSuperAdminPrefix
-        ? '/superadmin/system-health/check'
-        : '/admin/system-health/check';
+    const checkEndpoint = '/superadmin/system-health/check';
 
     try {
         const csrfToken = (page.props as any)?.csrf_token || '';
@@ -367,7 +363,7 @@ const handleRefresh = async () => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="System Health"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -619,5 +615,5 @@ const handleRefresh = async () => {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Modal from '@/components/Modal.vue';
 import Button from '@/components/Button.vue';
 import Select from '@/components/Select.vue';
@@ -223,7 +223,7 @@ const getShortAuditableType = (typeStr: string | null, id: number | null) => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Audit Logs"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -654,5 +654,5 @@ const getShortAuditableType = (typeStr: string | null, id: number | null) => {
                 </Button>
             </template>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

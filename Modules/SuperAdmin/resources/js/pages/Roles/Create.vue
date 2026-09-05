@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import RoleForm, { type PermissionGroup } from './Partials/RoleForm.vue';
 
 defineProps<{
@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Create New Role"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -39,5 +39,5 @@ defineProps<{
             submit-url="/superadmin/roles"
             cancel-url="/superadmin/roles"
         />
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

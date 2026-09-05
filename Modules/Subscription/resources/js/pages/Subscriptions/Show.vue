@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import Modal from '@/components/Modal.vue';
@@ -160,7 +160,7 @@ const confirmReactivate = () => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Subscription Details"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -562,5 +562,5 @@ const confirmReactivate = () => {
                 </div>
             </template>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

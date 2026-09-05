@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import StatsCard from '@/components/StatsCard.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
@@ -130,7 +130,7 @@ const getRoleBadgeVariant = (roleName: string) => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Platform Users"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -382,5 +382,5 @@ const getRoleBadgeVariant = (roleName: string) => {
                 <Pagination :data="users" />
             </div>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

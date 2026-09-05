@@ -2,28 +2,36 @@
 
 namespace Modules\Admin\Http\Controllers;
 
-use App\Support\Tenancy\CurrentTenant;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Admin\Actions\GetOrganizationDashboardAction;
+use Modules\Admin\Actions\GetUserTenantsAction;
 
 class DashboardController
 {
-    public function __invoke(CurrentTenant $currentTenant): Response
-    {
-        $tenant = $currentTenant->get();
+    public function __invoke(
+        Request $request,
+        GetOrganizationDashboardAction $dashboardAction,
+        GetUserTenantsAction $tenantsAction,
+    ): Response {
+        $user = $request->user();
 
-        return Inertia::render('Admin/Dashboard', [
-            'tenant' => [
-                'public_id' => $tenant->public_id,
-                'name' => $tenant->name,
-                'slug' => $tenant->slug,
-                'industry' => $tenant->industry,
-                'status' => $tenant->status->value,
-                'country_code' => $tenant->country_code,
-                'timezone' => $tenant->timezone,
-                'locale' => $tenant->locale,
-                'currency' => $tenant->currency,
+        return Inertia::render(
+            'Admin/Dashboard',
+            [
+                ...$dashboardAction->handle()->toArray(),
+                'organizations' => $tenantsAction
+                    ->handle($user)
+                    ->map(fn ($tenant) => [
+                        'id' => $tenant->id,
+                        'public_id' => $tenant->public_id,
+                        'name' => $tenant->name,
+                        'slug' => $tenant->slug,
+                    ])
+                    ->values()
+                    ->all(),
             ],
-        ]);
+        );
     }
 }

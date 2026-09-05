@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Button from '@/components/Button.vue';
 import Select from '@/components/Select.vue';
 import DatePicker from '@/components/DatePicker.vue';
@@ -53,7 +53,7 @@ const submit = () => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Create Subscription"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -154,5 +154,5 @@ const submit = () => {
                 </Button>
             </div>
         </form>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

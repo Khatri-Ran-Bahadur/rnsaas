@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import Select from '@/components/Select.vue';
@@ -97,6 +97,10 @@ const resetFilters = () => {
     applyFilters();
 };
 
+const impersonateTenant = (tenantId: number) => {
+    router.post(`/superadmin/tenants/${tenantId}/impersonate`);
+};
+
 const formatDate = (dateStr: string) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -108,7 +112,7 @@ const formatDate = (dateStr: string) => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Organizations"
         :breadcrumbs="[{ label: 'Dashboard', href: '/superadmin/dashboard' }, { label: 'Organizations' }]"
     >
@@ -396,6 +400,18 @@ const formatDate = (dateStr: string) => {
                                                 <span>View Organization</span>
                                             </Link>
 
+                                            <button
+                                                v-if="item.status === 'active'"
+                                                type="button"
+                                                class="flex w-full items-center gap-2.5 px-3 py-2 text-indigo-700 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40 transition-colors rounded-md font-medium text-left"
+                                                @click="impersonateTenant(item.id); close()"
+                                            >
+                                                <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                                </svg>
+                                                <span>Login as Admin</span>
+                                            </button>
+
                                             <Link
                                                 :href="`/superadmin/tenants/${item.id}/edit`"
                                                 class="flex items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md"
@@ -538,5 +554,5 @@ const formatDate = (dateStr: string) => {
                 <Pagination :data="tenants" />
             </div>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

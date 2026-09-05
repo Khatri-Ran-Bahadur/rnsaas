@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Head, useForm, usePage, Link, router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Button from '@/components/Button.vue';
 import Badge from '@/components/Badge.vue';
 import Card from '@/components/Card.vue';
@@ -381,10 +381,7 @@ const savingSection = ref<string | null>(null);
 const saveSection = (sectionName: string) => {
     savingSection.value = sectionName;
 
-    // Resolve update URL (either superadmin or admin prefix)
-    const url = window.location.pathname.startsWith('/admin')
-        ? '/admin/settings'
-        : '/superadmin/settings';
+    const url = '/superadmin/settings';
 
     form.put(url, {
         preserveScroll: true,
@@ -401,7 +398,7 @@ const saveSection = (sectionName: string) => {
 </script>
 
 <template>
-    <AdminLayout>
+    <SuperAdminLayout>
         <Head title="Platform Settings - SuperAdmin" />
 
         <!-- Toast Notification -->
@@ -1572,5 +1569,5 @@ const saveSection = (sectionName: string) => {
                 </div>
             </div>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

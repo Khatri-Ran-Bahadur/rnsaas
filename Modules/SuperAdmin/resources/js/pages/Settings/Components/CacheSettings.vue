@@ -141,9 +141,7 @@ const executeCacheClear = () => {
     const op = activeModalOperation.value;
 
     if (op === 'settings') {
-        const url = window.location.pathname.startsWith('/admin')
-            ? '/admin/settings/cache/clear'
-            : '/superadmin/settings/cache/clear';
+        const url = '/superadmin/settings/cache/clear';
 
         router.post(url, {}, {
             preserveScroll: true,

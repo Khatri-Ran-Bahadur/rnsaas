@@ -21,7 +21,7 @@ beforeEach(function (): void {
 it('allows a superadmin to view platform roles', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.roles.index'));
+        ->get(route('superadmin.roles.index'));
 
     $response
         ->assertOk()
@@ -36,7 +36,7 @@ it('allows a superadmin to view platform roles', function (): void {
 it('allows a superadmin to view the create role page', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.roles.create'));
+        ->get(route('superadmin.roles.create'));
 
     $response
         ->assertOk()
@@ -55,7 +55,7 @@ it('allows a superadmin to view the edit role page for a custom role', function 
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.roles.edit', $role));
+        ->get(route('superadmin.roles.edit', $role));
 
     $response
         ->assertOk()
@@ -73,10 +73,10 @@ it('prevents viewing the edit page for SuperAdmin role', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->get(route('admin.roles.edit', $role));
+        ->get(route('superadmin.roles.edit', $role));
 
     $response
-        ->assertRedirect(route('admin.roles.index'))
+        ->assertRedirect(route('superadmin.roles.index'))
         ->assertSessionHas('error');
 });
 
@@ -88,7 +88,7 @@ it('creates a platform role with selected permissions', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->post(route('admin.roles.store'), [
+        ->post(route('superadmin.roles.store'), [
             'name' => 'Support Agent',
             'permissions' => [
                 $permission->name,
@@ -139,7 +139,7 @@ it('updates a platform role and synchronizes permissions', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
         ->put(
-            route('admin.roles.update', $role),
+            route('superadmin.roles.update', $role),
             [
                 'name' => 'Support Manager',
                 'permissions' => [
@@ -184,7 +184,7 @@ it('prevents modifying the SuperAdmin role', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
         ->put(
-            route('admin.roles.update', $role),
+            route('superadmin.roles.update', $role),
             [
                 'name' => 'Platform Administrator',
                 'permissions' => [
@@ -207,7 +207,7 @@ it('prevents deleting the SuperAdmin role', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
         ->delete(
-            route('admin.roles.destroy', $role),
+            route('superadmin.roles.destroy', $role),
         );
 
     $response->assertStatus(422);
@@ -230,7 +230,7 @@ it('prevents deleting a role assigned to users', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
         ->delete(
-            route('admin.roles.destroy', $role),
+            route('superadmin.roles.destroy', $role),
         );
 
     $response->assertStatus(422);
@@ -249,7 +249,7 @@ it('deletes an unused platform role', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
         ->delete(
-            route('admin.roles.destroy', $role),
+            route('superadmin.roles.destroy', $role),
         );
 
     $response
@@ -273,7 +273,7 @@ it('denies role management without the required permission', function (): void {
 
     $response = $this
         ->actingAs($user)
-        ->get(route('admin.roles.index'));
+        ->get(route('superadmin.roles.index'));
 
     $response->assertForbidden();
 });
@@ -286,7 +286,7 @@ it('validates duplicate platform role names', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->post(route('admin.roles.store'), [
+        ->post(route('superadmin.roles.store'), [
             'name' => 'Support Agent',
             'permissions' => [],
         ]);

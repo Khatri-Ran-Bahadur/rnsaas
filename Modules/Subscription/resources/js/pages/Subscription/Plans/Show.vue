@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 
@@ -102,7 +102,7 @@ const groupedModules = computed(() => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         :title="`${plan.name} - Plan Details`"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -316,5 +316,5 @@ const groupedModules = computed(() => {
                 </div>
             </div>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

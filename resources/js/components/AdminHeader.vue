@@ -142,7 +142,7 @@ const logout = () => {
                             </Link>
 
                             <Link
-                                href="/tenants"
+                                href="/superadmin/tenants"
                                 class="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                                 @click="userDropdownOpen = false"
                             >

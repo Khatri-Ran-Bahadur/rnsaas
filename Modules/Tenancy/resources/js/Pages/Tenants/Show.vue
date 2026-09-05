@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Link, useForm, router } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import Modal from '@/components/Modal.vue';
@@ -58,6 +58,18 @@ const copyToClipboard = (text: string, field: string) => {
     }
 };
 
+const isImpersonating = ref(false);
+
+const handleLoginAsAdmin = () => {
+    if (isImpersonating.value) return;
+    isImpersonating.value = true;
+    router.post(`/superadmin/tenants/${props.tenant.id}/impersonate`, {}, {
+        onFinish: () => {
+            isImpersonating.value = false;
+        },
+    });
+};
+
 const formatDate = (dateStr: string) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -71,7 +83,7 @@ const formatDate = (dateStr: string) => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         :title="tenant.name"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -119,6 +131,22 @@ const formatDate = (dateStr: string) => {
 
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3 self-start sm:self-auto">
+                    <!-- Login as Admin Button (SuperAdmin Impersonation) -->
+                    <Button
+                        v-if="tenant.status === 'active'"
+                        variant="secondary"
+                        size="sm"
+                        :disabled="isImpersonating"
+                        @click="handleLoginAsAdmin"
+                    >
+                        <template #prefix>
+                            <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            </svg>
+                        </template>
+                        <span>{{ isImpersonating ? 'Entering Admin...' : 'Login as Admin' }}</span>
+                    </Button>
+
                     <Button
                         variant="primary"
                         size="sm"
@@ -531,5 +559,5 @@ const formatDate = (dateStr: string) => {
                 </div>
             </form>
         </Modal>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

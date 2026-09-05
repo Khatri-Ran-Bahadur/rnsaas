@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import AdminLayout from '@/layouts/AdminLayout.vue';
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Button from '@/components/Button.vue';
 import EmptyState from '@/components/EmptyState.vue';
 
@@ -130,7 +130,7 @@ const formatPrice = (plan: Plan) => {
 </script>
 
 <template>
-    <AdminLayout
+    <SuperAdminLayout
         title="Subscription Settings"
         :breadcrumbs="[
             { label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -372,5 +372,5 @@ const formatPrice = (plan: Plan) => {
                 </template>
             </EmptyState>
         </div>
-    </AdminLayout>
+    </SuperAdminLayout>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { router } from "@inertiajs/vue3";
-import AdminLayout from "@/layouts/AdminLayout.vue";
+import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import StatsCard from "@/components/StatsCard.vue";
 import Badge from "@/components/Badge.vue";
 import Button from "@/components/Button.vue";
@@ -292,7 +292,7 @@ const closeConfirmModal = () => {
 </script>
 
 <template>
-	<AdminLayout
+	<SuperAdminLayout
 		title="Payments"
 		:breadcrumbs="[
 			{ label: 'Dashboard', href: '/superadmin/dashboard' },
@@ -1314,5 +1314,5 @@ const closeConfirmModal = () => {
 				</Button>
 			</template>
 		</Modal>
-	</AdminLayout>
+	</SuperAdminLayout>
 </template>

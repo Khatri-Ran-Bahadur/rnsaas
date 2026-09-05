@@ -3,26 +3,22 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Media\Http\Controllers\MediaController;
 
-// SuperAdmin Media routes (supporting both /superadmin/media and legacy /admin/media)
-foreach (['superadmin', 'admin'] as $prefix) {
-    $namePrefix = $prefix === 'superadmin' ? 'superadmin.' : 'admin.';
-
-    Route::middleware(['auth', 'superadmin'])
-        ->prefix($prefix)
-        ->name($namePrefix)
-        ->group(function (): void {
-            Route::get('/media', [MediaController::class, 'page'])->name('media.page');
-            Route::get('/media/index', [MediaController::class, 'index'])->name('media.index');
-            Route::post('/media/batch', [MediaController::class, 'batchStore'])->name('media.batch');
-            Route::post('/media/batch-destroy', [MediaController::class, 'batchDestroy'])->name('media.batch-destroy');
-            Route::get('/media/{id}/download', [MediaController::class, 'download'])->name('media.download');
-            Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
-            Route::post('/media/directories', [MediaController::class, 'createDirectory'])->name('media.directories.create');
-            Route::put('/media/directories/{id}', [MediaController::class, 'updateDirectory'])->name('media.directories.update');
-            Route::delete('/media/directories/{id}', [MediaController::class, 'destroyDirectory'])->name('media.directories.destroy');
-            Route::patch('/media/{id}/directory', [MediaController::class, 'updateMediaDirectory'])->name('media.directory.update');
-        });
-}
+// SuperAdmin Media routes
+Route::middleware(['auth', 'superadmin'])
+    ->prefix('superadmin')
+    ->name('superadmin.')
+    ->group(function (): void {
+        Route::get('/media', [MediaController::class, 'page'])->name('media.page');
+        Route::get('/media/index', [MediaController::class, 'index'])->name('media.index');
+        Route::post('/media/batch', [MediaController::class, 'batchStore'])->name('media.batch');
+        Route::post('/media/batch-destroy', [MediaController::class, 'batchDestroy'])->name('media.batch-destroy');
+        Route::get('/media/{id}/download', [MediaController::class, 'download'])->name('media.download');
+        Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
+        Route::post('/media/directories', [MediaController::class, 'createDirectory'])->name('media.directories.create');
+        Route::put('/media/directories/{id}', [MediaController::class, 'updateDirectory'])->name('media.directories.update');
+        Route::delete('/media/directories/{id}', [MediaController::class, 'destroyDirectory'])->name('media.directories.destroy');
+        Route::patch('/media/{id}/directory', [MediaController::class, 'updateMediaDirectory'])->name('media.directory.update');
+    });
 
 // General / Tenant Authenticated Media Routes (for MediaPicker & multi-tenant use)
 Route::middleware(['auth'])->prefix('media')->name('media.')->group(function (): void {

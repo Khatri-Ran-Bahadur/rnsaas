@@ -18,7 +18,7 @@ beforeEach(function (): void {
 });
 
 it('prevents unauthenticated users from testing email settings', function (): void {
-    $this->postJson(route('admin.settings.email.test'), [
+    $this->postJson(route('superadmin.settings.email.test'), [
         'email' => 'recipient@example.com',
     ])->assertUnauthorized();
 });
@@ -26,7 +26,7 @@ it('prevents unauthenticated users from testing email settings', function (): vo
 it('validates recipient email when testing email dispatch', function (): void {
     $response = $this
         ->actingAs($this->superAdmin)
-        ->postJson(route('admin.settings.email.test'), [
+        ->postJson(route('superadmin.settings.email.test'), [
             'email' => 'invalid-email-address',
         ]);
 
@@ -49,7 +49,7 @@ it('dispatches a test email successfully through the action and logs audit', fun
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->postJson(route('admin.settings.email.test'), [
+        ->postJson(route('superadmin.settings.email.test'), [
             'email' => 'test@example.com',
             'host' => 'sandbox.smtp.mailtrap.io',
             'port' => 2525,
@@ -84,7 +84,7 @@ it('handles test connection endpoint', function (): void {
 
     $response = $this
         ->actingAs($this->superAdmin)
-        ->postJson(route('admin.settings.email.test-connection'), [
+        ->postJson(route('superadmin.settings.email.test-connection'), [
             'host' => 'sandbox.smtp.mailtrap.io',
             'port' => 2525,
             'username' => 'eb73aa4b0bff24',

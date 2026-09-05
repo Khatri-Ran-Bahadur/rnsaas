@@ -12,7 +12,7 @@ final class ActivateDepartmentAction
         private readonly CurrentTenant $currentTenant,
     ) {}
 
-    public function handle(Department $department): Department
+    public function execute(Department $department): Department
     {
         abort_unless(
             $department->tenant_id === $this->currentTenant->id(),

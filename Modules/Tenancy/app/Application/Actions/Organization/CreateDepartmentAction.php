@@ -13,7 +13,7 @@ final class CreateDepartmentAction
         private readonly CurrentTenant $currentTenant,
     ) {}
 
-    public function handle(CreateDepartmentData $data): Department
+    public function execute(CreateDepartmentData $data): Department
     {
         return Department::query()->create([
             'tenant_id' => $this->currentTenant->id(),

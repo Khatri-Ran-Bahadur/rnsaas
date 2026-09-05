@@ -12,7 +12,7 @@ final class ActivateDesignationAction
         private readonly CurrentTenant $currentTenant,
     ) {}
 
-    public function handle(Designation $designation): Designation
+    public function execute(Designation $designation): Designation
     {
         abort_unless(
             $designation->tenant_id === $this->currentTenant->id(),

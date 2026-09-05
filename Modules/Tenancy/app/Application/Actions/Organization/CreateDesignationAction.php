@@ -13,7 +13,7 @@ final class CreateDesignationAction
         private readonly CurrentTenant $currentTenant,
     ) {}
 
-    public function handle(CreateDesignationData $data): Designation
+    public function execute(CreateDesignationData $data): Designation
     {
         return Designation::query()->create([
             'tenant_id' => $this->currentTenant->id(),

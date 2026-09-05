@@ -12,7 +12,7 @@ final class UpdateDesignationAction
         private readonly CurrentTenant $currentTenant,
     ) {}
 
-    public function handle(
+    public function execute(
         Designation $designation,
         UpdateDesignationData $data,
     ): Designation {

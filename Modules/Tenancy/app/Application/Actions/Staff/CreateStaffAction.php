@@ -8,9 +8,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Tenancy\Application\DTOs\CreateStaffData;
+use Modules\Tenancy\Domain\Enums\EmploymentStatus;
 use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 use Modules\Tenancy\Models\Branch;
+use Modules\Tenancy\Models\Department;
+use Modules\Tenancy\Models\Designation;
+use Modules\Tenancy\Models\TenantMembership;
 use Modules\Tenancy\Models\TenantStaff;
+use RuntimeException;
 
 final class CreateStaffAction
 {
@@ -20,61 +25,116 @@ final class CreateStaffAction
 
     public function handle(CreateStaffData $data): TenantStaff
     {
-        $tenant = $this->currentTenant->get();
+        return $this->execute($data);
+    }
 
-        return DB::transaction(function () use ($data, $tenant): TenantStaff {
+    public function execute(CreateStaffData $data): TenantStaff
+    {
+        $tenantId = $this->currentTenant->id();
+
+        if ($tenantId === null) {
+            throw new RuntimeException('Current tenant is not resolved.');
+        }
+
+        return DB::transaction(function () use ($data, $tenantId) {
+
             $branch = Branch::query()
+                ->where('tenant_id', $tenantId)
                 ->whereKey($data->branchId)
-                ->where('tenant_id', $tenant->id)
-                ->where('status', 'active')
-                ->firstOrFail();
+                ->active()
+                ->first();
 
-            $email = strtolower(trim($data->email));
+            if ($branch === null) {
+                throw new RuntimeException(
+                    'Selected branch is not available for this organization.'
+                );
+            }
+
+            $department = Department::query()
+                ->where('tenant_id', $tenantId)
+                ->whereKey($data->departmentId)
+                ->active()
+                ->first();
+
+            if ($department === null) {
+                throw new RuntimeException(
+                    'Selected department is not available for this organization.'
+                );
+            }
+
+            $designation = Designation::query()
+                ->where('tenant_id', $tenantId)
+                ->whereKey($data->designationId)
+                ->active()
+                ->first();
+
+            if ($designation === null) {
+                throw new RuntimeException(
+                    'Selected designation is not available for this organization.'
+                );
+            }
 
             $user = User::query()
-                ->where('email', $email)
+                ->where('email', $data->email)
                 ->first();
 
             if ($user === null) {
                 $user = User::query()->create([
                     'name' => $data->name,
-                    'email' => $email,
+                    'email' => $data->email,
                     'phone' => $data->phone,
-                    'password' => Hash::make(Str::random(40)),
+                    'password' => Hash::make(Str::random(64)),
                 ]);
             }
 
-            $membership = $user->tenants()
-                ->whereKey($tenant->id)
+            $membership = TenantMembership::query()
+                ->where('tenant_id', $tenantId)
+                ->where('user_id', $user->id)
                 ->first();
 
             if ($membership === null) {
-                $user->tenants()->attach($tenant->id, [
-                    'status' => TenantMembershipStatus::Active->value,
-                    'joined_at' => now(),
+                $membership = TenantMembership::query()->create([
+                    'tenant_id' => $tenantId,
+                    'user_id' => $user->id,
+                    'status' => TenantMembershipStatus::Active,
                 ]);
+            } elseif ($membership->status !== TenantMembershipStatus::Active) {
+                throw new RuntimeException(
+                    'This user does not have an active membership in this organization.'
+                );
             }
 
             $existingStaff = TenantStaff::query()
-                ->where('tenant_id', $tenant->id)
+                ->where('tenant_id', $tenantId)
                 ->where('user_id', $user->id)
                 ->exists();
 
             if ($existingStaff) {
-                throw new \LogicException(
+                throw new RuntimeException(
                     'This user is already a staff member of this organization.'
                 );
             }
 
+            $employeeCodeExists = TenantStaff::query()
+                ->where('tenant_id', $tenantId)
+                ->where('employee_code', $data->employeeCode)
+                ->exists();
+
+            if ($employeeCodeExists) {
+                throw new RuntimeException(
+                    'Employee code is already in use.'
+                );
+            }
+
             return TenantStaff::query()->create([
-                'tenant_id' => $tenant->id,
+                'tenant_id' => $tenantId,
                 'user_id' => $user->id,
                 'branch_id' => $branch->id,
+                'department_id' => $department->id,
+                'designation_id' => $designation->id,
                 'employee_code' => $data->employeeCode,
-                'designation' => $data->designation,
-                'base_salary' => $data->baseSalary,
                 'joining_date' => $data->joiningDate,
-                'employment_status' => 'active',
+                'employment_status' => EmploymentStatus::Active,
             ]);
         });
     }

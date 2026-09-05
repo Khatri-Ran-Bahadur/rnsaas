@@ -23,4 +23,5 @@ Route::middleware(['auth', 'verified', 'superadmin'])
             Route::post('/{user}/revoke', 'revoke')->name('revoke');
             Route::post('/{user}/reactivate', 'reactivate')->name('reactivate');
         });
+
     });

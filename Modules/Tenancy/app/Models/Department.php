@@ -3,6 +3,7 @@
 namespace Modules\Tenancy\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,8 @@ use Modules\Tenancy\Domain\Enums\DepartmentStatus;
 
 class Department extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'public_id',
         'tenant_id',

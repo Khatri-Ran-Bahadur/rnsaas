@@ -21,6 +21,29 @@ it('redirects unauthenticated users from admin dashboard to login', function ():
     $response->assertRedirect('/login');
 });
 
+it('redirects unauthenticated users from admin root to login', function (): void {
+    $response = $this->get('/admin');
+
+    $response->assertRedirect('/login');
+});
+
+it('redirects authenticated users with active membership from admin root to admin dashboard', function (): void {
+    $user = User::factory()->create();
+    $tenant = Tenant::factory()->create([
+        'status' => TenantStatus::Active,
+    ]);
+
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $user->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+
+    $response = $this->actingAs($user)->get('/admin');
+
+    $response->assertRedirect(route('admin.dashboard'));
+});
+
 it('renders the organization login page for unauthenticated visitors', function (): void {
     $response = $this->get('/admin/login');
 

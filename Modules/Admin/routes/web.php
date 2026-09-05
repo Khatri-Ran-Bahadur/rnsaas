@@ -20,6 +20,9 @@ Route::middleware([
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
+        Route::get('/', fn () => redirect()->route('admin.dashboard'))
+            ->name('root');
+
         Route::get('/dashboard', DashboardController::class)
             ->name('dashboard');
 

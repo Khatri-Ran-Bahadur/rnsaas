@@ -96,7 +96,3 @@ foreach (['superadmin', 'admin'] as $prefix) {
         });
 
 }
-
-Route::middleware(['auth', 'superadmin'])->group(function () {
-    Route::redirect('/admin', '/superadmin/dashboard');
-});

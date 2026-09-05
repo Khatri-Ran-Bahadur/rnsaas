@@ -1,29 +1,30 @@
 <?php
 
-namespace Modules\Tenancy\Actions;
+namespace Modules\Tenancy\Application\Actions\Branch;
 
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Support\Facades\DB;
-use Modules\Tenancy\Data\CreateBranchData;
-use Modules\Tenancy\Domain\Enums\BranchStatus;
+use Modules\Tenancy\Application\DTOs\UpdateBranchData;
 use Modules\Tenancy\Models\Branch;
 
-final class CreateBranchAction
+final class UpdateBranchAction
 {
     public function __construct(
         private readonly CurrentTenant $currentTenant,
     ) {}
 
-    public function handle(CreateBranchData $data): Branch
+    public function handle(Branch $branch, UpdateBranchData $data): Branch
     {
-        $tenant = $this->currentTenant->get();
+        $tenantId = $this->currentTenant->id();
+        if ($branch->tenant_id !== $tenantId) {
+            abort(404);
+        }
 
-        return DB::transaction(function () use ($data, $tenant): Branch {
-            return Branch::query()->create([
-                'tenant_id' => $tenant->id,
+        return DB::transaction(function () use ($branch, $data): Branch {
+            $branch->update([
                 'name' => $data->name,
                 'code' => strtoupper($data->code),
-                'status' => BranchStatus::Active,
+                'status' => $data->status,
                 'address_line_1' => $data->addressLine1,
                 'address_line_2' => $data->addressLine2,
                 'city' => $data->city,
@@ -31,6 +32,8 @@ final class CreateBranchAction
                 'postal_code' => $data->postalCode,
                 'country_code' => $data->countryCode,
             ]);
+
+            return $branch->refresh();
         });
     }
 }

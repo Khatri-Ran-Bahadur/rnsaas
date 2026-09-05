@@ -96,4 +96,19 @@ class Tenant extends Model
     {
         return $this->hasMany(Branch::class);
     }
+
+    public function departments(): HasMany
+    {
+        return $this->hasMany(Department::class);
+    }
+
+    public function designations(): HasMany
+    {
+        return $this->hasMany(Designation::class);
+    }
+
+    public function staff(): HasMany
+    {
+        return $this->hasMany(TenantStaff::class);
+    }
 }

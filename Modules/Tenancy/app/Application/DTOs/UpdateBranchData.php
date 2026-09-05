@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Tenancy\Data;
+namespace Modules\Tenancy\Application\DTOs;
 
 use Modules\Tenancy\Domain\Enums\BranchStatus;
 

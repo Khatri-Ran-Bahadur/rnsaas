@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Tenancy\Actions;
+namespace Modules\Tenancy\Application\Actions\Branch;
 
 use App\Support\Tenancy\CurrentTenant;
 use Modules\Tenancy\Domain\Enums\BranchStatus;

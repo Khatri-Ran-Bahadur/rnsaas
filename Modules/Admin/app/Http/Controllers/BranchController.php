@@ -11,12 +11,12 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Admin\Http\Requests\StoreBranchRequest;
 use Modules\Admin\Http\Requests\UpdateBranchRequest;
-use Modules\Tenancy\Actions\ActivateBranchAction;
-use Modules\Tenancy\Actions\CreateBranchAction;
-use Modules\Tenancy\Actions\DeactivateBranchAction;
-use Modules\Tenancy\Actions\UpdateBranchAction;
-use Modules\Tenancy\Data\CreateBranchData;
-use Modules\Tenancy\Data\UpdateBranchData;
+use Modules\Tenancy\Application\Actions\Branch\ActivateBranchAction;
+use Modules\Tenancy\Application\Actions\Branch\CreateBranchAction;
+use Modules\Tenancy\Application\Actions\Branch\DeactivateBranchAction;
+use Modules\Tenancy\Application\Actions\Branch\UpdateBranchAction;
+use Modules\Tenancy\Application\DTOs\CreateBranchData;
+use Modules\Tenancy\Application\DTOs\UpdateBranchData;
 use Modules\Tenancy\Domain\Enums\BranchStatus;
 use Modules\Tenancy\Models\Branch;
 

@@ -8,6 +8,7 @@ import Button from '@/components/Button.vue';
 import Select from '@/components/Select.vue';
 import Pagination from '@/components/Pagination.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import Dropdown from '@/components/Dropdown.vue';
 import SearchInput from '@/components/SearchInput.vue';
 
 export interface RoleItem {
@@ -336,19 +337,38 @@ const getRoleBadgeVariant = (roleName: string) => {
                                 {{ formatDate(user.created_at) }}
                             </td>
 
-                            <!-- Action Area: Link to dedicated user details page -->
-                            <td class="py-4 pl-3 pr-5 text-right">
-                                <Link
-                                    :href="`/superadmin/users/${user.id}`"
-                                    class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/60 dark:hover:text-white transition-colors shadow-2xs"
-                                    title="View User Details"
-                                >
-                                    <svg class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    <span>View</span>
-                                </Link>
+                            <!-- Action Area: Dropdown menu -->
+                            <td class="py-4 pl-3 pr-5 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end">
+                                    <Dropdown align="right" width="w-48">
+                                        <template #trigger>
+                                            <button
+                                                type="button"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors cursor-pointer"
+                                                title="Actions"
+                                            >
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                </svg>
+                                            </button>
+                                        </template>
+                                        <template #default="{ close }">
+                                            <div class="py-1 text-xs">
+                                                <Link
+                                                    :href="`/superadmin/users/${user.id}`"
+                                                    class="flex w-full items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md text-left"
+                                                    @click="close"
+                                                >
+                                                    <svg class="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    <span>View User Details</span>
+                                                </Link>
+                                            </div>
+                                        </template>
+                                    </Dropdown>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

@@ -111,4 +111,9 @@ class Tenant extends Model
     {
         return $this->hasMany(TenantStaff::class);
     }
+
+    public function roles(): HasMany
+    {
+        return $this->hasMany(TenantRole::class);
+    }
 }

@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Modules\Media\Models\Media;
 use Modules\SuperAdmin\Services\PlatformSettings;
+use Modules\Tenancy\Application\Services\OrganizationAuthorizationService;
 use Modules\Tenancy\Domain\Enums\TenantStatus;
 use Modules\Tenancy\Models\Tenant;
+use Modules\Tenancy\Models\TenantMembership;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -101,6 +103,71 @@ class HandleInertiaRequests extends Middleware
                     'tenant_name' => $tenant?->name ?? 'Organization',
                     'by_user_id' => $request->session()->get('impersonated_by_user_id'),
                 ];
+            },
+            'current_membership' => function () use ($request) {
+                $user = $request->user();
+                if (! $user) {
+                    return null;
+                }
+
+                try {
+                    $currentTenant = app(CurrentTenant::class);
+                    if (! $currentTenant->has()) {
+                        return null;
+                    }
+                    $tenantId = $currentTenant->id();
+
+                    $authService = app(OrganizationAuthorizationService::class);
+                    $permissions = $authService->getPermissions($user, $tenantId);
+
+                    // Support SuperAdmin impersonation mode
+                    $impersonatedTenantId = $request->session()->get('impersonated_tenant_id');
+                    if ($impersonatedTenantId !== null && (int) $impersonatedTenantId === $tenantId && $user->hasRole('SuperAdmin')) {
+                        return [
+                            'id' => 0,
+                            'status' => 'active',
+                            'role' => [
+                                'id' => 0,
+                                'name' => 'Admin',
+                                'slug' => 'admin',
+                                'is_system' => true,
+                            ],
+                            'permissions' => $permissions,
+                            'is_admin' => true,
+                        ];
+                    }
+
+                    $userData = $authService->resolveUserData($tenantId, $user->id);
+
+                    if (! $userData['is_active']) {
+                        return null;
+                    }
+
+                    $membership = TenantMembership::query()
+                        ->where('tenant_id', $tenantId)
+                        ->where('user_id', $user->id)
+                        ->with(['role'])
+                        ->first();
+
+                    if (! $membership) {
+                        return null;
+                    }
+
+                    return [
+                        'id' => $membership->id,
+                        'status' => $membership->status->value,
+                        'role' => $membership->role ? [
+                            'id' => $membership->role->id,
+                            'name' => $membership->role->name,
+                            'slug' => $membership->role->slug,
+                            'is_system' => $membership->role->is_system,
+                        ] : null,
+                        'permissions' => $permissions,
+                        'is_admin' => $userData['is_admin'],
+                    ];
+                } catch (\Throwable) {
+                    return null;
+                }
             },
         ];
     }

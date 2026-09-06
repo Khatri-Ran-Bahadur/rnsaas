@@ -28,6 +28,8 @@ class DepartmentController extends Controller
 
     public function index(Request $request): Response
     {
+        $this->authorize('departments.view');
+
         $tenantId = $this->currentTenant->id();
 
         $search = $request->string('search')->trim()->value();
@@ -67,6 +69,8 @@ class DepartmentController extends Controller
         StoreDepartmentRequest $request,
         CreateDepartmentAction $action,
     ): RedirectResponse {
+        $this->authorize('departments.manage');
+
         $data = new CreateDepartmentData(
             name: $request->string('name')->toString(),
             code: $request->string('code')->toString(),
@@ -83,6 +87,7 @@ class DepartmentController extends Controller
         Department $department,
         UpdateDepartmentAction $action,
     ): RedirectResponse {
+        $this->authorize('departments.manage');
         $this->authorizeTenantDepartment($department);
 
         $data = new UpdateDepartmentData(
@@ -100,6 +105,7 @@ class DepartmentController extends Controller
         Department $department,
         ActivateDepartmentAction $action,
     ): RedirectResponse {
+        $this->authorize('departments.manage');
         $this->authorizeTenantDepartment($department);
 
         $action->execute($department);
@@ -111,6 +117,7 @@ class DepartmentController extends Controller
         Department $department,
         DeactivateDepartmentAction $action,
     ): RedirectResponse {
+        $this->authorize('departments.manage');
         $this->authorizeTenantDepartment($department);
 
         $action->execute($department);
@@ -122,6 +129,7 @@ class DepartmentController extends Controller
         Department $department,
         DeactivateDepartmentAction $action,
     ): RedirectResponse {
+        $this->authorize('departments.manage');
         $this->authorizeTenantDepartment($department);
 
         $action->execute($department);

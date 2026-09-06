@@ -116,6 +116,7 @@ it('allows admin to access staff create page with active options', function (): 
             ->has('branches', 1)
             ->has('departments', 1)
             ->has('designations', 1)
+            ->has('availableMembers')
     );
 });
 
@@ -243,4 +244,210 @@ it('allows admin to suspend and reactivate a staff member', function (): void {
         ->assertRedirect();
 
     expect($staff->refresh()->employment_status)->toBe(EmploymentStatus::Active);
+});
+
+it('allows converting an existing organization member to staff reusing user and membership without duplicates', function (): void {
+    [$admin, $tenant] = createStaffTenantAdmin();
+
+    $bimala = User::factory()->create([
+        'name' => 'Bimala Sharma',
+        'email' => 'bimala@company.com',
+    ]);
+
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $bimala->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+
+    $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
+    $dept = Department::factory()->create(['tenant_id' => $tenant->id]);
+    $desig = Designation::factory()->create(['tenant_id' => $tenant->id]);
+
+    $initialUserCount = User::count();
+    $initialMembershipCount = TenantMembership::count();
+
+    $response = $this->actingAs($admin)->post('/admin/staff', [
+        'mode' => 'existing_member',
+        'user_id' => $bimala->id,
+        'employee_code' => 'EMP-BIMALA',
+        'branch_id' => $branch->id,
+        'department_id' => $dept->id,
+        'designation_id' => $desig->id,
+        'joining_date' => '2026-09-01',
+        'employment_status' => 'active',
+    ]);
+
+    $response->assertRedirect('/admin/staff');
+
+    // Asserts existing user and membership were reused without creating duplicate rows
+    expect(User::count())->toBe($initialUserCount);
+    expect(TenantMembership::count())->toBe($initialMembershipCount);
+
+    $this->assertDatabaseHas('tenant_staff', [
+        'tenant_id' => $tenant->id,
+        'user_id' => $bimala->id,
+        'branch_id' => $branch->id,
+        'department_id' => $dept->id,
+        'designation_id' => $desig->id,
+        'employee_code' => 'EMP-BIMALA',
+        'employment_status' => EmploymentStatus::Active->value,
+    ]);
+});
+
+it('prevents adding a member as staff if they are already registered as staff in current organization', function (): void {
+    [$admin, $tenant] = createStaffTenantAdmin();
+
+    $member = User::factory()->create(['email' => 'staff.member@company.com']);
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $member->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+
+    $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
+    $dept = Department::factory()->create(['tenant_id' => $tenant->id]);
+    $desig = Designation::factory()->create(['tenant_id' => $tenant->id]);
+
+    TenantStaff::factory()->create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $member->id,
+        'branch_id' => $branch->id,
+        'department_id' => $dept->id,
+        'designation_id' => $desig->id,
+        'employee_code' => 'EMP-EXISTING',
+    ]);
+
+    // Attempt 1: by user_id
+    $responseById = $this->actingAs($admin)->post('/admin/staff', [
+        'mode' => 'existing_member',
+        'user_id' => $member->id,
+        'employee_code' => 'EMP-NEW-1',
+        'branch_id' => $branch->id,
+        'department_id' => $dept->id,
+        'designation_id' => $desig->id,
+    ]);
+    $responseById->assertSessionHasErrors(['user_id']);
+
+    // Attempt 2: by new person flow with same email
+    $responseByEmail = $this->actingAs($admin)->post('/admin/staff', [
+        'name' => 'Duplicate Person',
+        'email' => 'staff.member@company.com',
+        'employee_code' => 'EMP-NEW-2',
+        'branch_id' => $branch->id,
+        'department_id' => $dept->id,
+        'designation_id' => $desig->id,
+    ]);
+    $responseByEmail->assertSessionHasErrors(['email']);
+});
+
+it('excludes members from another tenant and members who are already staff from available members in create page', function (): void {
+    [$adminA, $tenantA] = createStaffTenantAdmin('Org A');
+    [$adminB, $tenantB] = createStaffTenantAdmin('Org B');
+
+    // Member A1: active member in Tenant A, not staff
+    $memberA1 = User::factory()->create(['name' => 'Available Member A1']);
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenantA->id,
+        'user_id' => $memberA1->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+
+    // Member A2: active member in Tenant A, but already staff
+    $memberA2 = User::factory()->create(['name' => 'Existing Staff Member A2']);
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenantA->id,
+        'user_id' => $memberA2->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+    TenantStaff::factory()->create([
+        'tenant_id' => $tenantA->id,
+        'user_id' => $memberA2->id,
+    ]);
+
+    // Member B: active member in Tenant B
+    $memberB = User::factory()->create(['name' => 'Foreign Member B']);
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenantB->id,
+        'user_id' => $memberB->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+
+    $response = $this->actingAs($adminA)->get('/admin/staff/create');
+
+    $response->assertSuccessful();
+    $response->assertInertia(function (Assert $page) use ($memberA1): void {
+        $page->component('Admin/Staff/Create')
+            ->has('availableMembers', 2) // AdminA and MemberA1
+            ->where('availableMembers', function ($members) use ($memberA1) {
+                $ids = collect($members)->pluck('id')->all();
+
+                return in_array($memberA1->id, $ids, true);
+            });
+    });
+});
+
+it('displays newly created staff member in the staff directory index', function (): void {
+    [$admin, $tenant] = createStaffTenantAdmin();
+
+    $branch = Branch::factory()->create(['tenant_id' => $tenant->id]);
+    $dept = Department::factory()->create(['tenant_id' => $tenant->id]);
+    $desig = Designation::factory()->create(['tenant_id' => $tenant->id]);
+
+    $this->actingAs($admin)->post('/admin/staff', [
+        'name' => 'Visible Employee',
+        'email' => 'visible@company.com',
+        'employee_code' => 'VIS-101',
+        'branch_id' => $branch->id,
+        'department_id' => $dept->id,
+        'designation_id' => $desig->id,
+    ]);
+
+    $response = $this->actingAs($admin)->get('/admin/staff');
+
+    $response->assertSuccessful();
+    $response->assertInertia(
+        fn (Assert $page) => $page
+            ->component('Admin/Staff/Index')
+            ->has('staff.data', 1)
+            ->where('staff.data.0.employee_code', 'VIS-101')
+            ->where('staff.data.0.user.name', 'Visible Employee')
+    );
+});
+
+it('correctly reports Staff and Not Staff status on the organization members page', function (): void {
+    [$admin, $tenant] = createStaffTenantAdmin();
+
+    $memberStaff = User::factory()->create(['name' => 'Bimala Staff']);
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $memberStaff->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+    TenantStaff::factory()->create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $memberStaff->id,
+    ]);
+
+    $memberNonStaff = User::factory()->create(['name' => 'Johnnie Member']);
+    TenantMembership::factory()->create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $memberNonStaff->id,
+        'status' => TenantMembershipStatus::Active,
+    ]);
+
+    $response = $this->actingAs($admin)->get('/admin/members');
+
+    $response->assertSuccessful();
+    $response->assertInertia(function (Assert $page): void {
+        $page->component('Admin/Members/Index')
+            ->has('members.data', 3) // Admin, Bimala Staff, Johnnie Member
+            ->where('members.data', function ($members) {
+                $bimala = collect($members)->firstWhere('name', 'Bimala Staff');
+                $johnnie = collect($members)->firstWhere('name', 'Johnnie Member');
+
+                return (bool) $bimala['is_staff'] === true
+                    && (bool) $johnnie['is_staff'] === false;
+            });
+    });
 });

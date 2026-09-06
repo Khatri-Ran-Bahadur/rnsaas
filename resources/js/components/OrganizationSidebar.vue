@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 
 const props = defineProps<{
@@ -61,9 +61,15 @@ const exitImpersonation = () => {
     router.post('/admin/impersonate/exit');
 };
 
+const setExclusiveGroup = (activeKey: string) => {
+    Object.keys(openGroups.value).forEach((k) => {
+        openGroups.value[k] = k === activeKey;
+    });
+};
+
 const openGroups = ref<Record<string, boolean>>({
-    organization: currentUrl.value.startsWith('/admin/branches') || currentUrl.value.startsWith('/admin/departments') || currentUrl.value.startsWith('/admin/designations'),
-    users: currentUrl.value.startsWith('/admin/members'),
+    organization: currentUrl.value.startsWith('/admin/branches') || currentUrl.value.startsWith('/admin/departments') || currentUrl.value.startsWith('/admin/designations') || currentUrl.value.startsWith('/admin/company-profile'),
+    users: currentUrl.value.startsWith('/admin/members') || currentUrl.value.startsWith('/admin/roles') || currentUrl.value.startsWith('/admin/invitations'),
     hrm: currentUrl.value.startsWith('/admin/staff'),
     payroll: false,
     subscriptions: false,
@@ -71,8 +77,22 @@ const openGroups = ref<Record<string, boolean>>({
 });
 
 const toggleGroup = (key: string) => {
-    openGroups.value[key] = !openGroups.value[key];
+    const isCurrentlyOpen = !!openGroups.value[key];
+    Object.keys(openGroups.value).forEach((k) => {
+        openGroups.value[k] = false;
+    });
+    openGroups.value[key] = !isCurrentlyOpen;
 };
+
+watch(currentUrl, (newUrl) => {
+    if (newUrl.startsWith('/admin/branches') || newUrl.startsWith('/admin/departments') || newUrl.startsWith('/admin/designations') || newUrl.startsWith('/admin/company-profile')) {
+        setExclusiveGroup('organization');
+    } else if (newUrl.startsWith('/admin/members') || newUrl.startsWith('/admin/roles') || newUrl.startsWith('/admin/invitations')) {
+        setExclusiveGroup('users');
+    } else if (newUrl.startsWith('/admin/staff')) {
+        setExclusiveGroup('hrm');
+    }
+});
 
 const isGroupActive = (paths: string[]) => {
     return paths.some((p) => isRouteActive(p));
@@ -142,12 +162,12 @@ const logout = () => {
 
                     <!-- Organization Switcher Dropdown -->
                     <Transition
-                        enter-active-class="transition duration-100 ease-out"
-                        enter-from-class="transform scale-95 opacity-0"
-                        enter-to-class="transform scale-100 opacity-100"
-                        leave-active-class="transition duration-75 ease-in"
-                        leave-from-class="transform scale-100 opacity-100"
-                        leave-to-class="transform scale-95 opacity-0"
+                        enter-active-class="transition duration-150 ease-out"
+                        enter-from-class="transform scale-95 opacity-0 -translate-y-1"
+                        enter-to-class="transform scale-100 opacity-100 translate-y-0"
+                        leave-active-class="transition duration-100 ease-in"
+                        leave-from-class="transform scale-100 opacity-100 translate-y-0"
+                        leave-to-class="transform scale-95 opacity-0 -translate-y-1"
                     >
                         <div
                             v-if="switcherOpen"
@@ -235,7 +255,7 @@ const logout = () => {
                         type="button"
                         :class="[
                             'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer',
-                            openGroups.organization || isGroupActive(['/admin/branches', '/admin/departments', '/admin/designations'])
+                            openGroups.organization || isGroupActive(['/admin/branches', '/admin/departments', '/admin/designations', '/admin/company-profile'])
                                 ? 'bg-slate-100/80 text-slate-900 font-semibold dark:bg-zinc-800/80 dark:text-white'
                                 : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
                         ]"
@@ -248,7 +268,7 @@ const logout = () => {
                             <span>Organization</span>
                         </div>
                         <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200"
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
                             :class="{ 'rotate-180': openGroups.organization }"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
@@ -256,62 +276,70 @@ const logout = () => {
                         </svg>
                     </button>
 
-                    <Transition
-                        enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="transform -translate-y-1 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-1 opacity-0"
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.organization ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
                     >
-                        <div v-if="openGroups.organization" class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                            <Link
-                                href="/admin/branches"
-                                :class="[
-                                    'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                    isRouteActive('/admin/branches')
-                                        ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                ]"
-                                @click="emit('closeMobile')"
-                            >
-                                <span>Branches</span>
-                                <span v-if="isRouteActive('/admin/branches')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </Link>
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <Link
+                                    href="/admin/branches"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/branches')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Branches</span>
+                                    <span v-if="isRouteActive('/admin/branches')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
 
-                            <Link
-                                href="/admin/departments"
-                                :class="[
-                                    'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                    isRouteActive('/admin/departments')
-                                        ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                ]"
-                                @click="emit('closeMobile')"
-                            >
-                                <span>Departments</span>
-                                <span v-if="isRouteActive('/admin/departments')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </Link>
+                                <Link
+                                    href="/admin/departments"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/departments')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Departments</span>
+                                    <span v-if="isRouteActive('/admin/departments')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
 
-                            <Link
-                                href="/admin/designations"
-                                :class="[
-                                    'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                    isRouteActive('/admin/designations')
-                                        ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                ]"
-                                @click="emit('closeMobile')"
-                            >
-                                <span>Designations</span>
-                                <span v-if="isRouteActive('/admin/designations')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </Link>
+                                <Link
+                                    href="/admin/designations"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/designations')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Designations</span>
+                                    <span v-if="isRouteActive('/admin/designations')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
 
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-400 dark:text-zinc-500 cursor-not-allowed select-none">
-                                <span>Company Profile</span>
+                                <Link
+                                    href="/admin/company-profile"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/company-profile')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Company Profile</span>
+                                    <span v-if="isRouteActive('/admin/company-profile')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
                             </div>
                         </div>
-                    </Transition>
+                    </div>
                 </div>
 
                 <!-- 3. Users & Access (Collapsible Accordion) -->
@@ -320,7 +348,7 @@ const logout = () => {
                         type="button"
                         :class="[
                             'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer',
-                            openGroups.users || isGroupActive(['/admin/members'])
+                            openGroups.users || isGroupActive(['/admin/members', '/admin/roles', '/admin/invitations'])
                                 ? 'bg-slate-100/80 text-slate-900 font-semibold dark:bg-zinc-800/80 dark:text-white'
                                 : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
                         ]"
@@ -333,7 +361,7 @@ const logout = () => {
                             <span>Users</span>
                         </div>
                         <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200"
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
                             :class="{ 'rotate-180': openGroups.users }"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
@@ -341,37 +369,56 @@ const logout = () => {
                         </svg>
                     </button>
 
-                    <Transition
-                        enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="transform -translate-y-1 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-1 opacity-0"
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.users ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
                     >
-                        <div v-if="openGroups.users" class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                            <Link
-                                href="/admin/members"
-                                :class="[
-                                    'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                    isRouteActive('/admin/members')
-                                        ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                ]"
-                                @click="emit('closeMobile')"
-                            >
-                                <span>Members</span>
-                            </Link>
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <Link
+                                    href="/admin/members"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/members')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Members</span>
+                                    <span v-if="isRouteActive('/admin/members')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
 
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-400 dark:text-zinc-500 cursor-not-allowed select-none">
-                                <span>Roles & Permissions</span>
-                            </div>
+                                <Link
+                                    href="/admin/roles"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/roles')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Roles & Permissions</span>
+                                    <span v-if="isRouteActive('/admin/roles')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
 
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-400 dark:text-zinc-500 cursor-not-allowed select-none">
-                                <span>Invitations</span>
+                                <Link
+                                    href="/admin/invitations"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/invitations')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Invitations</span>
+                                    <span v-if="isRouteActive('/admin/invitations')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
                             </div>
                         </div>
-                    </Transition>
+                    </div>
                 </div>
 
                 <!-- 4. HRM (Collapsible Accordion) -->
@@ -393,7 +440,7 @@ const logout = () => {
                             <span>HRM</span>
                         </div>
                         <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200"
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
                             :class="{ 'rotate-180': openGroups.hrm }"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
@@ -401,36 +448,34 @@ const logout = () => {
                         </svg>
                     </button>
 
-                    <Transition
-                        enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="transform -translate-y-1 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-1 opacity-0"
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.hrm ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
                     >
-                        <div v-if="openGroups.hrm" class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                            <Link
-                                href="/admin/staff"
-                                :class="[
-                                    'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                    isRouteActive('/admin/staff')
-                                        ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                ]"
-                                @click="emit('closeMobile')"
-                            >
-                                <span>Staff Directory</span>
-                                <span v-if="isRouteActive('/admin/staff')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            </Link>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Attendance</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Leave Requests</span>
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <Link
+                                    href="/admin/staff"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/staff')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Staff Directory</span>
+                                    <span v-if="isRouteActive('/admin/staff')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Attendance</span>
+                                </div>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Leave Requests</span>
+                                </div>
                             </div>
                         </div>
-                    </Transition>
+                    </div>
                 </div>
 
                 <!-- 5. Payroll (Collapsible Accordion) -->
@@ -452,7 +497,7 @@ const logout = () => {
                             <span>Payroll</span>
                         </div>
                         <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200"
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
                             :class="{ 'rotate-180': openGroups.payroll }"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
@@ -460,26 +505,24 @@ const logout = () => {
                         </svg>
                     </button>
 
-                    <Transition
-                        enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="transform -translate-y-1 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-1 opacity-0"
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.payroll ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
                     >
-                        <div v-if="openGroups.payroll" class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Payroll Runs</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Salary Slips</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Expenses</span>
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Payroll Runs</span>
+                                </div>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Salary Slips</span>
+                                </div>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Expenses</span>
+                                </div>
                             </div>
                         </div>
-                    </Transition>
+                    </div>
                 </div>
 
                 <!-- 6. Subscriptions (Collapsible Accordion matching screenshot) -->
@@ -501,7 +544,7 @@ const logout = () => {
                             <span>Subscription</span>
                         </div>
                         <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200"
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
                             :class="{ 'rotate-180': openGroups.subscriptions }"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
@@ -509,29 +552,27 @@ const logout = () => {
                         </svg>
                     </button>
 
-                    <Transition
-                        enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="transform -translate-y-1 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-1 opacity-0"
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.subscriptions ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
                     >
-                        <div v-if="openGroups.subscriptions" class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Subscription Setting</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Coupons</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Bank Transfer Requests</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                <span>Orders</span>
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Subscription Setting</span>
+                                </div>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Coupons</span>
+                                </div>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Bank Transfer Requests</span>
+                                </div>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span>Orders</span>
+                                </div>
                             </div>
                         </div>
-                    </Transition>
+                    </div>
                 </div>
 
                 <!-- 7. Settings (Collapsible Accordion) -->
@@ -554,7 +595,7 @@ const logout = () => {
                             <span>Settings</span>
                         </div>
                         <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200"
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
                             :class="{ 'rotate-180': openGroups.settings }"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
@@ -562,23 +603,21 @@ const logout = () => {
                         </svg>
                     </button>
 
-                    <Transition
-                        enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="transform -translate-y-1 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-1 opacity-0"
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.settings ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
                     >
-                        <div v-if="openGroups.settings" class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-400 dark:text-zinc-500 cursor-not-allowed select-none">
-                                <span>Organization Settings</span>
-                            </div>
-                            <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-400 dark:text-zinc-500 cursor-not-allowed select-none">
-                                <span>Security & Audit Logs</span>
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-400 dark:text-zinc-500 cursor-not-allowed select-none">
+                                    <span>Organization Settings</span>
+                                </div>
+                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-400 dark:text-zinc-500 cursor-not-allowed select-none">
+                                    <span>Security & Audit Logs</span>
+                                </div>
                             </div>
                         </div>
-                    </Transition>
+                    </div>
                 </div>
 
                 <!-- Impersonation Notice Box in Sidebar -->

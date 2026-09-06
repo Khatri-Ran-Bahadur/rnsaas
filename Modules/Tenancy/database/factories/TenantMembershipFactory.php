@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 use Modules\Tenancy\Models\Tenant;
 use Modules\Tenancy\Models\TenantMembership;
+use Modules\Tenancy\Models\TenantRole;
 
 /**
  * @extends Factory<TenantMembership>
@@ -30,6 +31,33 @@ class TenantMembershipFactory extends Factory
         return [
             'tenant_id' => Tenant::factory(),
             'user_id' => User::factory(),
+            'role_id' => function (array $attributes) {
+                $tenantId = $attributes['tenant_id'] ?? null;
+                if ($tenantId instanceof Tenant) {
+                    $tenantId = $tenantId->id;
+                }
+                if ($tenantId) {
+                    $role = TenantRole::query()
+                        ->where('tenant_id', $tenantId)
+                        ->where('slug', 'admin')
+                        ->first();
+
+                    if (! $role) {
+                        $role = TenantRole::query()->create([
+                            'tenant_id' => $tenantId,
+                            'name' => 'Admin',
+                            'slug' => 'admin',
+                            'description' => 'Organization Administrator',
+                            'is_system' => true,
+                            'is_active' => true,
+                        ]);
+                    }
+
+                    return $role->id;
+                }
+
+                return null;
+            },
             'status' => TenantMembershipStatus::Active,
             'joined_at' => now(),
             'invited_at' => now(),

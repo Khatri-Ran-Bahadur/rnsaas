@@ -3,6 +3,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import Button from '@/components/Button.vue';
 import TextInput from '@/components/TextInput.vue';
+import Combobox from '@/components/Combobox.vue';
+import { COUNTRY_OPTIONS } from '@/constants/referenceData';
 
 interface Branch {
     id: number;
@@ -105,8 +107,8 @@ const submit = () => {
             <!-- Form Cards -->
             <form class="space-y-6" @submit.prevent="submit">
                 <!-- Card 1: Branch Identification & Status -->
-                <div class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+                <div class="relative z-20 rounded-2xl border border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="rounded-t-2xl border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
                         <div class="flex items-center gap-2.5">
                             <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 font-bold text-indigo-700 ring-1 ring-indigo-500/15 dark:bg-indigo-950/60 dark:text-indigo-300 dark:ring-indigo-500/30">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,8 +226,8 @@ const submit = () => {
                 </div>
 
                 <!-- Card 2: Physical Address & Location -->
-                <div class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+                <div class="relative z-10 focus-within:z-30 rounded-2xl border border-zinc-200/80 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="rounded-t-2xl border-b border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
                         <div class="flex items-center gap-2.5">
                             <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 font-bold text-emerald-700 ring-1 ring-emerald-500/15 dark:bg-emerald-950/60 dark:text-emerald-300 dark:ring-emerald-500/30">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -292,14 +294,13 @@ const submit = () => {
                             </div>
 
                             <div>
-                                <TextInput
+                                <Combobox
                                     v-model="form.country_code"
-                                    label="Country Code"
-                                    placeholder="e.g. NP"
-                                    hint="2-letter ISO 3166-1 alpha-2 code"
+                                    label="Country / Region"
+                                    placeholder="Search country..."
+                                    search-placeholder="Search all 240+ countries..."
+                                    :options="COUNTRY_OPTIONS"
                                     :error="form.errors.country_code"
-                                    :uppercase="true"
-                                    :mono="true"
                                 />
                             </div>
                         </div>

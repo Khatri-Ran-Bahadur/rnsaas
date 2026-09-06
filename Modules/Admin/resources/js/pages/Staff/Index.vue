@@ -5,6 +5,7 @@ import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import Badge from '@/components/Badge.vue';
 import Button from '@/components/Button.vue';
 import Modal from '@/components/Modal.vue';
+import Dropdown from '@/components/Dropdown.vue';
 import PerPageSelector from '@/components/PerPageSelector.vue';
 
 interface User {
@@ -537,35 +538,59 @@ const isNext = (label: string) => label.includes('Next') || label.includes('&raq
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="py-3.5 pl-3 pr-4 text-right sm:pr-6">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <Button
-                                            :href="`/admin/staff/${member.id}/edit`"
-                                            variant="ghost"
-                                            size="xs"
-                                        >
-                                            Edit
-                                        </Button>
+                                <td class="py-3.5 pl-3 pr-4 text-right sm:pr-6 whitespace-nowrap">
+                                    <div class="flex items-center justify-end">
+                                        <Dropdown align="right" width="w-48">
+                                            <template #trigger>
+                                                <button
+                                                    type="button"
+                                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors cursor-pointer"
+                                                    title="Actions"
+                                                >
+                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template #default="{ close }">
+                                                <div class="py-1 text-xs">
+                                                    <Link
+                                                        :href="`/admin/staff/${member.id}/edit`"
+                                                        class="flex w-full items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md text-left"
+                                                        @click="close"
+                                                    >
+                                                        <svg class="h-4 w-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                        <span>Edit Staff</span>
+                                                    </Link>
 
-                                        <Button
-                                            v-if="member.employment_status === 'active'"
-                                            variant="outline"
-                                            size="xs"
-                                            class="text-amber-600 hover:text-amber-700 dark:text-amber-400"
-                                            @click="openSuspendModal(member)"
-                                        >
-                                            Suspend
-                                        </Button>
+                                                    <button
+                                                        v-if="member.employment_status === 'active'"
+                                                        type="button"
+                                                        class="flex w-full items-center gap-2.5 px-3 py-2 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/40 transition-colors rounded-md text-left cursor-pointer"
+                                                        @click="openSuspendModal(member); close()"
+                                                    >
+                                                        <svg class="h-4 w-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                        </svg>
+                                                        <span>Suspend Staff</span>
+                                                    </button>
 
-                                        <Button
-                                            v-else
-                                            variant="outline"
-                                            size="xs"
-                                            class="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
-                                            @click="openActivateModal(member)"
-                                        >
-                                            Reactivate
-                                        </Button>
+                                                    <button
+                                                        v-else
+                                                        type="button"
+                                                        class="flex w-full items-center gap-2.5 px-3 py-2 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40 transition-colors rounded-md text-left cursor-pointer"
+                                                        @click="openActivateModal(member); close()"
+                                                    >
+                                                        <svg class="h-4 w-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <span>Reactivate Staff</span>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>

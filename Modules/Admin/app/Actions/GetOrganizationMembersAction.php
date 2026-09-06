@@ -15,6 +15,7 @@ final class GetOrganizationMembersAction
         int $perPage = 20,
     ): LengthAwarePaginator {
         $tenant = $this->currentTenant->get();
+        $tenantId = $tenant->id;
 
         return $tenant->users()
             ->select([
@@ -22,6 +23,7 @@ final class GetOrganizationMembersAction
                 'users.name',
                 'users.email',
             ])
+            ->selectRaw('EXISTS(SELECT 1 FROM tenant_staff WHERE tenant_staff.user_id = users.id AND tenant_staff.tenant_id = ?) as is_staff', [$tenantId])
             ->orderBy('users.name')
             ->paginate($perPage)
             ->withQueryString();

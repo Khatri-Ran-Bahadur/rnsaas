@@ -28,6 +28,8 @@ class BranchController extends Controller
 
     public function index(Request $request): Response
     {
+        $this->authorize('branches.view');
+
         $tenantId = $this->currentTenant->id();
 
         $search = $request->string('search')->trim()->value();
@@ -64,6 +66,8 @@ class BranchController extends Controller
 
     public function create(): Response
     {
+        $this->authorize('branches.manage');
+
         return Inertia::render('Admin/Branches/Create');
     }
 
@@ -71,6 +75,8 @@ class BranchController extends Controller
         StoreBranchRequest $request,
         CreateBranchAction $action,
     ): RedirectResponse {
+        $this->authorize('branches.manage');
+
         $data = new CreateBranchData(
             name: $request->validated('name'),
             code: $request->validated('code'),
@@ -90,6 +96,7 @@ class BranchController extends Controller
 
     public function show(Branch $branch): Response
     {
+        $this->authorize('branches.view');
         $this->authorizeTenantBranch($branch);
 
         return Inertia::render('Admin/Branches/Show', [
@@ -99,6 +106,7 @@ class BranchController extends Controller
 
     public function edit(Branch $branch): Response
     {
+        $this->authorize('branches.manage');
         $this->authorizeTenantBranch($branch);
 
         return Inertia::render('Admin/Branches/Edit', [
@@ -111,6 +119,7 @@ class BranchController extends Controller
         Branch $branch,
         UpdateBranchAction $action,
     ): RedirectResponse {
+        $this->authorize('branches.manage');
         $this->authorizeTenantBranch($branch);
 
         $data = new UpdateBranchData(
@@ -135,6 +144,7 @@ class BranchController extends Controller
         Branch $branch,
         ActivateBranchAction $action,
     ): RedirectResponse {
+        $this->authorize('branches.manage');
         $this->authorizeTenantBranch($branch);
 
         $action->handle($branch);
@@ -146,6 +156,7 @@ class BranchController extends Controller
         Branch $branch,
         DeactivateBranchAction $action,
     ): RedirectResponse {
+        $this->authorize('branches.manage');
         $this->authorizeTenantBranch($branch);
 
         $action->handle($branch);
@@ -157,6 +168,7 @@ class BranchController extends Controller
         Branch $branch,
         DeactivateBranchAction $action,
     ): RedirectResponse {
+        $this->authorize('branches.manage');
         $this->authorizeTenantBranch($branch);
 
         $action->handle($branch);

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
+import Dropdown from '@/components/Dropdown.vue';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -238,49 +239,63 @@ const confirmDelete = () => {
                             </td>
 
                             <!-- Actions -->
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    <!-- Edit Link (or disabled span for system roles) -->
-                                    <Link
-                                        v-if="!role.is_system"
-                                        :id="`edit-role-${role.id}`"
-                                        :href="`/superadmin/roles/${role.id}/edit`"
-                                        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                                    >
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Edit
-                                    </Link>
-                                    <span
-                                        v-else
-                                        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-300 dark:text-zinc-700 cursor-not-allowed"
-                                        title="System roles cannot be edited"
-                                    >
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Edit
-                                    </span>
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end">
+                                    <Dropdown align="right" width="w-48">
+                                        <template #trigger>
+                                            <button
+                                                :id="`role-actions-${role.id}`"
+                                                type="button"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors cursor-pointer"
+                                                title="Actions"
+                                            >
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                </svg>
+                                            </button>
+                                        </template>
+                                        <template #default="{ close }">
+                                            <div class="py-1 text-xs">
+                                                <!-- Edit Role -->
+                                                <Link
+                                                    v-if="!role.is_system"
+                                                    :id="`edit-role-${role.id}`"
+                                                    :href="`/superadmin/roles/${role.id}/edit`"
+                                                    class="flex w-full items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md text-left"
+                                                    @click="close"
+                                                >
+                                                    <svg class="h-4 w-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                    <span>Edit Role</span>
+                                                </Link>
+                                                <div
+                                                    v-else
+                                                    class="flex w-full items-center gap-2.5 px-3 py-2 text-zinc-400 dark:text-zinc-500 rounded-md text-left cursor-not-allowed select-none"
+                                                    title="System roles cannot be edited"
+                                                >
+                                                    <svg class="h-4 w-4 text-zinc-400 dark:text-zinc-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                    </svg>
+                                                    <span>Protected (System)</span>
+                                                </div>
 
-                                    <!-- Delete Button -->
-                                    <button
-                                        :id="`delete-role-${role.id}`"
-                                        type="button"
-                                        :disabled="role.is_system"
-                                        :class="[
-                                            'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-                                            role.is_system
-                                                ? 'cursor-not-allowed text-zinc-300 dark:text-zinc-700'
-                                                : 'text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-400',
-                                        ]"
-                                        @click="!role.is_system && openDeleteModal(role)"
-                                    >
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Delete
-                                    </button>
+                                                <!-- Delete Role -->
+                                                <button
+                                                    v-if="!role.is_system"
+                                                    :id="`delete-role-${role.id}`"
+                                                    type="button"
+                                                    class="flex w-full items-center gap-2.5 px-3 py-2 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 transition-colors rounded-md text-left cursor-pointer"
+                                                    @click="openDeleteModal(role); close()"
+                                                >
+                                                    <svg class="h-4 w-4 text-rose-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    <span>Delete Role</span>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </Dropdown>
                                 </div>
                             </td>
                         </tr>

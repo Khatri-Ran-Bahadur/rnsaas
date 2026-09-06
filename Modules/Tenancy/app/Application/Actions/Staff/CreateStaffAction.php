@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Tenancy\Application\DTOs\CreateStaffData;
-use Modules\Tenancy\Domain\Enums\EmploymentStatus;
 use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 use Modules\Tenancy\Models\Branch;
 use Modules\Tenancy\Models\Department;
@@ -74,34 +73,48 @@ final class CreateStaffAction
                 );
             }
 
-            $user = User::query()
-                ->where('email', $data->email)
-                ->first();
+            if ($data->userId !== null) {
+                $user = User::query()->findOrFail($data->userId);
 
-            if ($user === null) {
-                $user = User::query()->create([
-                    'name' => $data->name,
-                    'email' => $data->email,
-                    'phone' => $data->phone,
-                    'password' => Hash::make(Str::random(64)),
-                ]);
-            }
+                $membership = TenantMembership::query()
+                    ->where('tenant_id', $tenantId)
+                    ->where('user_id', $user->id)
+                    ->first();
 
-            $membership = TenantMembership::query()
-                ->where('tenant_id', $tenantId)
-                ->where('user_id', $user->id)
-                ->first();
+                if ($membership === null || $membership->status !== TenantMembershipStatus::Active) {
+                    throw new RuntimeException(
+                        'This user does not have an active membership in this organization.'
+                    );
+                }
+            } else {
+                $user = User::query()
+                    ->where('email', $data->email)
+                    ->first();
 
-            if ($membership === null) {
-                $membership = TenantMembership::query()->create([
-                    'tenant_id' => $tenantId,
-                    'user_id' => $user->id,
-                    'status' => TenantMembershipStatus::Active,
-                ]);
-            } elseif ($membership->status !== TenantMembershipStatus::Active) {
-                throw new RuntimeException(
-                    'This user does not have an active membership in this organization.'
-                );
+                if ($user === null) {
+                    $user = User::query()->create([
+                        'name' => $data->name,
+                        'email' => $data->email,
+                        'password' => Hash::make(Str::random(64)),
+                    ]);
+                }
+
+                $membership = TenantMembership::query()
+                    ->where('tenant_id', $tenantId)
+                    ->where('user_id', $user->id)
+                    ->first();
+
+                if ($membership === null) {
+                    $membership = TenantMembership::query()->create([
+                        'tenant_id' => $tenantId,
+                        'user_id' => $user->id,
+                        'status' => TenantMembershipStatus::Active,
+                    ]);
+                } elseif ($membership->status !== TenantMembershipStatus::Active) {
+                    throw new RuntimeException(
+                        'This user does not have an active membership in this organization.'
+                    );
+                }
             }
 
             $existingStaff = TenantStaff::query()
@@ -134,7 +147,8 @@ final class CreateStaffAction
                 'designation_id' => $designation->id,
                 'employee_code' => $data->employeeCode,
                 'joining_date' => $data->joiningDate,
-                'employment_status' => EmploymentStatus::Active,
+                'employment_status' => $data->employmentStatus,
+                'metadata' => $data->phone ? ['phone' => $data->phone] : null,
             ]);
         });
     }

@@ -33,6 +33,7 @@ class TenancyServiceProvider extends ModuleServiceProvider
     protected array $providers = [
         EventServiceProvider::class,
         RouteServiceProvider::class,
+        TenancyAuthorizationServiceProvider::class,
     ];
 
     /**

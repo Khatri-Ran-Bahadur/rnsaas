@@ -78,9 +78,15 @@ const selectedOption = computed(() => {
     return formattedOptions.value.find((opt) => String(opt.value) === String(props.modelValue));
 });
 
+const instanceId = Symbol();
+
 const toggleDropdown = () => {
     if (props.disabled) return;
-    isOpen.value = !isOpen.value;
+    const nextState = !isOpen.value;
+    if (nextState) {
+        window.dispatchEvent(new CustomEvent('close-comboboxes', { detail: { id: instanceId } }));
+    }
+    isOpen.value = nextState;
     if (isOpen.value) {
         searchQuery.value = '';
         if (isSearchable.value) {
@@ -106,17 +112,27 @@ const handleClickOutside = (event: MouseEvent) => {
     }
 };
 
+const handleCloseOther = (e: Event) => {
+    const customEvent = e as CustomEvent;
+    if (customEvent.detail?.id !== instanceId) {
+        isOpen.value = false;
+        searchQuery.value = '';
+    }
+};
+
 onMounted(() => {
     window.addEventListener('click', handleClickOutside);
+    window.addEventListener('close-comboboxes', handleCloseOther as EventListener);
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('click', handleClickOutside);
+    window.removeEventListener('close-comboboxes', handleCloseOther as EventListener);
 });
 </script>
 
 <template>
-    <div ref="containerRef" class="relative w-full">
+    <div ref="containerRef" :class="['relative w-full', isOpen ? 'z-50' : '']">
         <!-- Label -->
         <label
             v-if="label"
@@ -175,10 +191,10 @@ onBeforeUnmount(() => {
 
         <!-- Floating Dropdown Menu -->
         <Transition
-            enter-active-class="transition duration-100 ease-out"
+            enter-active-class="transition duration-150 ease-out"
             enter-from-class="transform scale-95 opacity-0 -translate-y-1"
             enter-to-class="transform scale-100 opacity-100 translate-y-0"
-            leave-active-class="transition duration-75 ease-in"
+            leave-active-class="transition duration-100 ease-in"
             leave-from-class="transform scale-100 opacity-100 translate-y-0"
             leave-to-class="transform scale-95 opacity-0 -translate-y-1"
         >

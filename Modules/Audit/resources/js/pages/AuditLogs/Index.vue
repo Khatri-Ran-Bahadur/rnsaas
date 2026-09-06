@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import SuperAdminLayout from '@/layouts/SuperAdminLayout.vue';
 import Modal from '@/components/Modal.vue';
 import Button from '@/components/Button.vue';
+import Dropdown from '@/components/Dropdown.vue';
 import Select from '@/components/Select.vue';
 import DatePicker from '@/components/DatePicker.vue';
 import Pagination from '@/components/Pagination.vue';
@@ -456,18 +457,36 @@ const getShortAuditableType = (typeStr: string | null, id: number | null) => {
 
                             <!-- Actions -->
                             <td class="p-4 align-middle text-right whitespace-nowrap" @click.stop>
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200/90 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-700 shadow-2xs hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700/60 dark:hover:text-white transition-colors cursor-pointer"
-                                    title="View detailed audit entry"
-                                    @click="openDetailModal(log)"
-                                >
-                                    <svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    <span>Details</span>
-                                </button>
+                                <div class="flex items-center justify-end">
+                                    <Dropdown align="right" width="w-44">
+                                        <template #trigger>
+                                            <button
+                                                type="button"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors cursor-pointer"
+                                                title="Actions"
+                                            >
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                </svg>
+                                            </button>
+                                        </template>
+                                        <template #default="{ close }">
+                                            <div class="py-1 text-xs">
+                                                <button
+                                                    type="button"
+                                                    class="flex w-full items-center gap-2.5 px-3 py-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors rounded-md text-left cursor-pointer"
+                                                    @click="openDetailModal(log); close()"
+                                                >
+                                                    <svg class="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    <span>View Details</span>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </Dropdown>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

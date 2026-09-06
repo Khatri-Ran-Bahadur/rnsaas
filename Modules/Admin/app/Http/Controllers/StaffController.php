@@ -19,6 +19,7 @@ use Modules\Tenancy\Application\Actions\Staff\UpdateStaffAction;
 use Modules\Tenancy\Application\DTOs\CreateStaffData;
 use Modules\Tenancy\Application\DTOs\UpdateStaffData;
 use Modules\Tenancy\Domain\Enums\EmploymentStatus;
+use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 use Modules\Tenancy\Models\Branch;
 use Modules\Tenancy\Models\Department;
 use Modules\Tenancy\Models\Designation;
@@ -32,6 +33,8 @@ class StaffController extends Controller
 
     public function index(Request $request): Response
     {
+        $this->authorize('staff.view');
+
         $tenantId = $this->currentTenant->id();
 
         $search = $request->string('search')->trim()->value();
@@ -107,9 +110,20 @@ class StaffController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        $tenantId = $this->currentTenant->id();
+        $this->authorize('staff.manage');
+
+        $tenant = $this->currentTenant->get();
+        $tenantId = $tenant->id;
+
+        $preselectedUserId = $request->integer('user_id') ?: null;
+        if (! $preselectedUserId && $request->has('member_id')) {
+            $member = TenantMembership::query()
+                ->where('tenant_id', $tenantId)
+                ->find($request->integer('member_id'));
+            $preselectedUserId = $member?->user_id;
+        }
 
         $branches = Branch::query()
             ->where('tenant_id', $tenantId)
@@ -129,10 +143,23 @@ class StaffController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'code']);
 
+        $availableMembers = $tenant->users()
+            ->wherePivot('status', TenantMembershipStatus::Active->value)
+            ->whereNotIn('users.id', function ($query) use ($tenantId): void {
+                $query->select('user_id')
+                    ->from('tenant_staff')
+                    ->where('tenant_id', $tenantId);
+            })
+            ->select(['users.id', 'users.name', 'users.email'])
+            ->orderBy('users.name')
+            ->get();
+
         return Inertia::render('Admin/Staff/Create', [
             'branches' => $branches,
             'departments' => $departments,
             'designations' => $designations,
+            'availableMembers' => $availableMembers,
+            'preselectedUserId' => $preselectedUserId,
         ]);
     }
 
@@ -140,9 +167,17 @@ class StaffController extends Controller
         StoreStaffRequest $request,
         CreateStaffAction $action,
     ): RedirectResponse {
+        $this->authorize('staff.manage');
+
+        $userId = $request->filled('user_id') ? $request->integer('user_id') : null;
+        $employmentStatus = $request->filled('employment_status')
+            ? EmploymentStatus::from($request->string('employment_status')->toString())
+            : EmploymentStatus::Active;
+
         $data = new CreateStaffData(
-            name: $request->string('name')->toString(),
-            email: $request->string('email')->toString(),
+            userId: $userId,
+            name: $request->filled('name') ? $request->string('name')->toString() : null,
+            email: $request->filled('email') ? $request->string('email')->toString() : null,
             phone: $request->input('phone'),
             employeeCode: $request->string('employee_code')->toString(),
             branchId: $request->integer('branch_id'),
@@ -151,6 +186,7 @@ class StaffController extends Controller
             joiningDate: $request->filled('joining_date')
                 ? CarbonImmutable::parse($request->input('joining_date'))
                 : null,
+            employmentStatus: $employmentStatus,
         );
 
         $action->execute($data);
@@ -161,6 +197,7 @@ class StaffController extends Controller
 
     public function edit(TenantStaff $staff): Response
     {
+        $this->authorize('staff.manage');
         $this->authorizeTenantStaff($staff);
 
         $staff->load(['user', 'branch', 'department', 'designation']);
@@ -195,6 +232,7 @@ class StaffController extends Controller
         TenantStaff $staff,
         UpdateStaffAction $action,
     ): RedirectResponse {
+        $this->authorize('staff.manage');
         $this->authorizeTenantStaff($staff);
 
         $data = new UpdateStaffData(
@@ -220,6 +258,7 @@ class StaffController extends Controller
         TenantStaff $staff,
         ActivateStaffAction $action,
     ): RedirectResponse {
+        $this->authorize('staff.manage');
         $this->authorizeTenantStaff($staff);
 
         $action->execute($staff);
@@ -231,6 +270,7 @@ class StaffController extends Controller
         TenantStaff $staff,
         SuspendStaffAction $action,
     ): RedirectResponse {
+        $this->authorize('staff.manage');
         $this->authorizeTenantStaff($staff);
 
         $action->execute($staff);
@@ -242,6 +282,7 @@ class StaffController extends Controller
         TenantStaff $staff,
         SuspendStaffAction $action,
     ): RedirectResponse {
+        $this->authorize('staff.manage');
         $this->authorizeTenantStaff($staff);
 
         $action->execute($staff);

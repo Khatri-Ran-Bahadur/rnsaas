@@ -28,6 +28,8 @@ class DesignationController extends Controller
 
     public function index(Request $request): Response
     {
+        $this->authorize('designations.view');
+
         $tenantId = $this->currentTenant->id();
 
         $search = $request->string('search')->trim()->value();
@@ -67,6 +69,8 @@ class DesignationController extends Controller
         StoreDesignationRequest $request,
         CreateDesignationAction $action,
     ): RedirectResponse {
+        $this->authorize('designations.manage');
+
         $data = new CreateDesignationData(
             name: $request->string('name')->toString(),
             code: $request->string('code')->toString(),
@@ -83,6 +87,7 @@ class DesignationController extends Controller
         Designation $designation,
         UpdateDesignationAction $action,
     ): RedirectResponse {
+        $this->authorize('designations.manage');
         $this->authorizeTenantDesignation($designation);
 
         $data = new UpdateDesignationData(
@@ -100,6 +105,7 @@ class DesignationController extends Controller
         Designation $designation,
         ActivateDesignationAction $action,
     ): RedirectResponse {
+        $this->authorize('designations.manage');
         $this->authorizeTenantDesignation($designation);
 
         $action->execute($designation);
@@ -111,6 +117,7 @@ class DesignationController extends Controller
         Designation $designation,
         DeactivateDesignationAction $action,
     ): RedirectResponse {
+        $this->authorize('designations.manage');
         $this->authorizeTenantDesignation($designation);
 
         $action->execute($designation);
@@ -122,6 +129,7 @@ class DesignationController extends Controller
         Designation $designation,
         DeactivateDesignationAction $action,
     ): RedirectResponse {
+        $this->authorize('designations.manage');
         $this->authorizeTenantDesignation($designation);
 
         $action->execute($designation);

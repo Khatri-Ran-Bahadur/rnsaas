@@ -17,6 +17,7 @@ const props = withDefaults(
 const isOpen = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
 const menuRef = ref<HTMLElement | null>(null);
+const instanceId = Symbol();
 
 const menuStyle = ref<{
     top?: string;
@@ -68,7 +69,11 @@ const updatePosition = () => {
 };
 
 const toggle = async () => {
-    isOpen.value = !isOpen.value;
+    const nextState = !isOpen.value;
+    if (nextState) {
+        window.dispatchEvent(new CustomEvent('close-dropdowns', { detail: { id: instanceId } }));
+    }
+    isOpen.value = nextState;
     if (isOpen.value && props.teleport) {
         await nextTick();
         updatePosition();
@@ -90,6 +95,13 @@ const handleClickOutside = (event: MouseEvent) => {
     close();
 };
 
+const handleCloseOtherDropdowns = (e: Event) => {
+    const customEvent = e as CustomEvent;
+    if (customEvent.detail?.id !== instanceId) {
+        close();
+    }
+};
+
 const handleScrollOrResize = () => {
     if (isOpen.value) {
         updatePosition();
@@ -98,12 +110,14 @@ const handleScrollOrResize = () => {
 
 onMounted(() => {
     window.addEventListener('click', handleClickOutside);
+    window.addEventListener('close-dropdowns', handleCloseOtherDropdowns as EventListener);
     window.addEventListener('resize', handleScrollOrResize);
     window.addEventListener('scroll', handleScrollOrResize, true);
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('click', handleClickOutside);
+    window.removeEventListener('close-dropdowns', handleCloseOtherDropdowns as EventListener);
     window.removeEventListener('resize', handleScrollOrResize);
     window.removeEventListener('scroll', handleScrollOrResize, true);
 });
@@ -112,7 +126,7 @@ onBeforeUnmount(() => {
 <template>
     <div class="relative inline-block text-left">
         <!-- Trigger Slot -->
-        <div ref="triggerRef" @click.stop="toggle">
+        <div ref="triggerRef" @click="toggle">
             <slot name="trigger" :is-open="isOpen" :toggle="toggle" />
         </div>
 
@@ -120,12 +134,12 @@ onBeforeUnmount(() => {
         <template v-if="teleport">
             <Teleport to="body">
                 <Transition
-                    enter-active-class="transition duration-100 ease-out"
-                    enter-from-class="transform scale-95 opacity-0"
-                    enter-to-class="transform scale-100 opacity-100"
-                    leave-active-class="transition duration-75 ease-in"
-                    leave-from-class="transform scale-100 opacity-100"
-                    leave-to-class="transform scale-95 opacity-0"
+                    enter-active-class="transition duration-150 ease-out"
+                    enter-from-class="transform scale-95 opacity-0 -translate-y-1"
+                    enter-to-class="transform scale-100 opacity-100 translate-y-0"
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="transform scale-100 opacity-100 translate-y-0"
+                    leave-to-class="transform scale-95 opacity-0 -translate-y-1"
                 >
                     <div
                         v-if="isOpen"
@@ -146,12 +160,12 @@ onBeforeUnmount(() => {
         <!-- Inline Dropdown Menu Content (when teleport is false) -->
         <template v-else>
             <Transition
-                enter-active-class="transition duration-100 ease-out"
-                enter-from-class="transform scale-95 opacity-0"
-                enter-to-class="transform scale-100 opacity-100"
-                leave-active-class="transition duration-75 ease-in"
-                leave-from-class="transform scale-100 opacity-100"
-                leave-to-class="transform scale-95 opacity-0"
+                enter-active-class="transition duration-150 ease-out"
+                enter-from-class="transform scale-95 opacity-0 -translate-y-1"
+                enter-to-class="transform scale-100 opacity-100 translate-y-0"
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="transform scale-100 opacity-100 translate-y-0"
+                leave-to-class="transform scale-95 opacity-0 -translate-y-1"
             >
                 <div
                     v-if="isOpen"

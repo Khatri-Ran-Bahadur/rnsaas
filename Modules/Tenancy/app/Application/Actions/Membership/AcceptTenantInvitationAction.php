@@ -32,6 +32,10 @@ final class AcceptTenantInvitationAction
                 );
             }
 
+            if ($membership->isInvitationExpired()) {
+                throw new LogicException('This invitation has expired.');
+            }
+
             $oldStatus = $membership->status;
             $currentVersion = $membership->version;
 
@@ -41,6 +45,7 @@ final class AcceptTenantInvitationAction
                 ->update([
                     'status' => TenantMembershipStatus::Active,
                     'joined_at' => now(),
+                    'invitation_token' => null,
                     'version' => $currentVersion + 1,
                 ]);
 

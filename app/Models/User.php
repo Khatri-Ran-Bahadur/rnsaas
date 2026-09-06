@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Modules\Tenancy\Application\Services\OrganizationAuthorizationService;
 use Modules\Tenancy\Models\Tenant;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -49,6 +50,17 @@ class User extends Authenticatable
                 'version',
             ])
             ->withTimestamps();
+    }
+
+    /**
+     * Determine if the user has an organization-level permission in the given or current tenant.
+     */
+    public function canInTenant(string $permission, Tenant|int|null $tenant = null): bool
+    {
+        $tenantId = $tenant instanceof Tenant ? $tenant->id : $tenant;
+
+        return app(OrganizationAuthorizationService::class)
+            ->allows($this, $permission, $tenantId);
     }
 
     /**

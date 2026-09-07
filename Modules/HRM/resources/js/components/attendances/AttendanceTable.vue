@@ -25,7 +25,7 @@ const emit = defineEmits<{
         <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
             <span class="text-xs font-semibold text-slate-700 dark:text-zinc-300">
                 Attendance Records
-                <span class="ml-1 text-slate-400 font-normal">({{ attendances.total }})</span>
+                <span class="ml-1 text-slate-400 font-normal">({{ attendances?.total ?? attendances?.data?.length ?? 0 }})</span>
             </span>
 
             <div class="flex items-center gap-2">
@@ -55,93 +55,84 @@ const emit = defineEmits<{
 
                 <tbody class="divide-y divide-zinc-200/60 dark:divide-zinc-800/60">
                     <tr
-                        v-for="row in attendances.data"
+                        v-for="row in (attendances?.data || [])"
                         :key="row.public_id"
                         class="group transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 cursor-pointer"
                         @click="emit('inspect', row)"
                     >
-                        <!-- Employee Info -->
-                        <td class="py-3.5 pl-5 pr-3">
-                            <div class="flex items-center gap-2.5 min-w-[140px]">
-                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 font-semibold text-[11px] dark:bg-indigo-950 dark:text-indigo-300">
-                                    {{ (row.staff?.name || 'S').charAt(0).toUpperCase() }}
+                        <!-- Staff Profile Cell -->
+                        <td class="py-3 pl-5 pr-3">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
+                                    {{ row.staff?.name ? row.staff.name.substring(0, 2).toUpperCase() : 'NA' }}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="truncate font-medium text-slate-900 dark:text-white">
+                                    <div class="font-medium text-slate-900 dark:text-zinc-100 truncate">
                                         {{ row.staff?.name || 'Unknown Staff' }}
-                                    </p>
-                                    <p class="text-[11px] text-slate-400 dark:text-zinc-500 font-mono">
-                                        #{{ row.staff?.employee_code || '—' }}
-                                    </p>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 dark:text-zinc-500 truncate">
+                                        {{ row.staff?.employee_code || 'EMP-??' }} • {{ row.staff?.department || 'General' }}
+                                    </div>
                                 </div>
                             </div>
                         </td>
 
                         <!-- Date -->
-                        <td class="px-3 py-3.5 text-slate-700 font-medium dark:text-zinc-300 whitespace-nowrap">
+                        <td class="px-3 py-3 text-slate-700 dark:text-zinc-300 whitespace-nowrap font-medium">
                             {{ row.attendance_date }}
                         </td>
 
                         <!-- Check In -->
-                        <td class="px-3 py-3.5 whitespace-nowrap font-mono text-slate-600 dark:text-zinc-300">
-                            {{ row.check_in || '—' }}
-                        </td>
-
-                        <!-- Check Out -->
-                        <td class="px-3 py-3.5 whitespace-nowrap font-mono text-slate-600 dark:text-zinc-300">
-                            {{ row.check_out || '—' }}
-                        </td>
-
-                        <!-- Worked Hours Pill -->
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
-                                {{ row.worked_hours }}h
+                        <td class="px-3 py-3 text-slate-600 dark:text-zinc-400 whitespace-nowrap">
+                            <span :class="row.check_in ? 'font-medium text-slate-900 dark:text-zinc-100' : 'text-slate-400 italic'">
+                                {{ row.check_in || '—' }}
                             </span>
                         </td>
 
-                        <!-- Late / Early Badges -->
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <div class="flex items-center gap-1.5">
-                                <span
-                                    v-if="row.late_minutes > 0"
-                                    class="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
-                                >
-                                    +{{ row.late_minutes }}m late
-                                </span>
-                                <span
-                                    v-if="row.early_leave_minutes > 0"
-                                    class="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
-                                >
-                                    -{{ row.early_leave_minutes }}m early
-                                </span>
-                                <span v-if="!row.late_minutes && !row.early_leave_minutes" class="text-slate-400">
-                                    —
-                                </span>
+                        <!-- Check Out -->
+                        <td class="px-3 py-3 text-slate-600 dark:text-zinc-400 whitespace-nowrap">
+                            <span :class="row.check_out ? 'font-medium text-slate-900 dark:text-zinc-100' : 'text-slate-400 italic'">
+                                {{ row.check_out || '—' }}
+                            </span>
+                        </td>
+
+                        <!-- Worked Hours -->
+                        <td class="px-3 py-3 text-slate-700 dark:text-zinc-300 whitespace-nowrap font-medium">
+                            {{ row.worked_hours > 0 ? `${row.worked_hours.toFixed(1)} hrs` : '—' }}
+                        </td>
+
+                        <!-- Late / Early Deviations -->
+                        <td class="px-3 py-3 whitespace-nowrap text-[11px]">
+                            <div v-if="row.late_minutes > 0" class="text-amber-600 dark:text-amber-400 font-medium">
+                                +{{ row.late_minutes }}m late
+                            </div>
+                            <div v-if="row.early_leave_minutes > 0" class="text-rose-600 dark:text-rose-400 font-medium">
+                                -{{ row.early_leave_minutes }}m early
+                            </div>
+                            <div v-if="!row.late_minutes && !row.early_leave_minutes" class="text-slate-400">
+                                On Time
                             </div>
                         </td>
 
                         <!-- Status Badge -->
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <HRMStatusBadge
-                                :status="row.status?.value || 'unknown'"
-                                :label="row.status?.label"
-                            />
+                        <td class="px-3 py-3 whitespace-nowrap">
+                            <HRMStatusBadge :status="row.status?.value || 'present'" />
                         </td>
 
                         <!-- Source Badge -->
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <span class="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
-                                {{ row.source?.label || row.source?.value }}
+                        <td class="px-3 py-3 whitespace-nowrap">
+                            <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 capitalize">
+                                {{ row.source?.value || 'web' }}
                             </span>
                         </td>
 
                         <!-- Actions Dropdown -->
-                        <td class="py-3.5 pl-3 pr-5 text-right whitespace-nowrap" @click.stop>
-                            <Dropdown align="right" width="w-40">
+                        <td class="py-3 pl-3 pr-5 text-right whitespace-nowrap" @click.stop>
+                            <Dropdown align="right" width="48">
                                 <template #trigger>
                                     <button
                                         type="button"
-                                        class="rounded-lg p-1 text-slate-400 hover:bg-zinc-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                                        class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-zinc-100 hover:text-slate-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
                                     >
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -152,7 +143,7 @@ const emit = defineEmits<{
                                 <template #default="{ close }">
                                     <div class="py-1">
                                         <Link
-                                            :href="route('admin.hrm.attendances.show', row.public_id)"
+                                            :href="`/admin/hrm/attendances/${row.public_id}`"
                                             class="flex w-full items-center gap-2 px-3.5 py-1.5 text-xs text-slate-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                             @click="close"
                                         >
@@ -164,7 +155,7 @@ const emit = defineEmits<{
                                         </Link>
 
                                         <Link
-                                            :href="route('admin.hrm.attendances.edit', row.public_id)"
+                                            :href="`/admin/hrm/attendances/${row.public_id}/edit`"
                                             class="flex w-full items-center gap-2 px-3.5 py-1.5 text-xs text-slate-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                             @click="close"
                                         >
@@ -191,7 +182,7 @@ const emit = defineEmits<{
                     </tr>
 
                     <!-- Empty state row -->
-                    <tr v-if="attendances.data.length === 0">
+                    <tr v-if="!attendances?.data || attendances.data.length === 0">
                         <td colspan="9" class="p-8">
                             <HRMEmptyState
                                 title="No attendance records found"
@@ -204,7 +195,7 @@ const emit = defineEmits<{
         </div>
 
         <!-- Footer Pagination -->
-        <div v-if="attendances.total > 0" class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
+        <div v-if="(attendances?.total ?? attendances?.data?.length ?? 0) > 0" class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
             <Pagination :data="attendances" />
         </div>
     </div>

@@ -57,21 +57,28 @@ const totalDaysPreview = computed(() => {
 });
 
 const submit = () => {
-    form.post(route('admin.hrm.leaves.store'));
+    form.post('/admin/hrm/leaves');
 };
 </script>
 
 <template>
-    <Head title="Submit Leave Request" />
+    <OrganizationLayout
+        title="Submit Leave Request"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Leave', href: '/admin/hrm/leaves' },
+            { label: 'Create' },
+        ]"
+    >
+        <Head title="Submit Leave Request" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div class="w-full space-y-6">
             <HRMPageHeader
                 title="New Leave Request"
                 subtitle="Submit an employee leave application for manager approval."
                 :breadcrumbs="[
                     { label: 'HRM' },
-                    { label: 'Leave', href: route('admin.hrm.leaves.index') },
+                    { label: 'Leave', href: '/admin/hrm/leaves' },
                     { label: 'Create' },
                 ]"
             />
@@ -177,7 +184,7 @@ const submit = () => {
 
                 <div class="flex items-center justify-end gap-3">
                     <Link
-                        :href="route('admin.hrm.leaves.index')"
+                        href="/admin/hrm/leaves"
                         class="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                         Cancel

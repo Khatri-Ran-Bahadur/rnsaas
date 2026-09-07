@@ -60,21 +60,29 @@ const workedHoursPreview = computed(() => {
 });
 
 const submit = () => {
-    form.put(route('admin.hrm.attendances.update', record.value.public_id));
+    form.put(`/admin/hrm/attendances/${record.value.public_id}`);
 };
 </script>
 
 <template>
-    <Head title="Edit Attendance" />
+    <OrganizationLayout
+        :title="`Edit Attendance - ${record.staff?.name || 'Staff'}`"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Attendance', href: '/admin/hrm/attendances' },
+            { label: record.attendance_date },
+            { label: 'Edit' },
+        ]"
+    >
+        <Head title="Edit Attendance" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div class="w-full space-y-6">
             <HRMPageHeader
                 :title="`Edit Attendance - ${record.staff?.name || 'Staff'}`"
                 subtitle="Modify punch times, status, or attendance notes."
                 :breadcrumbs="[
                     { label: 'HRM' },
-                    { label: 'Attendance', href: route('admin.hrm.attendances.index') },
+                    { label: 'Attendance', href: '/admin/hrm/attendances' },
                     { label: record.attendance_date },
                     { label: 'Edit' },
                 ]"
@@ -243,7 +251,7 @@ const submit = () => {
                 <!-- Form Action Buttons -->
                 <div class="flex items-center justify-end gap-3">
                     <Link
-                        :href="route('admin.hrm.attendances.index')"
+                        href="/admin/hrm/attendances"
                         class="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                         Cancel

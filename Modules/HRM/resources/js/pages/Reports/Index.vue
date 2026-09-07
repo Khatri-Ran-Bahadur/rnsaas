@@ -18,10 +18,16 @@ const exportReport = (format: 'excel' | 'csv' | 'pdf') => {
 </script>
 
 <template>
-    <Head title="HR Reports Center" />
+    <OrganizationLayout
+        title="HR Reports Center"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Reports' },
+        ]"
+    >
+        <Head title="HR Reports Center" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+        <div class="w-full space-y-6">
             <HRMPageHeader
                 title="HR Reports & Analytics"
                 subtitle="Generate and export comprehensive reports for attendance, leaves, overtime, and headcount."

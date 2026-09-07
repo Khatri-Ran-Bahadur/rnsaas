@@ -70,7 +70,7 @@ const submit = () => {
     >
         <Head :title="`Edit ${doc.title} - HRM`" />
 
-        <div class="px-4 py-6 sm:px-8 max-w-4xl mx-auto space-y-6">
+        <div class="w-full space-y-6">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>

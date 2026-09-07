@@ -75,10 +75,16 @@ const resolve = (exc: UnifiedException) => {
 </script>
 
 <template>
-    <Head title="HR Exception Center" />
+    <OrganizationLayout
+        title="HR Exception Center"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Exceptions' },
+        ]"
+    >
+        <Head title="HR Exception Center" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+        <div class="w-full space-y-6">
             <HRMPageHeader
                 title="HR Exception Center"
                 subtitle="Centralized triage for policy violations, missing punches, approval bottlenecks, and data anomalies."

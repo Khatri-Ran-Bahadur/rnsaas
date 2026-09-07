@@ -25,7 +25,7 @@ const isRejectProcessing = ref(false);
 const confirmApprove = () => {
     isApproveProcessing.value = true;
     router.patch(
-        route('admin.hrm.leaves.approve', record.value.public_id),
+        `/admin/hrm/leaves/${record.value.public_id}/approve`,
         {},
         {
             preserveScroll: true,
@@ -40,7 +40,7 @@ const confirmApprove = () => {
 const confirmReject = (reason: string) => {
     isRejectProcessing.value = true;
     router.patch(
-        route('admin.hrm.leaves.reject', record.value.public_id),
+        `/admin/hrm/leaves/${record.value.public_id}/reject`,
         { rejection_reason: reason },
         {
             preserveScroll: true,
@@ -53,28 +53,35 @@ const confirmReject = (reason: string) => {
 };
 
 const toggleStatus = () => {
-    router.patch(route('admin.hrm.leaves.toggle-status', record.value.public_id));
+    router.patch(`/admin/hrm/leaves/${record.value.public_id}/toggle-status`);
 };
 </script>
 
 <template>
-    <Head :title="`Leave Request - ${record.staff?.name || 'Staff'}`" />
+    <OrganizationLayout
+        :title="`Leave Request - ${record.staff?.name || 'Staff'}`"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Leave', href: '/admin/hrm/leaves' },
+            { label: record.public_id },
+        ]"
+    >
+        <Head :title="`Leave Request - ${record.staff?.name || 'Staff'}`" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div class="w-full space-y-6">
             <HRMPageHeader
                 :title="`${record.staff?.name || 'Staff'} - Leave Request`"
                 :subtitle="`${record.start_date} to ${record.end_date} (${record.total_days} days)`"
                 :breadcrumbs="[
                     { label: 'HRM' },
-                    { label: 'Leave', href: route('admin.hrm.leaves.index') },
+                    { label: 'Leave', href: '/admin/hrm/leaves' },
                     { label: record.public_id },
                 ]"
             >
                 <template #actions>
                     <Link
                         v-if="record.status?.value === 'pending'"
-                        :href="route('admin.hrm.leaves.edit', record.public_id)"
+                        :href="`/admin/hrm/leaves/${record.public_id}/edit`"
                         class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                     >
                         Edit Request

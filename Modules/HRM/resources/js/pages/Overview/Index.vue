@@ -65,10 +65,16 @@ const recentActivities = ref<RecentHRActivityItem[]>([
 </script>
 
 <template>
-    <Head title="HRM Overview" />
+    <OrganizationLayout
+        title="HRM Overview"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Overview' },
+        ]"
+    >
+        <Head title="HRM Overview" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+        <div class="w-full space-y-6">
             <!-- Header with Date Range Selectors -->
             <HRMPageHeader
                 title="HRM Overview"
@@ -214,7 +220,7 @@ const recentActivities = ref<RecentHRActivityItem[]>([
                             </p>
                         </div>
                         <Link
-                            :href="route('admin.hrm.attendances.index')"
+                            href="/admin/hrm/attendances"
                             class="text-xs font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
                         >
                             View Live Punch Board →
@@ -258,28 +264,28 @@ const recentActivities = ref<RecentHRActivityItem[]>([
                     </h3>
                     <div class="space-y-2.5 text-xs">
                         <Link
-                            :href="route('admin.hrm.attendances.create')"
+                            href="/admin/hrm/attendances/create"
                             class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 font-medium text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800/60 transition-colors"
                         >
                             <span>Record Punch Manually</span>
                             <span class="text-indigo-600 font-bold">+</span>
                         </Link>
                         <Link
-                            :href="route('admin.hrm.leaves.create')"
+                            href="/admin/hrm/leaves/create"
                             class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 font-medium text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800/60 transition-colors"
                         >
                             <span>Apply for Leave</span>
                             <span class="text-indigo-600 font-bold">+</span>
                         </Link>
                         <Link
-                            :href="route('admin.hrm.overtimes.create')"
+                            href="/admin/hrm/overtimes/create"
                             class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 font-medium text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800/60 transition-colors"
                         >
                             <span>Log Overtime Hours</span>
                             <span class="text-indigo-600 font-bold">+</span>
                         </Link>
                         <Link
-                            :href="route('admin.hrm.attendances.index')"
+                            href="/admin/hrm/attendances"
                             class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 font-medium text-slate-700 hover:border-indigo-300 hover:bg-indigo-50/40 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800/60 transition-colors"
                         >
                             <span>Excel Attendance Import</span>

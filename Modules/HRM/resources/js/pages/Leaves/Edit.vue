@@ -44,21 +44,29 @@ const totalDaysPreview = computed(() => {
 });
 
 const submit = () => {
-    form.put(route('admin.hrm.leaves.update', record.value.public_id));
+    form.put(`/admin/hrm/leaves/${record.value.public_id}`);
 };
 </script>
 
 <template>
-    <Head title="Edit Leave Request" />
+    <OrganizationLayout
+        :title="`Edit Leave Request - ${record.staff?.name || 'Staff'}`"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Leave', href: '/admin/hrm/leaves' },
+            { label: record.public_id },
+            { label: 'Edit' },
+        ]"
+    >
+        <Head title="Edit Leave Request" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div class="w-full space-y-6">
             <HRMPageHeader
                 :title="`Edit Leave Request - ${record.staff?.name || 'Staff'}`"
                 subtitle="Modify request dates, leave type, or reason."
                 :breadcrumbs="[
                     { label: 'HRM' },
-                    { label: 'Leave', href: route('admin.hrm.leaves.index') },
+                    { label: 'Leave', href: '/admin/hrm/leaves' },
                     { label: record.public_id },
                     { label: 'Edit' },
                 ]"
@@ -167,7 +175,7 @@ const submit = () => {
 
                 <div class="flex items-center justify-end gap-3">
                     <Link
-                        :href="route('admin.hrm.leaves.index')"
+                        href="/admin/hrm/leaves"
                         class="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                         Cancel

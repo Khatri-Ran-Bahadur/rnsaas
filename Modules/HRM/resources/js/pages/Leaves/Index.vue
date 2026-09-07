@@ -56,7 +56,7 @@ const filters = ref({
 
 const applyFilters = () => {
     router.get(
-        route('admin.hrm.leaves.index'),
+        '/admin/hrm/leaves',
         {
             search: filters.value.search || undefined,
             tenant_staff_id: filters.value.tenant_staff_id || undefined,
@@ -89,7 +89,7 @@ const confirmApprove = () => {
     if (!approvingLeave.value) return;
     isApproveProcessing.value = true;
     router.patch(
-        route('admin.hrm.leaves.approve', approvingLeave.value.public_id),
+        `/admin/hrm/leaves/${approvingLeave.value.public_id}/approve`,
         {},
         {
             preserveScroll: true,
@@ -111,7 +111,7 @@ const confirmReject = (reason: string) => {
     if (!rejectingLeave.value) return;
     isRejectProcessing.value = true;
     router.patch(
-        route('admin.hrm.leaves.reject', rejectingLeave.value.public_id),
+        `/admin/hrm/leaves/${rejectingLeave.value.public_id}/reject`,
         { rejection_reason: reason },
         {
             preserveScroll: true,
@@ -126,7 +126,7 @@ const confirmReject = (reason: string) => {
 
 const handleToggleStatus = (item: LeaveItem) => {
     router.patch(
-        route('admin.hrm.leaves.toggle-status', item.public_id),
+        `/admin/hrm/leaves/${item.public_id}/toggle-status`,
         {},
         { preserveScroll: true },
     );
@@ -134,10 +134,16 @@ const handleToggleStatus = (item: LeaveItem) => {
 </script>
 
 <template>
-    <Head title="Leave Management" />
+    <OrganizationLayout
+        title="Leave Management"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Leave' },
+        ]"
+    >
+        <Head title="Leave Management" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="w-full space-y-6">
             <!-- Header -->
             <HRMPageHeader
                 title="Leave Requests"
@@ -149,7 +155,7 @@ const handleToggleStatus = (item: LeaveItem) => {
             >
                 <template #actions>
                     <Link
-                        :href="route('admin.hrm.leaves.create')"
+                        href="/admin/hrm/leaves/create"
                         class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-500 transition-colors"
                     >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

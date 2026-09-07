@@ -45,7 +45,7 @@ const submit = () => {
     >
         <Head :title="`Edit ${s.name} - HRM`" />
 
-        <div class="px-4 py-6 sm:px-8 max-w-3xl mx-auto space-y-6">
+        <div class="w-full space-y-6">
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">

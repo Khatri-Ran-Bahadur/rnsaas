@@ -73,21 +73,28 @@ const workedHoursPreview = computed(() => {
 });
 
 const submit = () => {
-    form.post(route('admin.hrm.attendances.store'));
+    form.post('/admin/hrm/attendances');
 };
 </script>
 
 <template>
-    <Head title="Record Attendance" />
+    <OrganizationLayout
+        title="Record Attendance"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Attendance', href: '/admin/hrm/attendances' },
+            { label: 'Create' },
+        ]"
+    >
+        <Head title="Record Attendance" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div class="w-full space-y-6">
             <HRMPageHeader
                 title="Record Attendance"
                 subtitle="Manually punch or log attendance for an employee."
                 :breadcrumbs="[
                     { label: 'HRM' },
-                    { label: 'Attendance', href: route('admin.hrm.attendances.index') },
+                    { label: 'Attendance', href: '/admin/hrm/attendances' },
                     { label: 'Create' },
                 ]"
             />
@@ -253,7 +260,7 @@ const submit = () => {
                 <!-- Form Action Buttons -->
                 <div class="flex items-center justify-end gap-3">
                     <Link
-                        :href="route('admin.hrm.attendances.index')"
+                        href="/admin/hrm/attendances"
                         class="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-xs font-medium text-slate-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                     >
                         Cancel

@@ -40,7 +40,7 @@ const toggleStatus = () => {
     >
         <Head :title="`${h.name} - HRM`" />
 
-        <div class="px-4 py-6 sm:px-8 max-w-4xl mx-auto space-y-6">
+        <div class="w-full space-y-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <div class="flex items-center gap-2.5">

@@ -48,7 +48,7 @@ const filters = ref({
 
 const applyFilters = () => {
     router.get(
-        route('admin.hrm.attendances.index'),
+        '/admin/hrm/attendances',
         {
             search: filters.value.search || undefined,
             tenant_staff_id: filters.value.tenant_staff_id || undefined,
@@ -72,7 +72,7 @@ const handleResetFilters = () => {
 
 const handleToggleStatus = (item: AttendanceItem) => {
     router.patch(
-        route('admin.hrm.attendances.toggle-status', item.public_id),
+        `/admin/hrm/attendances/${item.public_id}/toggle-status`,
         {},
         { preserveScroll: true },
     );
@@ -80,10 +80,16 @@ const handleToggleStatus = (item: AttendanceItem) => {
 </script>
 
 <template>
-    <Head title="Attendance Management" />
+    <OrganizationLayout
+        title="Attendance Management"
+        :breadcrumbs="[
+            { label: 'HRM' },
+            { label: 'Attendance' },
+        ]"
+    >
+        <Head title="Attendance Management" />
 
-    <OrganizationLayout>
-        <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="w-full space-y-6">
             <!-- Top Header -->
             <HRMPageHeader
                 title="Attendance Hub"
@@ -95,7 +101,7 @@ const handleToggleStatus = (item: AttendanceItem) => {
             >
                 <template #actions>
                     <Link
-                        :href="route('admin.hrm.attendances.create')"
+                        href="/admin/hrm/attendances/create"
                         class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-500 transition-colors"
                     >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -244,7 +250,7 @@ const handleToggleStatus = (item: AttendanceItem) => {
                 <div class="flex justify-end gap-2">
                     <Link
                         v-if="inspectedRecord"
-                        :href="route('admin.hrm.attendances.edit', inspectedRecord.public_id)"
+                        :href="`/admin/hrm/attendances/${inspectedRecord.public_id}/edit`"
                         class="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-500"
                     >
                         Edit Record

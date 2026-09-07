@@ -27,7 +27,7 @@ const emit = defineEmits<{
         <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
             <span class="text-xs font-semibold text-slate-700 dark:text-zinc-300">
                 Leave Requests
-                <span class="ml-1 text-slate-400 font-normal">({{ leaves.total }})</span>
+                <span class="ml-1 text-slate-400 font-normal">({{ leaves?.total ?? leaves?.data?.length ?? 0 }})</span>
             </span>
 
             <div class="flex items-center gap-2">
@@ -55,92 +55,89 @@ const emit = defineEmits<{
 
                 <tbody class="divide-y divide-zinc-200/60 dark:divide-zinc-800/60">
                     <tr
-                        v-for="row in leaves.data"
+                        v-for="row in (leaves?.data || [])"
                         :key="row.public_id"
                         class="group transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 cursor-pointer"
                         @click="emit('inspect', row)"
                     >
-                        <!-- Employee Info -->
-                        <td class="py-3.5 pl-5 pr-3">
-                            <div class="flex items-center gap-2.5 min-w-[140px]">
-                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 font-semibold text-[11px] dark:bg-indigo-950 dark:text-indigo-300">
-                                    {{ (row.staff?.name || 'S').charAt(0).toUpperCase() }}
+                        <!-- Staff Cell -->
+                        <td class="py-3 pl-5 pr-3">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
+                                    {{ row.staff?.name ? row.staff.name.substring(0, 2).toUpperCase() : 'NA' }}
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="truncate font-medium text-slate-900 dark:text-white">
+                                    <div class="font-medium text-slate-900 dark:text-zinc-100 truncate">
                                         {{ row.staff?.name || 'Unknown Staff' }}
-                                    </p>
-                                    <p class="text-[11px] text-slate-400 dark:text-zinc-500 font-mono">
-                                        #{{ row.staff?.employee_code || '—' }}
-                                    </p>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 dark:text-zinc-500 truncate">
+                                        {{ row.staff?.employee_code || 'EMP-??' }}
+                                    </div>
                                 </div>
                             </div>
                         </td>
 
-                        <!-- Leave Type Badge -->
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <span class="inline-flex items-center rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
-                                {{ row.leave_type?.label || row.leave_type?.value }}
-                            </span>
+                        <!-- Leave Type -->
+                        <td class="px-3 py-3 text-slate-700 dark:text-zinc-300 whitespace-nowrap font-medium">
+                            {{ row.leave_type?.label || row.leave_type?.value }}
                         </td>
 
-                        <!-- Dates -->
-                        <td class="px-3 py-3.5 whitespace-nowrap text-slate-700 dark:text-zinc-300">
-                            {{ row.start_date }}
-                            <span v-if="row.start_date !== row.end_date">
-                                → {{ row.end_date }}
-                            </span>
+                        <!-- Date Range -->
+                        <td class="px-3 py-3 text-slate-600 dark:text-zinc-400 whitespace-nowrap">
+                            {{ row.start_date }} → {{ row.end_date }}
                         </td>
 
-                        <!-- Duration Pill -->
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+                        <!-- Total Days -->
+                        <td class="px-3 py-3 whitespace-nowrap">
+                            <span class="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-slate-800 dark:bg-zinc-800 dark:text-zinc-200">
                                 {{ row.total_days }} {{ row.total_days === 1 ? 'day' : 'days' }}
                             </span>
                         </td>
 
                         <!-- Reason -->
-                        <td class="px-3 py-3.5 max-w-xs truncate text-slate-500 dark:text-zinc-400">
+                        <td class="px-3 py-3 text-slate-600 dark:text-zinc-400 max-w-xs truncate">
                             {{ row.reason || '—' }}
                         </td>
 
                         <!-- Status Badge -->
-                        <td class="px-3 py-3.5 whitespace-nowrap">
-                            <HRMStatusBadge
-                                :status="row.status?.value || 'unknown'"
-                                :label="row.status?.label"
-                            />
+                        <td class="px-3 py-3 whitespace-nowrap">
+                            <HRMStatusBadge :status="row.status?.value || 'pending'" />
                         </td>
 
-                        <!-- Actions -->
-                        <td class="py-3.5 pl-3 pr-5 text-right whitespace-nowrap" @click.stop>
+                        <!-- Actions Dropdown -->
+                        <td class="py-3 pl-3 pr-5 text-right whitespace-nowrap" @click.stop>
                             <div class="flex items-center justify-end gap-1.5">
-                                <!-- Quick Approve/Reject if Pending -->
-                                <template v-if="row.status?.value === 'pending'">
-                                    <button
-                                        type="button"
-                                        class="rounded-md bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 transition-colors"
-                                        title="Approve request"
-                                        @click="emit('approve', row)"
-                                    >
-                                        Approve
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="rounded-md bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 transition-colors"
-                                        title="Reject request"
-                                        @click="emit('reject', row)"
-                                    >
-                                        Reject
-                                    </button>
-                                </template>
+                                <!-- Fast Action: Approve Button -->
+                                <button
+                                    v-if="row.status?.value === 'pending'"
+                                    type="button"
+                                    class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900 transition-colors"
+                                    @click="emit('approve', row)"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Approve
+                                </button>
 
-                                <!-- Action Dropdown -->
-                                <Dropdown align="right" width="w-40">
+                                <!-- Fast Action: Reject Button -->
+                                <button
+                                    v-if="row.status?.value === 'pending'"
+                                    type="button"
+                                    class="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 dark:hover:bg-rose-900 transition-colors"
+                                    @click="emit('reject', row)"
+                                >
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    Reject
+                                </button>
+
+                                <Dropdown align="right" width="48">
                                     <template #trigger>
                                         <button
                                             type="button"
-                                            class="rounded-lg p-1 text-slate-400 hover:bg-zinc-100 hover:text-slate-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-zinc-100 hover:text-slate-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
                                         >
                                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -151,7 +148,7 @@ const emit = defineEmits<{
                                     <template #default="{ close }">
                                         <div class="py-1">
                                             <Link
-                                                :href="route('admin.hrm.leaves.show', row.public_id)"
+                                                :href="`/admin/hrm/leaves/${row.public_id}`"
                                                 class="flex w-full items-center gap-2 px-3.5 py-1.5 text-xs text-slate-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                                 @click="close"
                                             >
@@ -164,7 +161,7 @@ const emit = defineEmits<{
 
                                             <Link
                                                 v-if="row.status?.value === 'pending'"
-                                                :href="route('admin.hrm.leaves.edit', row.public_id)"
+                                                :href="`/admin/hrm/leaves/${row.public_id}/edit`"
                                                 class="flex w-full items-center gap-2 px-3.5 py-1.5 text-xs text-slate-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                                 @click="close"
                                             >
@@ -192,7 +189,7 @@ const emit = defineEmits<{
                     </tr>
 
                     <!-- Empty state -->
-                    <tr v-if="leaves.data.length === 0">
+                    <tr v-if="!leaves?.data || leaves.data.length === 0">
                         <td colspan="7" class="p-8">
                             <HRMEmptyState
                                 title="No leave requests found"
@@ -205,7 +202,7 @@ const emit = defineEmits<{
         </div>
 
         <!-- Footer Pagination -->
-        <div v-if="leaves.total > 0" class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
+        <div v-if="(leaves?.total ?? leaves?.data?.length ?? 0) > 0" class="border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
             <Pagination :data="leaves" />
         </div>
     </div>

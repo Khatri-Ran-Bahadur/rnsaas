@@ -130,7 +130,7 @@ const getStatusBadgeVariant = (status: string) => {
     >
         <Head :title="`${doc.title} - Employee Documents`" />
 
-        <div class="px-4 py-6 sm:px-8 max-w-5xl mx-auto space-y-6">
+        <div class="w-full space-y-6">
             <!-- Top Action Header -->
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

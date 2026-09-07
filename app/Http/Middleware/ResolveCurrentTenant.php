@@ -51,6 +51,7 @@ class ResolveCurrentTenant
         if ($tenantId !== null) {
             $tenant = $user->tenants()
                 ->whereKey($tenantId)
+                ->where('tenants.status', TenantStatus::Active->value)
                 ->wherePivot('status', 'active')
                 ->first();
 
@@ -64,6 +65,7 @@ class ResolveCurrentTenant
         }
 
         $tenant = $user->tenants()
+            ->where('tenants.status', TenantStatus::Active->value)
             ->wherePivot('status', 'active')
             ->orderBy('tenants.id')
             ->first();

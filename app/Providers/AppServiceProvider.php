@@ -21,6 +21,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CurrentTenant::class, function (): CurrentTenant {
             return new CurrentTenant;
         });
+
+        $this->app->alias(CurrentTenant::class, 'currentTenant');
+        $this->app->alias(CurrentTenant::class, 'current.tenant');
     }
 
     /**

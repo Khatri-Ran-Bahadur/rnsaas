@@ -70,7 +70,7 @@ const setExclusiveGroup = (activeKey: string) => {
 const openGroups = ref<Record<string, boolean>>({
     organization: currentUrl.value.startsWith('/admin/branches') || currentUrl.value.startsWith('/admin/departments') || currentUrl.value.startsWith('/admin/designations') || currentUrl.value.startsWith('/admin/company-profile'),
     users: currentUrl.value.startsWith('/admin/members') || currentUrl.value.startsWith('/admin/roles') || currentUrl.value.startsWith('/admin/invitations'),
-    hrm: currentUrl.value.startsWith('/admin/staff'),
+    hrm: currentUrl.value.startsWith('/admin/staff') || currentUrl.value.startsWith('/admin/hrm'),
     payroll: false,
     subscriptions: false,
     settings: false,
@@ -89,7 +89,7 @@ watch(currentUrl, (newUrl) => {
         setExclusiveGroup('organization');
     } else if (newUrl.startsWith('/admin/members') || newUrl.startsWith('/admin/roles') || newUrl.startsWith('/admin/invitations')) {
         setExclusiveGroup('users');
-    } else if (newUrl.startsWith('/admin/staff')) {
+    } else if (newUrl.startsWith('/admin/staff') || newUrl.startsWith('/admin/hrm')) {
         setExclusiveGroup('hrm');
     }
 });
@@ -427,7 +427,14 @@ const logout = () => {
                         type="button"
                         :class="[
                             'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer',
-                            openGroups.hrm || isGroupActive(['/admin/staff'])
+                            openGroups.hrm || isGroupActive([
+                                '/admin/staff',
+                                '/admin/hrm/employee-documents',
+                                '/admin/hrm/work-schedules',
+                                '/admin/hrm/shifts',
+                                '/admin/hrm/holidays',
+                                '/admin/hrm/overtimes',
+                            ])
                                 ? 'bg-slate-100/80 text-slate-900 font-semibold dark:bg-zinc-800/80 dark:text-white'
                                 : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
                         ]"
@@ -455,6 +462,20 @@ const logout = () => {
                         <div class="overflow-hidden">
                             <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
                                 <Link
+                                    href="/admin/hrm/overview"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/overview')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Overview</span>
+                                    <span v-if="isRouteActive('/admin/hrm/overview')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
                                     href="/admin/staff"
                                     :class="[
                                         'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
@@ -467,12 +488,132 @@ const logout = () => {
                                     <span>Staff Directory</span>
                                     <span v-if="isRouteActive('/admin/staff')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                                 </Link>
-                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+
+                                <Link
+                                    href="/admin/hrm/attendances"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/attendances')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
                                     <span>Attendance</span>
-                                </div>
-                                <div class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
+                                    <span v-if="isRouteActive('/admin/hrm/attendances')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/leaves"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/leaves')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
                                     <span>Leave Requests</span>
-                                </div>
+                                    <span v-if="isRouteActive('/admin/hrm/leaves')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/work-schedules"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/work-schedules')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Work Schedules</span>
+                                    <span v-if="isRouteActive('/admin/hrm/work-schedules')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/shifts"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/shifts')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Shifts</span>
+                                    <span v-if="isRouteActive('/admin/hrm/shifts')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/holidays"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/holidays')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Holidays</span>
+                                    <span v-if="isRouteActive('/admin/hrm/holidays')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/overtimes"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/overtimes')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Overtime</span>
+                                    <span v-if="isRouteActive('/admin/hrm/overtimes')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/employee-documents"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/employee-documents')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Employee Documents</span>
+                                    <span v-if="isRouteActive('/admin/hrm/employee-documents')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/exceptions"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/exceptions')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Exceptions</span>
+                                    <span v-if="isRouteActive('/admin/hrm/exceptions')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/hrm/reports"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/hrm/reports')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>HR Reports</span>
+                                    <span v-if="isRouteActive('/admin/hrm/reports')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
                             </div>
                         </div>
                     </div>

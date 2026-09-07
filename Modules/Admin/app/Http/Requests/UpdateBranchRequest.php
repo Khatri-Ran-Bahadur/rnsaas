@@ -12,6 +12,11 @@ class UpdateBranchRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $branch = $this->route('branch');
+        if ($branch instanceof Branch && $branch->tenant_id !== app(CurrentTenant::class)->id()) {
+            abort(404);
+        }
+
         return true;
     }
 

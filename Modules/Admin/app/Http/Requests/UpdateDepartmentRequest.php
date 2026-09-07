@@ -11,6 +11,11 @@ class UpdateDepartmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $department = $this->route('department');
+        if ($department instanceof Department && $department->tenant_id !== app(CurrentTenant::class)->id()) {
+            abort(404);
+        }
+
         return true;
     }
 

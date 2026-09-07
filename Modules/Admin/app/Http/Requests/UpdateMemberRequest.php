@@ -5,6 +5,8 @@ namespace Modules\Admin\Http\Requests;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Tenancy\Application\Services\OrganizationAuthorizationService;
+use Modules\Tenancy\Models\TenantRole;
 
 class UpdateMemberRequest extends FormRequest
 {
@@ -24,6 +26,15 @@ class UpdateMemberRequest extends FormRequest
                 Rule::exists('tenant_roles', 'id')
                     ->where('tenant_id', $tenantId)
                     ->where('is_active', true),
+                function (string $attribute, mixed $value, \Closure $fail) use ($tenantId): void {
+                    $role = TenantRole::find($value);
+                    if ($role && $role->slug === 'admin') {
+                        $authService = app(OrganizationAuthorizationService::class);
+                        if (! $authService->isAdmin($this->user(), $tenantId)) {
+                            $fail('Only an organization administrator can assign the Admin role.');
+                        }
+                    }
+                },
             ],
             'status' => [
                 'nullable',

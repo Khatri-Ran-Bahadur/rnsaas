@@ -45,6 +45,7 @@ const openGroups = ref<Record<string, boolean>>({
     cms: false,
     qa: false,
     security: currentUrl.value.startsWith('/superadmin/security') || currentUrl.value.startsWith('/superadmin/audit-logs') || currentUrl.value.startsWith('/superadmin/analytics'),
+    settings: currentUrl.value.startsWith('/superadmin/settings'),
 });
 
 const toggleGroup = (key: string) => {
@@ -64,6 +65,8 @@ watch(currentUrl, (newUrl) => {
         setExclusiveGroup('subscriptions');
     } else if (newUrl.startsWith('/superadmin/security') || newUrl.startsWith('/superadmin/audit-logs') || newUrl.startsWith('/superadmin/analytics')) {
         setExclusiveGroup('security');
+    } else if (newUrl.startsWith('/superadmin/settings')) {
+        setExclusiveGroup('settings');
     }
 });
 
@@ -586,23 +589,92 @@ const logout = () => {
                     </div>
                 </div>
 
-                <!-- 12. Settings (Direct Link) -->
-                <Link
-                    href="/superadmin/settings"
-                    :class="[
-                        'group flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
-                        isRouteActive('/superadmin/settings')
-                            ? 'border-l-[3.5px] border-amber-500 bg-[#edf2f7] font-semibold text-slate-900 dark:border-amber-400 dark:bg-zinc-800/90 dark:text-white rounded-l-none rounded-r-lg'
-                            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
-                    ]"
-                    @click="emit('closeMobile')"
-                >
-                    <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>Settings</span>
-                </Link>
+                <!-- 12. Settings (Collapsible) -->
+                <div>
+                    <button
+                        type="button"
+                        :class="[
+                            'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer',
+                            openGroups.settings || isRouteActive('/superadmin/settings')
+                                ? 'bg-slate-100/80 text-slate-900 font-semibold dark:bg-zinc-800/80 dark:text-white'
+                                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
+                        ]"
+                        @click="toggleGroup('settings')"
+                    >
+                        <div class="flex items-center gap-3">
+                            <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>Settings</span>
+                        </div>
+                        <svg
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
+                            :class="{ 'rotate-180': openGroups.settings }"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.settings ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+                    >
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <Link
+                                    href="/superadmin/settings"
+                                    :class="[
+                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        currentUrl === '/superadmin/settings'
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    General
+                                </Link>
+                                <Link
+                                    href="/superadmin/security"
+                                    :class="[
+                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/superadmin/security')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    Security
+                                </Link>
+                                <Link
+                                    href="/superadmin/settings?tab=mail"
+                                    :class="[
+                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        currentUrl.includes('tab=mail')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    Notifications
+                                </Link>
+                                <Link
+                                    href="/superadmin/settings/file-system"
+                                    :class="[
+                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/superadmin/settings/file-system')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    File System
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- User Footer Profile Card -->

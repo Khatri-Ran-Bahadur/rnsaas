@@ -6,5 +6,6 @@
     "Subscription": true,
     "Payment": true,
     "Media": true,
-    "Admin": true
+    "Admin": true,
+    "HRM": true
 }

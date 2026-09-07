@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Modules\SuperAdmin\Http\Controllers\DashboardController;
 use Modules\SuperAdmin\Http\Controllers\EmailSettingsController;
 use Modules\SuperAdmin\Http\Controllers\ImpersonateTenantController;
@@ -31,6 +32,10 @@ Route::middleware(['auth', 'superadmin'])
         Route::get('/settings', [PlatformSettingsController::class, 'index'])
             ->middleware('permission:settings.view')
             ->name('settings.index');
+
+        Route::get('/settings/file-system', fn () => Inertia::render('SuperAdmin/Settings/FileSystem/Index'))
+            ->middleware('permission:settings.view')
+            ->name('settings.file-system');
 
         Route::put('/settings', [PlatformSettingsController::class, 'update'])
             ->middleware('permission:settings.update')

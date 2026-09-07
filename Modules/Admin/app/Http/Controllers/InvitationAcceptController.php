@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use LogicException;
 use Modules\Tenancy\Application\Actions\Membership\AcceptTenantInvitationAction;
+use Modules\Tenancy\Domain\Enums\TenantStatus;
 use Modules\Tenancy\Models\TenantMembership;
 
 class InvitationAcceptController extends Controller
@@ -25,6 +26,17 @@ class InvitationAcceptController extends Controller
         if (! $membership) {
             return redirect()->route('login')
                 ->with('error', 'This invitation link is invalid or has already been accepted.');
+        }
+
+        $tenantIsActive = $membership->tenant && (
+            $membership->tenant->status instanceof TenantStatus
+                ? $membership->tenant->status === TenantStatus::Active
+                : $membership->tenant->status === TenantStatus::Active->value
+        );
+
+        if (! $tenantIsActive) {
+            return redirect()->route('login')
+                ->with('error', 'This organization is currently inactive or suspended.');
         }
 
         if ($membership->isInvitationExpired()) {

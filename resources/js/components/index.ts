@@ -25,3 +25,4 @@ export { default as SearchInput } from './SearchInput.vue';
 export { default as FilterButton } from './FilterButton.vue';
 export { default as MediaPicker } from './MediaPicker.vue';
 export { default as MediaLibraryModal } from './MediaLibraryModal.vue';
+export { default as FileUploader } from './FileUploader.vue';

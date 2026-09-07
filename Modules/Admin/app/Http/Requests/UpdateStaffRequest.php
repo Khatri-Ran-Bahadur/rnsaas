@@ -12,6 +12,11 @@ class UpdateStaffRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $staff = $this->route('staff');
+        if ($staff instanceof TenantStaff && $staff->tenant_id !== app(CurrentTenant::class)->id()) {
+            abort(404);
+        }
+
         return true;
     }
 

@@ -57,6 +57,30 @@ final class OrganizationAuthorizationService
     }
 
     /**
+     * Determine if the user is an active administrator in the organization.
+     */
+    public function isAdmin(?User $user, ?int $tenantId = null): bool
+    {
+        if ($user === null) {
+            return false;
+        }
+
+        $resolvedTenantId = $tenantId ?? ($this->currentTenant->has() ? $this->currentTenant->id() : null);
+
+        if ($resolvedTenantId === null) {
+            return false;
+        }
+
+        if ($this->isImpersonatingTenant($user, $resolvedTenantId)) {
+            return true;
+        }
+
+        $userData = $this->resolveUserData($resolvedTenantId, $user->id);
+
+        return $userData['is_active'] && $userData['is_admin'];
+    }
+
+    /**
      * Authorize that the current user has the organization permission, or throw 403.
      *
      * @throws AuthorizationException

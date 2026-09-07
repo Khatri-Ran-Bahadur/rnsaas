@@ -11,6 +11,11 @@ class UpdateDesignationRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $designation = $this->route('designation');
+        if ($designation instanceof Designation && $designation->tenant_id !== app(CurrentTenant::class)->id()) {
+            abort(404);
+        }
+
         return true;
     }
 

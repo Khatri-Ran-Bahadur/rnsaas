@@ -32,6 +32,10 @@ class TenantMembership extends Model
         'version',
     ];
 
+    protected $hidden = [
+        'invitation_token',
+    ];
+
     protected $appends = [
         'name',
         'email',

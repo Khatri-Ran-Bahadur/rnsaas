@@ -19,6 +19,7 @@ use Modules\Tenancy\Application\Actions\Membership\ReactivateTenantMemberAction;
 use Modules\Tenancy\Application\Actions\Membership\RevokeTenantMemberAction;
 use Modules\Tenancy\Application\Actions\Membership\SuspendTenantMemberAction;
 use Modules\Tenancy\Application\Actions\Membership\UpdateTenantMemberAction;
+use Modules\Tenancy\Application\Services\OrganizationAuthorizationService;
 use Modules\Tenancy\Domain\Enums\TenantMembershipStatus;
 use Modules\Tenancy\Models\TenantMembership;
 use Modules\Tenancy\Models\TenantRole;
@@ -193,13 +194,25 @@ class MemberController extends Controller
         $membership = TenantMembership::query()
             ->where('tenant_id', $tenantId)
             ->where('id', $id)
+            ->with(['role'])
             ->firstOrFail();
+
+        $authService = app(OrganizationAuthorizationService::class);
+        $actor = $request->user();
+
+        if ($membership->user_id === $actor->id && $request->integer('role_id') !== $membership->role_id) {
+            return redirect()->back()->with('error', 'You cannot change your own organization role.');
+        }
+
+        if ($membership->role?->slug === 'admin' && ! $authService->isAdmin($actor, $tenantId)) {
+            return redirect()->back()->with('error', 'Only an organization administrator can modify an admin member.');
+        }
 
         $action->execute(
             $membership,
             $request->integer('role_id'),
             $request->validated('status'),
-            $request->user(),
+            $actor,
         );
 
         return redirect()->back()->with('success', 'Member details updated successfully.');
@@ -216,10 +229,15 @@ class MemberController extends Controller
         $membership = TenantMembership::query()
             ->where('tenant_id', $tenantId)
             ->where('id', $id)
+            ->with(['role'])
             ->firstOrFail();
 
         if ($membership->user_id === $request->user()->id) {
             return redirect()->back()->with('error', 'You cannot suspend your own membership.');
+        }
+
+        if ($membership->role?->slug === 'admin' && ! app(OrganizationAuthorizationService::class)->isAdmin($request->user(), $tenantId)) {
+            return redirect()->back()->with('error', 'Only an organization administrator can suspend an admin member.');
         }
 
         $action->execute($membership, $request->user());
@@ -256,10 +274,15 @@ class MemberController extends Controller
         $membership = TenantMembership::query()
             ->where('tenant_id', $tenantId)
             ->where('id', $id)
+            ->with(['role'])
             ->firstOrFail();
 
         if ($membership->user_id === $request->user()->id) {
             return redirect()->back()->with('error', 'You cannot revoke your own membership.');
+        }
+
+        if ($membership->role?->slug === 'admin' && ! app(OrganizationAuthorizationService::class)->isAdmin($request->user(), $tenantId)) {
+            return redirect()->back()->with('error', 'Only an organization administrator can revoke an admin member.');
         }
 
         $action->execute($membership, $request->user());

@@ -12,6 +12,11 @@ class UpdateTenantRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        $role = $this->route('role');
+        if ($role instanceof TenantRole && $role->tenant_id !== app(CurrentTenant::class)->id()) {
+            abort(404);
+        }
+
         return true;
     }
 

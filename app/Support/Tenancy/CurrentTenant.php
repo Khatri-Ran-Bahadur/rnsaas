@@ -37,4 +37,12 @@ final class CurrentTenant
     {
         return $this->tenant !== null;
     }
+
+    public function __get(string $name): mixed
+    {
+        return $this->get()->{$name};
+    }
+
+    // add
+
 }

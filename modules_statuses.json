@@ -7,5 +7,6 @@
     "Payment": true,
     "Media": true,
     "Admin": true,
-    "HRM": true
+    "HRM": true,
+    "Accounting": true
 }

@@ -79,6 +79,10 @@ final class OrganizationPermissions
 
     public const PAYROLL_MANAGE = 'payroll.manage';
 
+    public const ACCOUNTING_VIEW = 'accounting.view';
+
+    public const ACCOUNTING_MANAGE = 'accounting.manage';
+
     /**
      * @return array<string, array{
      *     label: string,
@@ -265,6 +269,21 @@ final class OrganizationPermissions
                     self::PAYROLL_MANAGE => [
                         'label' => 'Manage Payroll',
                         'description' => 'Can process salaries and generate payroll slips.',
+                    ],
+                ],
+            ],
+
+            'Accounting' => [
+                'label' => 'Accounting',
+                'permissions' => [
+                    self::ACCOUNTING_VIEW => [
+                        'label' => 'View Accounting',
+                        'description' => 'Can view accounting records, accounts, and financial information.',
+                    ],
+
+                    self::ACCOUNTING_MANAGE => [
+                        'label' => 'Manage Accounting',
+                        'description' => 'Can create, edit, configure, and manage accounting records and settings.',
                     ],
                 ],
             ],

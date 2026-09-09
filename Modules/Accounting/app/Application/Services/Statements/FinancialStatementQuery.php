@@ -1,17 +1,16 @@
 <?php
 
-namespace Modules\Accounting\Application\Services\Reports;
+namespace Modules\Accounting\Application\Services\Statements;
 
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-final class AccountingReportQuery
+final class FinancialStatementQuery
 {
-    public function postedJournalLines(
+    public function postedAccountTotals(
         int $tenantId,
-        ?int $accountId = null,
-        ?string $fromDate = null,
-        ?string $toDate = null,
+        string $fromDate,
+        string $toDate,
     ): Builder {
         return DB::table('journal_lines')
             ->join(
@@ -26,74 +25,59 @@ final class AccountingReportQuery
                 '=',
                 'journal_lines.account_id'
             )
+            ->leftJoin(
+                'accounting_account_types',
+                'accounting_account_types.id',
+                '=',
+                'accounting_accounts.account_type_id'
+            )
             ->where('journal_lines.tenant_id', $tenantId)
             ->where('journal_entries.tenant_id', $tenantId)
             ->where('accounting_accounts.tenant_id', $tenantId)
             ->where('journal_entries.status', 'posted')
-            ->when(
-                $accountId !== null,
-                fn (Builder $query) => $query->where(
-                    'journal_lines.account_id',
-                    $accountId
-                )
+            ->whereDate(
+                'journal_entries.entry_date',
+                '>=',
+                $fromDate
             )
-            ->when(
-                $fromDate !== null,
-                fn (Builder $query) => $query->whereDate(
-                    'journal_entries.entry_date',
-                    '>=',
-                    $fromDate
-                )
+            ->whereDate(
+                'journal_entries.entry_date',
+                '<=',
+                $toDate
             )
-            ->when(
-                $toDate !== null,
-                fn (Builder $query) => $query->whereDate(
-                    'journal_entries.entry_date',
-                    '<=',
-                    $toDate
-                )
-            );
-    }
-
-    public function accountTotals(
-        int $tenantId,
-        ?string $fromDate = null,
-        ?string $toDate = null,
-    ): Builder {
-        return $this->postedJournalLines(
-            tenantId: $tenantId,
-            fromDate: $fromDate,
-            toDate: $toDate,
-        )
             ->select([
                 'accounting_accounts.id',
                 'accounting_accounts.code',
                 'accounting_accounts.name',
-                'accounting_accounts.account_type_id',
+                'accounting_accounts.financial_statement_section',
+                'accounting_account_types.financial_statement_section as type_financial_statement_section',
+
                 DB::raw(
-                    "SUM(
+                    "COALESCE(SUM(
                         CASE
                             WHEN journal_lines.line_type = 'debit'
                             THEN journal_lines.amount
                             ELSE 0
                         END
-                    ) AS total_debit"
+                    ), 0) AS total_debit"
                 ),
+
                 DB::raw(
-                    "SUM(
+                    "COALESCE(SUM(
                         CASE
                             WHEN journal_lines.line_type = 'credit'
                             THEN journal_lines.amount
                             ELSE 0
                         END
-                    ) AS total_credit"
+                    ), 0) AS total_credit"
                 ),
             ])
             ->groupBy(
                 'accounting_accounts.id',
                 'accounting_accounts.code',
                 'accounting_accounts.name',
-                'accounting_accounts.account_type_id'
+                'accounting_accounts.financial_statement_section',
+                'accounting_account_types.financial_statement_section'
             );
     }
 }

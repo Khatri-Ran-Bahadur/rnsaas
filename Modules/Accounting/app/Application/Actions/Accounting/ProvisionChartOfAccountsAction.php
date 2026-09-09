@@ -5,6 +5,7 @@ namespace Modules\Accounting\Application\Actions\Accounting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Accounting\Domain\Enums\AccountClassification;
+use Modules\Accounting\Domain\Enums\FinancialStatementSection;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\AccountGroup;
 use Modules\Accounting\Models\AccountType;
@@ -44,48 +45,56 @@ final class ProvisionChartOfAccountsAction
                 'code' => 'ASSET',
                 'name' => 'Assets',
                 'classification' => AccountClassification::ASSET,
+                'section' => FinancialStatementSection::ASSETS,
                 'sort_order' => 10,
             ],
             [
                 'code' => 'LIABILITY',
                 'name' => 'Liabilities',
                 'classification' => AccountClassification::LIABILITY,
+                'section' => FinancialStatementSection::LIABILITIES,
                 'sort_order' => 20,
             ],
             [
                 'code' => 'EQUITY',
                 'name' => 'Equity',
                 'classification' => AccountClassification::EQUITY,
+                'section' => FinancialStatementSection::EQUITY,
                 'sort_order' => 30,
             ],
             [
                 'code' => 'REVENUE',
                 'name' => 'Revenue',
                 'classification' => AccountClassification::REVENUE,
+                'section' => FinancialStatementSection::REVENUE,
                 'sort_order' => 40,
             ],
             [
                 'code' => 'COST_OF_SALES',
                 'name' => 'Cost of Sales',
                 'classification' => AccountClassification::COST_OF_SALES,
+                'section' => FinancialStatementSection::COST_OF_SALES,
                 'sort_order' => 50,
             ],
             [
                 'code' => 'EXPENSE',
                 'name' => 'Expenses',
                 'classification' => AccountClassification::EXPENSE,
+                'section' => FinancialStatementSection::OPERATING_EXPENSES,
                 'sort_order' => 60,
             ],
             [
                 'code' => 'OTHER_INCOME',
                 'name' => 'Other Income',
                 'classification' => AccountClassification::OTHER_INCOME,
+                'section' => FinancialStatementSection::OTHER_INCOME,
                 'sort_order' => 70,
             ],
             [
                 'code' => 'OTHER_EXPENSE',
                 'name' => 'Other Expenses',
                 'classification' => AccountClassification::OTHER_EXPENSE,
+                'section' => FinancialStatementSection::OTHER_EXPENSES,
                 'sort_order' => 80,
             ],
         ];
@@ -103,6 +112,7 @@ final class ProvisionChartOfAccountsAction
                 'classification' => $classification,
                 'normal_balance' => $classification->defaultNormalBalance(),
                 'financial_statement' => $classification->financialStatement(),
+                'financial_statement_section' => $definition['section'],
                 'is_system' => true,
                 'is_active' => true,
                 'sort_order' => $definition['sort_order'],

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Modules\Accounting\Domain\Enums\AccountClassification;
 use Modules\Accounting\Domain\Enums\AccountNormalBalance;
+use Modules\Accounting\Domain\Enums\FinancialStatementSection;
 use Modules\Tenancy\Models\Tenant;
 
 #[Fillable([
@@ -22,6 +23,7 @@ use Modules\Tenancy\Models\Tenant;
     'classification',
     'normal_balance',
     'financial_statement',
+    'financial_statement_section',
     'description',
     'is_system',
     'is_active',
@@ -45,6 +47,7 @@ class AccountType extends Model
         return [
             'classification' => AccountClassification::class,
             'normal_balance' => AccountNormalBalance::class,
+            'financial_statement_section' => FinancialStatementSection::class,
             'is_system' => 'boolean',
             'is_active' => 'boolean',
         ];

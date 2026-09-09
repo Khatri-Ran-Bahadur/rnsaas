@@ -4,7 +4,7 @@ namespace Modules\Accounting\Application\DTOs\Reports;
 
 use Carbon\CarbonImmutable;
 
-final readonly class GeneralLedgerData
+final readonly class AccountStatementData
 {
     public function __construct(
         public int $accountId,

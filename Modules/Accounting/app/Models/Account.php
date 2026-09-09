@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Modules\Accounting\Domain\Enums\FinancialStatementSection;
 use Modules\Tenancy\Models\Tenant;
 
 #[Fillable([
@@ -20,6 +21,7 @@ use Modules\Tenancy\Models\Tenant;
     'parent_id',
     'code',
     'name',
+    'financial_statement_section',
     'description',
     'is_postable',
     'is_control_account',
@@ -47,6 +49,7 @@ class Account extends Model
             'is_control_account' => 'boolean',
             'is_system' => 'boolean',
             'is_active' => 'boolean',
+            'financial_statement_section' => FinancialStatementSection::class,
         ];
     }
 

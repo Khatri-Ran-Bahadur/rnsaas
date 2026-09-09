@@ -15,6 +15,7 @@ use Modules\Tenancy\Models\Tenant;
 #[Fillable([
     'public_id',
     'tenant_id',
+    'parent_id',
     'account_type_id',
     'code',
     'name',
@@ -72,6 +73,16 @@ class AccountGroup extends Model
     protected function active(Builder $query): void
     {
         $query->where('is_active', true);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
     }
 
     public function getRouteKeyName(): string

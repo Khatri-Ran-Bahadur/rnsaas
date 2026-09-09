@@ -23,7 +23,7 @@ final class GenerateTrialBalanceAction
                 fromDate: $fromDate->toDateString(),
                 toDate: $toDate->toDateString(),
             )
-            ->orderBy('accounts.code')
+            ->orderBy('accounting_accounts.code')
             ->get();
 
         $accounts = [];

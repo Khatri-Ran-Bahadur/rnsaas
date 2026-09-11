@@ -2,10 +2,13 @@
 
 namespace Modules\Accounting\Application\Actions\Journal;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Modules\Accounting\Application\DTOs\Journal\CreateJournalEntryData;
+use Modules\Accounting\Application\DTOs\Journal\CreateJournalLineData;
 use Modules\Accounting\Application\Services\AccountingPeriodResolver;
 use Modules\Accounting\Application\Services\Journal\JournalValidationService;
 use Modules\Accounting\Domain\Enums\JournalEntryStatus;
@@ -26,19 +29,45 @@ final class CreateJournalEntryAction
      *     line_type:JournalLineType|string,
      *     amount:numeric,
      *     description?:string|null
-     * }> $lines
+     * }|CreateJournalLineData> $lines
      */
     public function execute(
-        int $tenantId,
-        string $entryNumber,
-        CarbonInterface $entryDate,
-        string $description,
-        array $lines,
+        int|CreateJournalEntryData $tenantId,
+        ?string $entryNumber = null,
+        ?CarbonInterface $entryDate = null,
+        ?string $description = null,
+        array $lines = [],
         ?int $createdBy = null,
         ?string $referenceType = null,
         ?string $referenceId = null,
         ?string $idempotencyKey = null,
     ): JournalEntry {
+        if ($tenantId instanceof CreateJournalEntryData) {
+            $data = $tenantId;
+            $entryNumber = $data->entryNumber;
+            $entryDate = $data->entryDate instanceof CarbonInterface
+                ? $data->entryDate
+                : CarbonImmutable::parse($data->entryDate);
+            $description = $data->description;
+            $lines = array_map(function ($l) {
+                if ($l instanceof CreateJournalLineData) {
+                    return [
+                        'account_id' => $l->accountId,
+                        'line_type' => $l->lineType,
+                        'amount' => $l->amount,
+                        'description' => $l->description,
+                    ];
+                }
+
+                return $l;
+            }, $data->lines);
+            $createdBy = $data->createdBy;
+            $referenceType = $data->referenceType;
+            $referenceId = $data->referenceId !== null ? (string) $data->referenceId : null;
+            $idempotencyKey = $data->idempotencyKey;
+            $tenantId = $data->tenantId;
+        }
+
         $this->validator->validateBalance($lines);
 
         return DB::transaction(function () use (

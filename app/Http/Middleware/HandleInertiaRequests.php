@@ -73,6 +73,9 @@ class HandleInertiaRequests extends Middleware
                         'status' => $tenant->status instanceof TenantStatus ? $tenant->status->value : (string) $tenant->status,
                         'timezone' => $tenant->timezone,
                         'currency' => $tenant->currency,
+                        'modules' => [
+                            'accounting' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('accounting') : true,
+                        ],
                     ];
                 } catch (\Throwable) {
                     return null;

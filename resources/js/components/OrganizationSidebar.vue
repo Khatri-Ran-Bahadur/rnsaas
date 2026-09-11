@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
+import { usePermissions } from '@/composables/usePermissions';
 
 const props = defineProps<{
     mobileOpen: boolean;
@@ -12,6 +13,7 @@ const emit = defineEmits<{
 }>();
 
 const page = usePage();
+const { can, isAdmin } = usePermissions();
 const currentUrl = computed(() => page.url);
 
 const isRouteActive = (pattern: string) => {
@@ -31,6 +33,14 @@ const currentTenant = computed(() => (page.props.current_tenant as any) ?? {
     name: 'Organization',
     slug: 'org',
     status: 'active',
+});
+
+const isAccountingEnabled = computed(() => {
+    return currentTenant.value?.modules?.accounting !== false;
+});
+
+const canViewAccounting = computed(() => {
+    return isAdmin.value || can('accounting.view');
 });
 
 const userTenants = computed<Array<{ id: number; public_id: string; name: string; slug: string }>>(() => {
@@ -71,6 +81,7 @@ const openGroups = ref<Record<string, boolean>>({
     organization: currentUrl.value.startsWith('/admin/branches') || currentUrl.value.startsWith('/admin/departments') || currentUrl.value.startsWith('/admin/designations') || currentUrl.value.startsWith('/admin/company-profile'),
     users: currentUrl.value.startsWith('/admin/members') || currentUrl.value.startsWith('/admin/roles') || currentUrl.value.startsWith('/admin/invitations'),
     hrm: currentUrl.value.startsWith('/admin/staff') || currentUrl.value.startsWith('/admin/hrm'),
+    accounting: currentUrl.value.startsWith('/admin/accounting'),
     payroll: false,
     subscriptions: false,
     settings: false,
@@ -91,6 +102,8 @@ watch(currentUrl, (newUrl) => {
         setExclusiveGroup('users');
     } else if (newUrl.startsWith('/admin/staff') || newUrl.startsWith('/admin/hrm')) {
         setExclusiveGroup('hrm');
+    } else if (newUrl.startsWith('/admin/accounting')) {
+        setExclusiveGroup('accounting');
     }
 });
 
@@ -666,7 +679,238 @@ const logout = () => {
                     </div>
                 </div>
 
-                <!-- 6. Subscriptions (Collapsible Accordion matching screenshot) -->
+                <!-- 6. Accounting (Collapsible Accordion) -->
+                <div v-if="isAccountingEnabled && canViewAccounting">
+                    <button
+                        type="button"
+                        :class="[
+                            'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer',
+                            openGroups.accounting || isGroupActive(['/admin/accounting'])
+                                ? 'bg-slate-100/80 text-slate-900 font-semibold dark:bg-zinc-800/80 dark:text-white'
+                                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
+                        ]"
+                        @click="toggleGroup('accounting')"
+                    >
+                        <div class="flex items-center gap-3">
+                            <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            <span>Accounting</span>
+                        </div>
+                        <svg
+                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
+                            :class="{ 'rotate-180': openGroups.accounting }"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div
+                        class="grid transition-all duration-250 ease-in-out"
+                        :class="openGroups.accounting ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
+                    >
+                        <div class="overflow-hidden">
+                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
+                                <div class="px-2.5 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                                    Receivables
+                                </div>
+
+                                <Link
+                                    href="/admin/accounting/customers"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/customers')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Customers</span>
+                                    <span v-if="isRouteActive('/admin/accounting/customers')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/invoices"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/invoices')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Sales Invoices</span>
+                                    <span v-if="isRouteActive('/admin/accounting/invoices')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/payments"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/payments')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Customer Receipts</span>
+                                    <span v-if="isRouteActive('/admin/accounting/payments')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <div class="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                                    Payables
+                                </div>
+
+                                <Link
+                                    href="/admin/accounting/vendors"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/vendors')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Vendors</span>
+                                    <span v-if="isRouteActive('/admin/accounting/vendors')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/purchase-bills"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/purchase-bills')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Purchase Bills</span>
+                                    <span v-if="isRouteActive('/admin/accounting/purchase-bills')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/vendor-payments"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/vendor-payments')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Vendor Payments</span>
+                                    <span v-if="isRouteActive('/admin/accounting/vendor-payments')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <div class="px-2.5 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                                    Reports
+                                </div>
+
+                                <Link
+                                    href="/admin/accounting/reports"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/reports')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Reports Center</span>
+                                    <span v-if="isRouteActive('/admin/accounting/reports')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/reports/receivable-aging"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/reports/receivable-aging')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Receivable Aging</span>
+                                    <span v-if="isRouteActive('/admin/accounting/reports/receivable-aging')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/reports/payable-aging"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/reports/payable-aging')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Payable Aging</span>
+                                    <span v-if="isRouteActive('/admin/accounting/reports/payable-aging')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/reports/trial-balance"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/reports/trial-balance')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Trial Balance</span>
+                                    <span v-if="isRouteActive('/admin/accounting/reports/trial-balance')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/reports/general-ledger"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/reports/general-ledger')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>General Ledger</span>
+                                    <span v-if="isRouteActive('/admin/accounting/reports/general-ledger')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/statements/profit-and-loss"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/statements/profit-and-loss')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Profit & Loss</span>
+                                    <span v-if="isRouteActive('/admin/accounting/statements/profit-and-loss')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+
+                                <Link
+                                    href="/admin/accounting/statements/balance-sheet"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/admin/accounting/statements/balance-sheet')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Balance Sheet</span>
+                                    <span v-if="isRouteActive('/admin/accounting/statements/balance-sheet')" class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. Subscriptions (Collapsible Accordion matching screenshot) -->
                 <div>
                     <button
                         type="button"

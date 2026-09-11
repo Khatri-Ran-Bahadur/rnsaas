@@ -92,6 +92,36 @@ class Tenant extends Model
         );
     }
 
+    /**
+     * Check if a specific module is enabled for this tenant.
+     */
+    public function isModuleEnabled(string $module): bool
+    {
+        // 1. Explicit module toggle in tenant settings
+        if (is_array($this->settings) && isset($this->settings['modules'][$module])) {
+            return (bool) $this->settings['modules'][$module];
+        }
+
+        // 2. Subscription plan feature verification if subscription exists
+        if (class_exists(TenantSubscription::class)) {
+            $activeSubscription = $this->subscriptions()
+                ->whereIn('status', ['active', 'trialing'])
+                ->with('plan.features')
+                ->first();
+
+            if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->relationLoaded('features')) {
+                $features = $activeSubscription->plan->features;
+                if ($features->isNotEmpty()) {
+                    return $features->contains(
+                        fn ($f) => $f->module === $module || $f->slug === $module
+                    );
+                }
+            }
+        }
+
+        return true;
+    }
+
     public function branches(): HasMany
     {
         return $this->hasMany(Branch::class);

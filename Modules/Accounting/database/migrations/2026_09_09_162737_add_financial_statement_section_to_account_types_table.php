@@ -16,17 +16,14 @@ return new class extends Migration
             $table->index([
                 'tenant_id',
                 'financial_statement_section',
-            ]);
+            ], 'acct_types_tenant_sec_idx');
         });
     }
 
     public function down(): void
     {
         Schema::table('accounting_account_types', function (Blueprint $table) {
-            $table->dropIndex([
-                'tenant_id',
-                'financial_statement_section',
-            ]);
+            $table->dropIndex('acct_types_tenant_sec_idx');
 
             $table->dropColumn('financial_statement_section');
         });

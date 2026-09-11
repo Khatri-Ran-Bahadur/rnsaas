@@ -83,6 +83,18 @@ final class OrganizationPermissions
 
     public const ACCOUNTING_MANAGE = 'accounting.manage';
 
+    public const ACCOUNTING_CUSTOMERS_MANAGE = 'accounting.customers.manage';
+
+    public const ACCOUNTING_INVOICES_MANAGE = 'accounting.invoices.manage';
+
+    public const ACCOUNTING_VENDORS_MANAGE = 'accounting.vendors.manage';
+
+    public const ACCOUNTING_BILLS_MANAGE = 'accounting.bills.manage';
+
+    public const ACCOUNTING_PAYMENTS_MANAGE = 'accounting.payments.manage';
+
+    public const ACCOUNTING_REPORTS_VIEW = 'accounting.reports.view';
+
     /**
      * @return array<string, array{
      *     label: string,
@@ -284,6 +296,36 @@ final class OrganizationPermissions
                     self::ACCOUNTING_MANAGE => [
                         'label' => 'Manage Accounting',
                         'description' => 'Can create, edit, configure, and manage accounting records and settings.',
+                    ],
+
+                    self::ACCOUNTING_CUSTOMERS_MANAGE => [
+                        'label' => 'Manage Customers',
+                        'description' => 'Can create, edit, and toggle customer statuses.',
+                    ],
+
+                    self::ACCOUNTING_INVOICES_MANAGE => [
+                        'label' => 'Manage Sales Invoices',
+                        'description' => 'Can create, edit, issue, post, and void sales invoices.',
+                    ],
+
+                    self::ACCOUNTING_VENDORS_MANAGE => [
+                        'label' => 'Manage Vendors',
+                        'description' => 'Can create, edit, and toggle vendor statuses.',
+                    ],
+
+                    self::ACCOUNTING_BILLS_MANAGE => [
+                        'label' => 'Manage Purchase Bills',
+                        'description' => 'Can create, edit, issue, post, and void purchase bills.',
+                    ],
+
+                    self::ACCOUNTING_PAYMENTS_MANAGE => [
+                        'label' => 'Manage Vendor Payments',
+                        'description' => 'Can record payments, allocate to invoices or bills, and post payments.',
+                    ],
+
+                    self::ACCOUNTING_REPORTS_VIEW => [
+                        'label' => 'View Accounting Reports',
+                        'description' => 'Can view receivable/payable aging, statements, ledgers, and financial reports.',
                     ],
                 ],
             ],
@@ -833,6 +875,103 @@ final class OrganizationPermissions
                             [
                                 'name' => self::PAYROLL_MANAGE,
                                 'label' => 'Manage Payroll',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+
+            [
+                'key' => 'accounting',
+                'label' => 'Accounting',
+                'permissions' => [
+                    [
+                        'name' => self::ACCOUNTING_VIEW,
+                        'label' => 'View Accounting',
+                    ],
+                    [
+                        'name' => self::ACCOUNTING_MANAGE,
+                        'label' => 'Manage Accounting',
+                    ],
+                    [
+                        'name' => self::ACCOUNTING_CUSTOMERS_MANAGE,
+                        'label' => 'Manage Customers',
+                    ],
+                    [
+                        'name' => self::ACCOUNTING_INVOICES_MANAGE,
+                        'label' => 'Manage Sales Invoices',
+                    ],
+                    [
+                        'name' => self::ACCOUNTING_VENDORS_MANAGE,
+                        'label' => 'Manage Vendors',
+                    ],
+                    [
+                        'name' => self::ACCOUNTING_BILLS_MANAGE,
+                        'label' => 'Manage Purchase Bills',
+                    ],
+                    [
+                        'name' => self::ACCOUNTING_PAYMENTS_MANAGE,
+                        'label' => 'Manage Payments',
+                    ],
+                    [
+                        'name' => self::ACCOUNTING_REPORTS_VIEW,
+                        'label' => 'View Accounting Reports',
+                    ],
+                ],
+                'sub_groups' => [
+                    [
+                        'key' => 'accounting-general',
+                        'label' => 'General Accounting',
+                        'permissions' => [
+                            [
+                                'name' => self::ACCOUNTING_VIEW,
+                                'label' => 'View Accounting',
+                            ],
+                            [
+                                'name' => self::ACCOUNTING_MANAGE,
+                                'label' => 'Manage Accounting',
+                            ],
+                        ],
+                    ],
+                    [
+                        'key' => 'accounting-receivables',
+                        'label' => 'Accounts Receivable',
+                        'permissions' => [
+                            [
+                                'name' => self::ACCOUNTING_CUSTOMERS_MANAGE,
+                                'label' => 'Manage Customers',
+                            ],
+                            [
+                                'name' => self::ACCOUNTING_INVOICES_MANAGE,
+                                'label' => 'Manage Sales Invoices',
+                            ],
+                        ],
+                    ],
+                    [
+                        'key' => 'accounting-payables',
+                        'label' => 'Accounts Payable',
+                        'permissions' => [
+                            [
+                                'name' => self::ACCOUNTING_VENDORS_MANAGE,
+                                'label' => 'Manage Vendors',
+                            ],
+                            [
+                                'name' => self::ACCOUNTING_BILLS_MANAGE,
+                                'label' => 'Manage Purchase Bills',
+                            ],
+                            [
+                                'name' => self::ACCOUNTING_PAYMENTS_MANAGE,
+                                'label' => 'Manage Payments',
+                            ],
+                        ],
+                    ],
+                    [
+                        'key' => 'accounting-reports',
+                        'label' => 'Accounting Reports',
+                        'permissions' => [
+                            [
+                                'name' => self::ACCOUNTING_REPORTS_VIEW,
+                                'label' => 'View Accounting Reports',
                             ],
                         ],
                     ],

@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import { Button, Select, DatePicker, type SelectOption } from '@/components';
+import { useCurrency } from '@/composables/useCurrency';
 
 interface VendorItem {
     id: number;
@@ -45,15 +46,29 @@ interface BillData {
     lines: ExistingLine[];
 }
 
+interface ItemOption {
+    id: number;
+    name: string;
+    sku: string;
+    selling_price: number;
+    cost_price: number;
+    on_hand_stock: number;
+    tax_rate?: number;
+}
+
 interface Props {
     bill: BillData;
     vendors: VendorItem[];
     accounts: AccountItem[];
+    items?: ItemOption[];
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    items: () => [],
+});
 
 interface BillLineItem {
+    item_id?: number | '';
     line_number: number;
     description: string;
     quantity: number;
@@ -115,6 +130,17 @@ const accountOptions = computed<SelectOption[]>(() => {
     }));
 });
 
+const itemOptions = computed<SelectOption[]>(() => {
+    return [
+        { label: '-- Custom Item / Expense --', value: '' },
+        ...props.items.map((item) => ({
+            label: item.name,
+            sublabel: `${item.sku ? `[${item.sku}] ` : ''}Cost: ${form.currency || props.bill?.currency || 'USD'} ${Number(item.cost_price || 0).toFixed(2)}${item.on_hand_stock !== undefined ? ` • Stock: ${item.on_hand_stock}` : ''}`,
+            value: item.id,
+        })),
+    ];
+});
+
 watch(() => form.vendor_id, (newVendorId) => {
     const selected = props.vendors.find((v) => v.id === Number(newVendorId));
     if (selected) {
@@ -124,6 +150,7 @@ watch(() => form.vendor_id, (newVendorId) => {
 
 const addLine = () => {
     lines.value.push({
+        item_id: '',
         line_number: lines.value.length + 1,
         description: '',
         quantity: 1,
@@ -141,6 +168,21 @@ const removeLine = (index: number) => {
         lines.value.forEach((line, idx) => {
             line.line_number = idx + 1;
         });
+    }
+};
+
+const onItemSelect = (line: BillLineItem, selectedId: any) => {
+    const id = Number(selectedId);
+    line.item_id = id || '';
+    if (!id) return;
+    const item = props.items.find((i) => i.id === id);
+    if (item) {
+        line.item_id = item.id;
+        line.description = item.name + (item.sku ? ` (${item.sku})` : '');
+        line.unit_price = Number(item.cost_price || 0);
+        if (item.tax_rate !== undefined && item.tax_rate !== null) {
+            line.tax_rate = Number(item.tax_rate);
+        }
     }
 };
 
@@ -181,11 +223,10 @@ const totals = computed(() => {
     };
 });
 
+const { formatMoney } = useCurrency();
+
 const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-MY', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(val);
+    return formatMoney(val);
 };
 
 const submit = () => {
@@ -341,6 +382,7 @@ const submit = () => {
                             <thead class="border-b border-zinc-200 text-[11px] font-semibold uppercase text-zinc-400 dark:border-zinc-800">
                                 <tr>
                                     <th class="w-8 pb-2">#</th>
+                                    <th class="min-w-[180px] pb-2">Existing Item (Optional)</th>
                                     <th class="min-w-[200px] pb-2">Description <span class="text-rose-500">*</span></th>
                                     <th class="min-w-[180px] pb-2">Expense / Debit Account <span class="text-rose-500">*</span></th>
                                     <th class="w-20 pb-2">Qty</th>
@@ -354,6 +396,16 @@ const submit = () => {
                             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
                                 <tr v-for="(line, index) in lines" :key="index" class="align-top">
                                     <td class="py-3 text-zinc-400 font-mono">{{ index + 1 }}</td>
+                                    <td class="py-3 pr-2 w-52">
+                                        <Select
+                                            v-model="line.item_id"
+                                            :options="itemOptions"
+                                            placeholder="Select product..."
+                                            :searchable="true"
+                                            size="sm"
+                                            @update:model-value="onItemSelect(line, $event)"
+                                        />
+                                    </td>
                                     <td class="py-3 pr-2">
                                         <input
                                             v-model="line.description"
@@ -369,6 +421,7 @@ const submit = () => {
                                             placeholder="Select account..."
                                             :searchable="true"
                                             :required="true"
+                                            size="sm"
                                         />
                                     </td>
                                     <td class="py-3 pr-2">

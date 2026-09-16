@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AdminAuthController;
 use Modules\Admin\Http\Controllers\BranchController;
 use Modules\Admin\Http\Controllers\CompanyProfileController;
+use Modules\Admin\Http\Controllers\CompanySettingsController;
 use Modules\Admin\Http\Controllers\DashboardController;
 use Modules\Admin\Http\Controllers\DepartmentController;
 use Modules\Admin\Http\Controllers\DesignationController;
@@ -38,6 +40,12 @@ Route::middleware([
         Route::get('/dashboard', DashboardController::class)
             ->name('dashboard');
 
+        // Invoice friendly aliases
+        Route::get('invoices', fn () => redirect('/admin/accounting/invoices'));
+        Route::get('invoices/create', fn () => redirect('/admin/accounting/invoices/create'));
+        Route::get('sales-invoices', fn () => redirect('/admin/accounting/invoices'));
+        Route::get('sales-invoices/create', fn () => redirect('/admin/accounting/invoices/create'));
+
         Route::post('/tenant/switch/{tenant}', TenantSwitcherController::class)
             ->name('tenant.switch');
 
@@ -52,6 +60,8 @@ Route::middleware([
                 Route::put('/{member}', 'update')->name('update');
                 Route::patch('/{member}/suspend', 'suspend')->name('suspend');
                 Route::patch('/{member}/reactivate', 'reactivate')->name('reactivate');
+                Route::patch('/{member}/activate', 'activate')->name('activate');
+                Route::patch('/{member}/password', 'changePassword')->name('password');
                 Route::delete('/{member}/revoke', 'revoke')->name('revoke');
             });
 
@@ -143,6 +153,29 @@ Route::middleware([
             ->group(function (): void {
                 Route::get('/', 'edit')->name('edit');
                 Route::put('/', 'update')->name('update');
+            });
+
+        // Company Email & Notification Settings
+        Route::controller(CompanySettingsController::class)
+            ->prefix('company-settings')
+            ->name('company-settings.')
+            ->group(function (): void {
+                Route::get('/', 'edit')->name('edit');
+                Route::put('/', 'update')->name('update');
+                Route::post('/email/test', 'sendTestEmail')->name('email.test');
+                Route::post('/ai/test', 'testAiConnection')->name('ai.test');
+            });
+
+        // Organization User Profile Management
+        Route::controller(ProfileController::class)
+            ->prefix('profile')
+            ->name('profile.')
+            ->group(function (): void {
+                Route::get('/', 'edit')->name('edit');
+                Route::put('/', 'update')->name('update');
+                Route::post('/avatar', 'updateAvatar')->name('avatar.update');
+                Route::delete('/avatar', 'deleteAvatar')->name('avatar.delete');
+                Route::put('/password', 'updatePassword')->name('password.update');
             });
     });
 

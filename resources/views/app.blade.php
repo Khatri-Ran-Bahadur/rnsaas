@@ -1,18 +1,25 @@
+@php
+    $appLocale = app()->getLocale();
+    $isRtl = in_array($appLocale, ['ar', 'he', 'fa', 'ur'], true);
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', $appLocale) }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         @php
+            use Modules\Media\Models\Media;
+            use Modules\SuperAdmin\Services\PlatformSettings;
+
             $dynamicFavicon = null;
             try {
-                if (class_exists(\Modules\SuperAdmin\Services\PlatformSettings::class)) {
-                    $platformSettings = app(\Modules\SuperAdmin\Services\PlatformSettings::class);
+                if (class_exists(PlatformSettings::class)) {
+                    $platformSettings = app(PlatformSettings::class);
                     $favId = $platformSettings->get('branding', 'favicon_media_id');
-                    if ($favId && class_exists(\Modules\Media\Models\Media::class)) {
-                        $dynamicFavicon = \Modules\Media\Models\Media::query()->find($favId)?->url;
+                    if ($favId && class_exists(Media::class)) {
+                        $dynamicFavicon = Media::query()->find($favId)?->url;
                     }
                     if (!$dynamicFavicon) {
                         $dynamicFavicon = $platformSettings->get('branding', 'favicon_url');
@@ -40,12 +47,30 @@
                 } else {
                     document.documentElement.classList.remove('dark');
                 }
+
+                const locale = localStorage.getItem('app_locale') || '{{ $appLocale }}';
+                const rtlLocales = ['ar', 'he', 'fa', 'ur'];
+                const isRtl = rtlLocales.includes(locale.toLowerCase());
+                document.documentElement.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
+                document.documentElement.setAttribute('lang', locale);
             })();
         </script>
 
         @fonts
 
-        @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
+        @php
+            $viteAssets = ['resources/css/app.css', 'resources/js/app.ts'];
+            $inertiaComponent = $page['component'] ?? null;
+
+            if (
+                is_string($inertiaComponent)
+                && $inertiaComponent !== ''
+                && is_file(resource_path('js/pages/'.$inertiaComponent.'.vue'))
+            ) {
+                $viteAssets[] = 'resources/js/pages/'.$inertiaComponent.'.vue';
+            }
+        @endphp
+        @vite($viteAssets)
         <x-inertia::head>
             <title>{{ config('app.name', 'Laravel') }}</title>
         </x-inertia::head>

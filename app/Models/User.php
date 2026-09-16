@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Modules\Tenancy\Application\Services\OrganizationAuthorizationService;
 use Modules\Tenancy\Models\Tenant;
 use Spatie\Permission\Traits\HasRoles;
@@ -18,18 +19,47 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string|null $phone
+ * @property string|null $avatar_path
+ * @property-read string|null $avatar_url
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'avatar_path', 'password', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'avatar_path',
+        'password',
+        'email_verified_at',
+    ];
+
+    protected $appends = [
+        'avatar_url',
+    ];
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! empty($this->avatar_path)) {
+            if (str_starts_with($this->avatar_path, 'http://') || str_starts_with($this->avatar_path, 'https://') || str_starts_with($this->avatar_path, '/')) {
+                return $this->avatar_path;
+            }
+
+            return Storage::url($this->avatar_path);
+        }
+
+        return null;
+    }
 
     /**
      * Get all tenants this user belongs to.

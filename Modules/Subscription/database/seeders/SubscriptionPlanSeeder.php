@@ -99,6 +99,8 @@ class SubscriptionPlanSeeder extends Seeder
                     'payroll',
                     'payroll.salary',
                     'payroll.payslip',
+
+                    'ai',
                 ],
             ],
         ];

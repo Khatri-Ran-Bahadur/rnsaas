@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 use Modules\Payment\Models\PaymentTransaction;
 use Modules\Subscription\Enums\SubscriptionStatus;
 use Modules\Tenancy\Models\Tenant;
@@ -18,6 +19,7 @@ use Modules\Tenancy\Models\Tenant;
     'tenant_id',
     'plan_id',
     'status',
+    'allowed_branches',
     'starts_at',
     'trial_ends_at',
     'current_period_starts_at',
@@ -32,11 +34,19 @@ class TenantSubscription extends Model
 
     protected $table = 'tenant_subscriptions';
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $model): void {
+            $model->public_id ??= (string) Str::ulid();
+        });
+    }
+
     protected $fillable = [
         'public_id',
         'tenant_id',
         'plan_id',
         'status',
+        'allowed_branches',
         'starts_at',
         'trial_ends_at',
         'current_period_starts_at',
@@ -50,6 +60,7 @@ class TenantSubscription extends Model
     {
         return [
             'status' => SubscriptionStatus::class,
+            'allowed_branches' => 'integer',
             'starts_at' => 'datetime',
             'trial_ends_at' => 'datetime',
             'current_period_starts_at' => 'datetime',

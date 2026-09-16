@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import BarChart from '@/components/charts/BarChart.vue';
+import type { ChartData } from 'chart.js';
 import { Head, Link, router } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import { Button, DatePicker } from '@/components';
@@ -69,6 +71,28 @@ const toggleCustomer = (code: string) => {
 const getCustomerInvoices = (code: string) => {
     return props.report.items.filter(item => item.customer_code === code);
 };
+
+
+const agingChartData = computed<ChartData<'bar'>>(() => {
+    const s = props.report.summary;
+    return {
+        labels: ['Current', '1 - 30 Days', '31 - 60 Days', '61 - 90 Days', '90+ Days Overdue'],
+        datasets: [
+            {
+                label: 'Receivable Balance',
+                data: [
+                    Number(s.current || 0),
+                    Number(s.days_1_30 || 0),
+                    Number(s.days_31_60 || 0),
+                    Number(s.days_61_90 || 0),
+                    Number(s.days_90_plus || 0),
+                ],
+                backgroundColor: ['#10b981', '#f59e0b', '#f97316', '#ef4444', '#b91c1c'],
+                borderRadius: 6,
+            }
+        ]
+    };
+});
 
 const formatMoney = (val: string | number | undefined) => {
     const num = Number(val || 0);

@@ -5,66 +5,156 @@ namespace App\Support;
 class ReferenceData
 {
     /**
-     * Common world countries with ISO-3166-1 alpha-2 codes.
+     * @var array<string, array{name: string, currency: string, timezone: string, locale: string, flag?: string}>|null
+     */
+    protected static ?array $countriesCache = null;
+
+    /**
+     * Return all world countries keyed by ISO-3166-1 alpha-2 code.
+     *
+     * @return array<string, array{name: string, currency: string, timezone: string, locale: string, flag?: string}>
      */
     public static function countries(): array
     {
-        return [
-            'MY' => ['name' => 'Malaysia', 'currency' => 'MYR', 'timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'en'],
-            'NP' => ['name' => 'Nepal', 'currency' => 'NPR', 'timezone' => 'Asia/Kathmandu', 'locale' => 'en'],
-            'SG' => ['name' => 'Singapore', 'currency' => 'SGD', 'timezone' => 'Asia/Singapore', 'locale' => 'en'],
-            'US' => ['name' => 'United States', 'currency' => 'USD', 'timezone' => 'America/New_York', 'locale' => 'en'],
-            'GB' => ['name' => 'United Kingdom', 'currency' => 'GBP', 'timezone' => 'Europe/London', 'locale' => 'en'],
-            'AU' => ['name' => 'Australia', 'currency' => 'AUD', 'timezone' => 'Australia/Sydney', 'locale' => 'en'],
-            'IN' => ['name' => 'India', 'currency' => 'INR', 'timezone' => 'Asia/Kolkata', 'locale' => 'en'],
-            'CA' => ['name' => 'Canada', 'currency' => 'CAD', 'timezone' => 'America/Toronto', 'locale' => 'en'],
-            'AE' => ['name' => 'United Arab Emirates', 'currency' => 'AED', 'timezone' => 'Asia/Dubai', 'locale' => 'en'],
-            'DE' => ['name' => 'Germany', 'currency' => 'EUR', 'timezone' => 'Europe/Berlin', 'locale' => 'de'],
-            'FR' => ['name' => 'France', 'currency' => 'EUR', 'timezone' => 'Europe/Paris', 'locale' => 'fr'],
-            'JP' => ['name' => 'Japan', 'currency' => 'JPY', 'timezone' => 'Asia/Tokyo', 'locale' => 'ja'],
-            'CN' => ['name' => 'China', 'currency' => 'CNY', 'timezone' => 'Asia/Shanghai', 'locale' => 'zh'],
-            'ID' => ['name' => 'Indonesia', 'currency' => 'IDR', 'timezone' => 'Asia/Jakarta', 'locale' => 'id'],
-            'TH' => ['name' => 'Thailand', 'currency' => 'THB', 'timezone' => 'Asia/Bangkok', 'locale' => 'th'],
-            'PH' => ['name' => 'Philippines', 'currency' => 'PHP', 'timezone' => 'Asia/Manila', 'locale' => 'en'],
-            'VN' => ['name' => 'Vietnam', 'currency' => 'VND', 'timezone' => 'Asia/Ho_Chi_Minh', 'locale' => 'vi'],
-            'NZ' => ['name' => 'New Zealand', 'currency' => 'NZD', 'timezone' => 'Pacific/Auckland', 'locale' => 'en'],
-            'SA' => ['name' => 'Saudi Arabia', 'currency' => 'SAR', 'timezone' => 'Asia/Riyadh', 'locale' => 'ar'],
-            'QA' => ['name' => 'Qatar', 'currency' => 'QAR', 'timezone' => 'Asia/Qatar', 'locale' => 'ar'],
+        if (static::$countriesCache !== null) {
+            return static::$countriesCache;
+        }
+
+        $path = resource_path('js/data/countries.json');
+        if (file_exists($path)) {
+            $raw = json_decode((string) file_get_contents($path), true);
+            if (is_array($raw)) {
+                $map = [];
+                foreach ($raw as $item) {
+                    if (is_array($item) && ! empty($item['code'])) {
+                        $map[$item['code']] = [
+                            'name' => $item['name'] ?? $item['code'],
+                            'flag' => $item['flag'] ?? '🌐',
+                            'currency' => $item['currency'] ?? 'USD',
+                            'timezone' => $item['timezone'] ?? 'UTC',
+                            'locale' => $item['locale'] ?? 'en',
+                        ];
+                    }
+                }
+                static::$countriesCache = $map;
+
+                return static::$countriesCache;
+            }
+        }
+
+        static::$countriesCache = [
+            'MY' => ['name' => 'Malaysia', 'flag' => '🇲🇾', 'currency' => 'MYR', 'timezone' => 'Asia/Kuala_Lumpur', 'locale' => 'ms'],
+            'NP' => ['name' => 'Nepal', 'flag' => '🇳🇵', 'currency' => 'NPR', 'timezone' => 'Asia/Kathmandu', 'locale' => 'ne'],
+            'SG' => ['name' => 'Singapore', 'flag' => '🇸🇬', 'currency' => 'SGD', 'timezone' => 'Asia/Singapore', 'locale' => 'en'],
+            'US' => ['name' => 'United States', 'flag' => '🇺🇸', 'currency' => 'USD', 'timezone' => 'America/New_York', 'locale' => 'en'],
+            'GB' => ['name' => 'United Kingdom', 'flag' => '🇬🇧', 'currency' => 'GBP', 'timezone' => 'Europe/London', 'locale' => 'en'],
+            'IN' => ['name' => 'India', 'flag' => '🇮🇳', 'currency' => 'INR', 'timezone' => 'Asia/Kolkata', 'locale' => 'hi'],
+            'AU' => ['name' => 'Australia', 'flag' => '🇦🇺', 'currency' => 'AUD', 'timezone' => 'Australia/Sydney', 'locale' => 'en'],
+            'CA' => ['name' => 'Canada', 'flag' => '🇨🇦', 'currency' => 'CAD', 'timezone' => 'America/Toronto', 'locale' => 'en'],
+            'AE' => ['name' => 'United Arab Emirates', 'flag' => '🇦🇪', 'currency' => 'AED', 'timezone' => 'Asia/Dubai', 'locale' => 'ar'],
+            'DE' => ['name' => 'Germany', 'flag' => '🇩🇪', 'currency' => 'EUR', 'timezone' => 'Europe/Berlin', 'locale' => 'de'],
         ];
+
+        return static::$countriesCache;
     }
 
     /**
-     * Common world currencies.
+     * Get all ISO-3166-1 alpha-2 country codes.
+     *
+     * @return array<int, string>
+     */
+    public static function countryCodes(): array
+    {
+        return array_keys(static::countries());
+    }
+
+    /**
+     * All world currencies extracted and sorted.
+     *
+     * @return array<int, string>
      */
     public static function currencies(): array
     {
-        return ['MYR', 'USD', 'EUR', 'GBP', 'SGD', 'AUD', 'CAD', 'JPY', 'INR', 'NPR', 'AED', 'SAR', 'QAR', 'CNY', 'HKD', 'CHF', 'IDR', 'THB', 'PHP', 'VND', 'KRW', 'NZD', 'ZAR', 'BRL', 'MXN', 'TRY'];
+        $currencies = [];
+        foreach (static::countries() as $country) {
+            if (! empty($country['currency'])) {
+                $currencies[$country['currency']] = true;
+            }
+        }
+
+        $list = array_keys($currencies);
+        sort($list);
+
+        return $list;
     }
 
     /**
-     * Standard common timezones.
+     * Standard timezones from all countries plus common UTC.
+     *
+     * @return array<int, string>
      */
     public static function timezones(): array
     {
+        $tzs = [];
+        foreach (static::countries() as $country) {
+            if (! empty($country['timezone'])) {
+                $tzs[$country['timezone']] = true;
+            }
+        }
+        $tzs['UTC'] = true;
+
+        $list = array_keys($tzs);
+        sort($list);
+
+        return $list;
+    }
+
+    /**
+     * Supported world locales for language switcher and UI localization.
+     *
+     * @return array<int, array{code: string, name: string, flag: string}>
+     */
+    public static function locales(): array
+    {
         return [
-            'Asia/Kuala_Lumpur',
-            'Asia/Kathmandu',
-            'Asia/Singapore',
-            'Asia/Kolkata',
-            'Asia/Dubai',
-            'Asia/Riyadh',
-            'Asia/Bangkok',
-            'Asia/Jakarta',
-            'Asia/Tokyo',
-            'UTC',
-            'Europe/London',
-            'Europe/Paris',
-            'Europe/Berlin',
-            'America/New_York',
-            'America/Chicago',
-            'America/Los_Angeles',
-            'America/Toronto',
-            'Australia/Sydney',
+            ['code' => 'en', 'name' => 'English', 'flag' => '🇺🇸'],
+            ['code' => 'ne', 'name' => 'नेपाली (Nepali)', 'flag' => '🇳🇵'],
+            ['code' => 'hi', 'name' => 'हिन्दी (Hindi)', 'flag' => '🇮🇳'],
+            ['code' => 'ms', 'name' => 'Bahasa Melayu', 'flag' => '🇲🇾'],
+            ['code' => 'ar', 'name' => 'العربية (Arabic)', 'flag' => '🇸🇦'],
+            ['code' => 'es', 'name' => 'Español (Spanish)', 'flag' => '🇪🇸'],
+            ['code' => 'fr', 'name' => 'Français (French)', 'flag' => '🇫🇷'],
+            ['code' => 'de', 'name' => 'Deutsch (German)', 'flag' => '🇩🇪'],
+            ['code' => 'zh', 'name' => '中文 (Chinese)', 'flag' => '🇨🇳'],
+            ['code' => 'ja', 'name' => '日本語 (Japanese)', 'flag' => '🇯🇵'],
+            ['code' => 'ko', 'name' => '한국어 (Korean)', 'flag' => '🇰🇷'],
+            ['code' => 'pt', 'name' => 'Português (Portuguese)', 'flag' => '🇵🇹'],
+            ['code' => 'pt-BR', 'name' => 'Português do Brasil', 'flag' => '🇧🇷'],
+            ['code' => 'ru', 'name' => 'Русский (Russian)', 'flag' => '🇷🇺'],
+            ['code' => 'it', 'name' => 'Italiano (Italian)', 'flag' => '🇮🇹'],
+            ['code' => 'nl', 'name' => 'Nederlands (Dutch)', 'flag' => '🇳🇱'],
+            ['code' => 'tr', 'name' => 'Türkçe (Turkish)', 'flag' => '🇹🇷'],
+            ['code' => 'th', 'name' => 'ไทย (Thai)', 'flag' => '🇹🇭'],
+            ['code' => 'vi', 'name' => 'Tiếng Việt (Vietnamese)', 'flag' => '🇻🇳'],
+            ['code' => 'id', 'name' => 'Bahasa Indonesia', 'flag' => '🇮🇩'],
+            ['code' => 'bn', 'name' => 'বাংলা (Bengali)', 'flag' => '🇧🇩'],
+            ['code' => 'ur', 'name' => 'اردو (Urdu)', 'flag' => '🇵🇰'],
+            ['code' => 'fa', 'name' => 'فارسی (Persian)', 'flag' => '🇮🇷'],
+            ['code' => 'pl', 'name' => 'Polski (Polish)', 'flag' => '🇵🇱'],
+            ['code' => 'uk', 'name' => 'Українська (Ukrainian)', 'flag' => '🇺🇦'],
+            ['code' => 'he', 'name' => 'עברית (Hebrew)', 'flag' => '🇮🇱'],
+            ['code' => 'da', 'name' => 'Dansk (Danish)', 'flag' => '🇩🇰'],
+            ['code' => 'sv', 'name' => 'Svenska (Swedish)', 'flag' => '🇸🇪'],
+            ['code' => 'no', 'name' => 'Norsk (Norwegian)', 'flag' => '🇳🇴'],
+            ['code' => 'fi', 'name' => 'Suomi (Finnish)', 'flag' => '🇫🇮'],
+            ['code' => 'el', 'name' => 'Ελληνικά (Greek)', 'flag' => '🇬🇷'],
+            ['code' => 'cs', 'name' => 'Čeština (Czech)', 'flag' => '🇨🇿'],
+            ['code' => 'ro', 'name' => 'Română (Romanian)', 'flag' => '🇷🇴'],
+            ['code' => 'hu', 'name' => 'Magyar (Hungarian)', 'flag' => '🇭🇺'],
+            ['code' => 'sw', 'name' => 'Kiswahili (Swahili)', 'flag' => '🇰🇪'],
+            ['code' => 'ta', 'name' => 'தமிழ் (Tamil)', 'flag' => '🇮🇳'],
+            ['code' => 'te', 'name' => 'తెలుగు (Telugu)', 'flag' => '🇮🇳'],
+            ['code' => 'fil', 'name' => 'Filipino / Tagalog', 'flag' => '🇵🇭'],
         ];
     }
 }

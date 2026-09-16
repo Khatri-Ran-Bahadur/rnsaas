@@ -40,6 +40,46 @@ class UpdatePlatformSettingsAction
                 $data['mail'] ?? [],
                 $actor,
             );
+
+            if (isset($data['pusher'])) {
+                $this->updateGroup(
+                    group: 'pusher',
+                    settings: $data['pusher'],
+                    actor: $actor,
+                );
+            }
+
+            if (isset($data['cookie'])) {
+                $this->updateGroup(
+                    group: 'cookie',
+                    settings: $data['cookie'],
+                    actor: $actor,
+                );
+            }
+
+            if (isset($data['seo'])) {
+                $this->updateGroup(
+                    group: 'seo',
+                    settings: $data['seo'],
+                    actor: $actor,
+                );
+            }
+
+            if (isset($data['recaptcha'])) {
+                $this->updateGroup(
+                    group: 'recaptcha',
+                    settings: $data['recaptcha'],
+                    actor: $actor,
+                );
+            }
+
+            if (isset($data['bank_transfer'])) {
+                $this->updateGroup(
+                    group: 'bank_transfer',
+                    settings: $data['bank_transfer'],
+                    actor: $actor,
+                );
+            }
         });
 
         $this->settings->clearCache();

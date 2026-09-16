@@ -42,10 +42,8 @@ const openGroups = ref<Record<string, boolean>>({
     tenants: currentUrl.value.startsWith('/superadmin/tenants'),
     users: currentUrl.value.startsWith('/superadmin/users') || currentUrl.value.startsWith('/superadmin/roles'),
     subscriptions: currentUrl.value.startsWith('/superadmin/subscriptions') || currentUrl.value.startsWith('/superadmin/payments'),
-    cms: false,
-    qa: false,
+    cms: currentUrl.value.startsWith('/superadmin/pages'),
     security: currentUrl.value.startsWith('/superadmin/security') || currentUrl.value.startsWith('/superadmin/audit-logs') || currentUrl.value.startsWith('/superadmin/analytics'),
-    settings: currentUrl.value.startsWith('/superadmin/settings'),
 });
 
 const toggleGroup = (key: string) => {
@@ -63,10 +61,10 @@ watch(currentUrl, (newUrl) => {
         setExclusiveGroup('users');
     } else if (newUrl.startsWith('/superadmin/subscriptions') || newUrl.startsWith('/superadmin/payments')) {
         setExclusiveGroup('subscriptions');
+    } else if (newUrl.startsWith('/superadmin/pages')) {
+        setExclusiveGroup('cms');
     } else if (newUrl.startsWith('/superadmin/security') || newUrl.startsWith('/superadmin/audit-logs') || newUrl.startsWith('/superadmin/analytics')) {
         setExclusiveGroup('security');
-    } else if (newUrl.startsWith('/superadmin/settings')) {
-        setExclusiveGroup('settings');
     }
 });
 
@@ -100,8 +98,10 @@ const logout = () => {
         <!-- Sidebar Container (Fixed on Desktop, Slide-over on Mobile) -->
         <aside
             :class="[
-                'fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-zinc-200 bg-white transition-transform duration-200 ease-in-out dark:border-zinc-800 dark:bg-zinc-900 lg:translate-x-0',
-                mobileOpen ? 'translate-x-0' : '-translate-x-full',
+                'fixed inset-y-0 left-0 rtl:left-auto rtl:right-0 z-50 flex w-72 flex-col border-r rtl:border-r-0 rtl:border-l border-zinc-200 bg-white transition-transform duration-200 ease-in-out dark:border-zinc-800 dark:bg-zinc-900',
+                mobileOpen
+                    ? 'translate-x-0'
+                    : '-translate-x-full rtl:translate-x-full lg:translate-x-0 rtl:lg:translate-x-0',
             ]"
         >
             <!-- Brand Header -->
@@ -297,15 +297,28 @@ const logout = () => {
                 </div>
 
                 <!-- 4. Demo Requests (Direct Link) -->
-                <div class="flex items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white transition-colors cursor-pointer">
+                <Link
+                    href="/superadmin/demo-requests"
+                    :class="[
+                        'group flex items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-all',
+                        isRouteActive('/superadmin/demo-requests')
+                            ? 'border-l-[3.5px] border-amber-500 bg-[#edf2f7] font-semibold text-slate-900 dark:border-amber-400 dark:bg-zinc-800/90 dark:text-white rounded-l-none rounded-r-lg'
+                            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
+                    ]"
+                    @click="emit('closeMobile')"
+                >
                     <div class="flex items-center gap-3">
-                        <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg
+                            class="h-4 w-4 shrink-0 transition-colors"
+                            :class="isRouteActive('/superadmin/demo-requests') ? 'text-slate-800 dark:text-zinc-200' : 'text-slate-500 dark:text-zinc-400'"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                         </svg>
                         <span>Demo Requests</span>
                     </div>
                     <span class="rounded bg-amber-100 px-1.5 py-0.2 text-[10px] font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">New</span>
-                </div>
+                </Link>
 
                 <!-- 5. Subscription (Collapsible - Exactly Matching Screenshot) -->
                 <div>
@@ -341,18 +354,6 @@ const logout = () => {
                         <div class="overflow-hidden">
                             <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
                                 <Link
-                                    href="/superadmin/subscriptions"
-                                    :class="[
-                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                        isRouteActive('/superadmin/subscriptions') && !isRouteActive('/superadmin/subscriptions/plans')
-                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                    ]"
-                                    @click="emit('closeMobile')"
-                                >
-                                    Subscription Setting
-                                </Link>
-                                <Link
                                     href="/superadmin/subscriptions/plans"
                                     :class="[
                                         'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
@@ -362,11 +363,50 @@ const logout = () => {
                                     ]"
                                     @click="emit('closeMobile')"
                                 >
+                                    Subscription Plans
+                                </Link>
+                                <Link
+                                    href="/superadmin/subscriptions"
+                                    :class="[
+                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/superadmin/subscriptions') && !isRouteActive('/superadmin/subscriptions/plans') && !isRouteActive('/superadmin/subscriptions/coupons') && !isRouteActive('/superadmin/subscriptions/bank-transfers')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    Tenant Subscriptions
+                                </Link>
+                                <Link
+                                    href="/superadmin/subscriptions/bank-transfers"
+                                    :class="[
+                                        'flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/superadmin/subscriptions/bank-transfers')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Bank Transfer Requests</span>
+                                    <span
+                                        v-if="(page.props as any).pending_bank_transfers_count"
+                                        class="inline-flex items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-xs"
+                                    >
+                                        {{ (page.props as any).pending_bank_transfers_count }}
+                                    </span>
+                                </Link>
+                                <Link
+                                    href="/superadmin/subscriptions/coupons"
+                                    :class="[
+                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/superadmin/subscriptions/coupons')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
                                     Coupons
                                 </Link>
-                                <div class="block rounded-md px-2.5 py-1.5 text-xs text-slate-400 hover:bg-slate-50 dark:text-zinc-500 cursor-pointer">
-                                    Bank Transfer Requests
-                                </div>
                                 <Link
                                     href="/superadmin/payments"
                                     :class="[
@@ -377,14 +417,14 @@ const logout = () => {
                                     ]"
                                     @click="emit('closeMobile')"
                                 >
-                                    Orders
+                                    Payment Orders
                                 </Link>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 6. CMS (Collapsible - As in Screenshot) -->
+                <!-- 6. CMS & Pages (Collapsible) -->
                 <div>
                     <button
                         type="button"
@@ -400,7 +440,7 @@ const logout = () => {
                             <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                             </svg>
-                            <span>CMS</span>
+                            <span>CMS & Website</span>
                         </div>
                         <svg
                             class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
@@ -417,86 +457,51 @@ const logout = () => {
                     >
                         <div class="overflow-hidden">
                             <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                                <div class="block rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                    Landing Pages
-                                </div>
-                                <div class="block rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                    Blog & Articles
-                                </div>
-                                <div class="block rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                    Navigation Menus
-                                </div>
+                                <Link
+                                    href="/superadmin/pages"
+                                    :class="[
+                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                        isRouteActive('/superadmin/pages')
+                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
+                                    ]"
+                                    @click="emit('closeMobile')"
+                                >
+                                    Custom Pages
+                                </Link>
+                                <a
+                                    href="/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white transition-colors"
+                                    @click="emit('closeMobile')"
+                                >
+                                    <span>Landing Page</span>
+                                    <svg class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 7. Email Templates (Direct Link) -->
+                <!-- 7. Notification & Email Templates (Direct Link) -->
                 <Link
-                    href="/superadmin/settings"
-                    class="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white transition-colors"
+                    href="/superadmin/notification-templates"
+                    :class="[
+                        'group flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
+                        isRouteActive('/superadmin/notification-templates')
+                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
+                            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
+                    ]"
                     @click="emit('closeMobile')"
                 >
                     <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <span>Email Templates</span>
-                </Link>
-
-                <!-- 8. Notification Templates (Direct Link) -->
-                <div class="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white transition-colors cursor-pointer">
-                    <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
-                    <span>Notification Templates</span>
-                </div>
-
-                <!-- 9. QA & Testing (Collapsible - As in Screenshot) -->
-                <div>
-                    <button
-                        type="button"
-                        :class="[
-                            'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer',
-                            openGroups.qa
-                                ? 'bg-slate-100/80 text-slate-900 font-semibold dark:bg-zinc-800/80 dark:text-white'
-                                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
-                        ]"
-                        @click="toggleGroup('qa')"
-                    >
-                        <div class="flex items-center gap-3">
-                            <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                            </svg>
-                            <span>QA & Testing</span>
-                        </div>
-                        <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
-                            :class="{ 'rotate-180': openGroups.qa }"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <div
-                        class="grid transition-all duration-250 ease-in-out"
-                        :class="openGroups.qa ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
-                    >
-                        <div class="overflow-hidden">
-                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                                <div class="block rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                    Health Checks
-                                </div>
-                                <div class="block rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                    Mock Data Generator
-                                </div>
-                                <div class="block rounded-md px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-100 dark:text-zinc-400 cursor-pointer">
-                                    API Sandbox
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <span>Notification & Email Templates</span>
+                </Link>
 
                 <!-- 10. Media Library (Direct Link) -->
                 <Link
@@ -589,99 +594,49 @@ const logout = () => {
                     </div>
                 </div>
 
-                <!-- 12. Settings (Collapsible) -->
-                <div>
-                    <button
-                        type="button"
-                        :class="[
-                            'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer',
-                            openGroups.settings || isRouteActive('/superadmin/settings')
-                                ? 'bg-slate-100/80 text-slate-900 font-semibold dark:bg-zinc-800/80 dark:text-white'
-                                : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
-                        ]"
-                        @click="toggleGroup('settings')"
-                    >
-                        <div class="flex items-center gap-3">
-                            <svg class="h-4 w-4 shrink-0 text-slate-500 dark:text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span>Settings</span>
-                        </div>
+                <!-- 12. Settings (Direct Link with Active Highlight) -->
+                <Link
+                    href="/superadmin/settings"
+                    :class="[
+                        'group flex items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-all',
+                        isRouteActive('/superadmin/settings')
+                            ? 'border-l-[3.5px] border-amber-500 bg-[#edf2f7] font-semibold text-slate-900 dark:border-amber-400 dark:bg-zinc-800/90 dark:text-white rounded-l-none rounded-r-lg'
+                            : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-300 dark:hover:bg-zinc-800/70 dark:hover:text-white',
+                    ]"
+                    @click="emit('closeMobile')"
+                >
+                    <div class="flex items-center gap-3">
                         <svg
-                            class="h-3.5 w-3.5 text-slate-400 transition-transform duration-250 ease-in-out"
-                            :class="{ 'rotate-180': openGroups.settings }"
+                            class="h-4 w-4 shrink-0 transition-colors"
+                            :class="isRouteActive('/superadmin/settings') ? 'text-slate-800 dark:text-zinc-200' : 'text-slate-500 dark:text-zinc-400'"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                    </button>
-
-                    <div
-                        class="grid transition-all duration-250 ease-in-out"
-                        :class="openGroups.settings ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
-                    >
-                        <div class="overflow-hidden">
-                            <div class="ml-5 mt-1 border-l border-zinc-200/90 pl-3.5 space-y-0.5 dark:border-zinc-800">
-                                <Link
-                                    href="/superadmin/settings"
-                                    :class="[
-                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                        currentUrl === '/superadmin/settings'
-                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                    ]"
-                                    @click="emit('closeMobile')"
-                                >
-                                    General
-                                </Link>
-                                <Link
-                                    href="/superadmin/security"
-                                    :class="[
-                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                        isRouteActive('/superadmin/security')
-                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                    ]"
-                                    @click="emit('closeMobile')"
-                                >
-                                    Security
-                                </Link>
-                                <Link
-                                    href="/superadmin/settings?tab=mail"
-                                    :class="[
-                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                        currentUrl.includes('tab=mail')
-                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                    ]"
-                                    @click="emit('closeMobile')"
-                                >
-                                    Notifications
-                                </Link>
-                                <Link
-                                    href="/superadmin/settings/file-system"
-                                    :class="[
-                                        'block rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                        isRouteActive('/superadmin/settings/file-system')
-                                            ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-indigo-950/60 dark:text-indigo-300'
-                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white',
-                                    ]"
-                                    @click="emit('closeMobile')"
-                                >
-                                    File System
-                                </Link>
-                            </div>
-                        </div>
+                        <span>Settings</span>
                     </div>
-                </div>
+                </Link>
             </div>
 
             <!-- User Footer Profile Card -->
             <div class="border-t border-zinc-200 p-4 dark:border-zinc-800">
                 <div class="flex items-center justify-between rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950/60">
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white shadow-xs shadow-primary-500/25">
+                    <Link
+                        href="/superadmin/profile"
+                        class="flex items-center gap-3 overflow-hidden flex-1 hover:opacity-85 transition-opacity"
+                        title="View & Edit Profile"
+                    >
+                        <img
+                            v-if="user.avatar_url"
+                            :src="user.avatar_url"
+                            :alt="user.name"
+                            class="h-9 w-9 shrink-0 rounded-full object-cover shadow-xs border border-zinc-200 dark:border-zinc-700"
+                        />
+                        <div
+                            v-else
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white shadow-xs shadow-primary-500/25"
+                        >
                             {{ user.name.charAt(0) }}
                         </div>
                         <div class="truncate">
@@ -692,7 +647,7 @@ const logout = () => {
                                 {{ user.email }}
                             </p>
                         </div>
-                    </div>
+                    </Link>
 
                     <button
                         type="button"

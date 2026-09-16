@@ -22,6 +22,9 @@ use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\PurchaseBill;
 use Modules\Accounting\Models\Vendor;
 use Modules\Accounting\Models\VendorPaymentAllocation;
+use Modules\Inventory\Models\InventoryItem;
+use Modules\Tax\Models\TaxRate;
+use Modules\Tax\Models\TaxSetting;
 
 class PurchaseBillController extends Controller
 {
@@ -99,9 +102,29 @@ class PurchaseBillController extends Controller
             ->orderBy('code')
             ->get(['id', 'code', 'name']);
 
+        $items = class_exists(InventoryItem::class)
+            ? InventoryItem::where('tenant_id', $tenantId)
+                ->orderBy('name')
+                ->get(['id', 'name', 'sku', 'selling_price', 'cost_price', 'on_hand_stock', 'tax_rate'])
+            : collect();
+
+        $taxRates = class_exists(TaxRate::class)
+            ? TaxRate::where('tenant_id', $tenantId)
+                ->where('timeline_status', 'active')
+                ->orderBy('rate')
+                ->get(['id', 'name', 'code', 'rate', 'rate_type'])
+            : collect();
+
+        $taxSettings = class_exists(TaxSetting::class)
+            ? TaxSetting::where('tenant_id', $tenantId)->first()
+            : null;
+
         return Inertia::render('Accounting/PurchaseBills/Create', [
             'vendors' => $vendors,
             'accounts' => $accounts,
+            'items' => $items,
+            'taxRates' => $taxRates,
+            'taxSettings' => $taxSettings,
         ]);
     }
 

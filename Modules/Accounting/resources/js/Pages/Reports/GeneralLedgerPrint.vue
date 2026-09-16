@@ -66,6 +66,21 @@ const formatDate = (dateStr?: string) => {
 const now = new Date();
 const formattedDateTime = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`;
 
+const ledgerEntries = computed<LedgerEntry[]>(() => {
+    if (!props.ledger) return [];
+    return (props.ledger.entries || (props.ledger as any).lines || []).map((e: any) => ({
+        id: e.id || e.journal_entry_id || 0,
+        entryNumber: e.entryNumber || e.entry_number || '',
+        entryDate: e.entryDate || e.entry_date || '',
+        description: e.description || '',
+        debit: e.debit || 0,
+        credit: e.credit || 0,
+        balance: e.balance || 0,
+        referenceType: e.referenceType || e.reference_type || null,
+        referenceId: e.referenceId || e.reference_id || null,
+    }));
+});
+
 const downloadPDF = async () => {
     isDownloading.value = true;
     const printContent = document.querySelector('.general-ledger-container');
@@ -188,7 +203,7 @@ onMounted(() => {
                         </tr>
 
                         <!-- Transaction Rows -->
-                        <tr v-for="entry in ledger.entries" :key="entry.id" class="border-b border-gray-100">
+                        <tr v-for="entry in ledgerEntries" :key="entry.id" class="border-b border-gray-100">
                             <td class="py-0.5 font-normal">{{ formatDate(entry.entryDate) }}</td>
                             <td class="py-0.5 font-normal">{{ entry.entryNumber }}</td>
                             <td class="py-0.5 text-black font-normal">{{ entry.description }}</td>
@@ -197,7 +212,7 @@ onMounted(() => {
                             <td class="py-0.5 text-right tabular-nums font-bold">{{ formatNum(entry.balance) }}</td>
                         </tr>
 
-                        <tr v-if="ledger.entries.length === 0">
+                        <tr v-if="ledgerEntries.length === 0">
                             <td colspan="6" class="py-6 text-center text-gray-400 italic">
                                 No ledger transactions found for this account in the selected period.
                             </td>

@@ -218,15 +218,19 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                                     <div class="space-y-2 text-xs text-zinc-600 dark:text-zinc-300">
                                         <div v-for="col in columns.filter(c => c.key !== 'actions' && c.key !== columns[0]?.key).slice(0, 3)" :key="col.key">
                                             <span class="text-zinc-400 dark:text-zinc-500 font-medium text-[11px] block">{{ col.label }}</span>
-                                            <slot :name="`cell(${col.key})`" :item="item" :value="item[col.key]">
-                                                <span>{{ item[col.key] ?? '—' }}</span>
+                                            <slot :name="`cell-${col.key}`" :row="item" :item="item" :value="item[col.key]">
+                                                <slot :name="`cell(${col.key})`" :row="item" :item="item" :value="item[col.key]">
+                                                    <span>{{ item[col.key] ?? '—' }}</span>
+                                                </slot>
                                             </slot>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div v-if="$slots['cell(actions)']" class="mt-4 pt-3 border-t border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-end">
-                                    <slot name="cell(actions)" :item="item" />
+                                <div v-if="$slots['cell-actions'] || $slots['cell(actions)']" class="mt-4 pt-3 border-t border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-end">
+                                    <slot name="cell-actions" :row="item" :item="item">
+                                        <slot name="cell(actions)" :row="item" :item="item" />
+                                    </slot>
                                 </div>
                             </slot>
                         </div>
@@ -303,12 +307,21 @@ const getAlignmentClass = (align?: 'left' | 'center' | 'right') => {
                                 ]"
                             >
                                 <slot
-                                    :name="`cell(${col.key})`"
+                                    :name="`cell-${col.key}`"
+                                    :row="item"
                                     :item="item"
                                     :value="item[col.key]"
                                     :index="idx"
                                 >
-                                    {{ item[col.key] ?? '—' }}
+                                    <slot
+                                        :name="`cell(${col.key})`"
+                                        :row="item"
+                                        :item="item"
+                                        :value="item[col.key]"
+                                        :index="idx"
+                                    >
+                                        {{ item[col.key] ?? '—' }}
+                                    </slot>
                                 </slot>
                             </td>
                         </tr>

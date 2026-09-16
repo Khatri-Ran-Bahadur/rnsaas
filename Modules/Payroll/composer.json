@@ -1,0 +1,23 @@
+{
+    "name": "sathisaas/payroll",
+    "description": "Universal Payroll Engine module for SathiSaaS",
+    "authors": [
+        {
+            "name": "SathiSaaS Team",
+            "email": "dev@sathisaas.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Payroll\\Providers\\PayrollServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Payroll\\": "app/"
+        }
+    }
+}

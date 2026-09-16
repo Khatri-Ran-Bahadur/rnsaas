@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tax_types', function (Blueprint $table): void {
+            $table->id();
+            $table->uuid('public_id')->unique();
+            $table->foreignId('tenant_id')->constrained('tenants')->cascadeOnDelete();
+            $table->string('name');
+            $table->string('code')->index();
+            $table->string('scope')->default('sales'); // sales, purchases, both
+            $table->string('status')->default('active');
+            $table->text('description')->nullable();
+            $table->timestamps();
+
+            $table->index(['tenant_id', 'status']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('tax_types');
+    }
+};

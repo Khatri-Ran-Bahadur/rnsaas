@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import { Button, Select, DatePicker, type SelectOption } from '@/components';
+import { useCurrency } from '@/composables/useCurrency';
+import { getTaxTerminology } from '@/utils/taxTerminology';
 
 interface VendorItem {
     id: number;
@@ -19,14 +21,40 @@ interface AccountItem {
     name: string;
 }
 
+interface ItemOption {
+    id: number;
+    name: string;
+    sku: string;
+    selling_price: number;
+    cost_price: number;
+    on_hand_stock: number;
+    tax_rate?: number;
+}
+
+interface TaxRateOption {
+    id: number;
+    name: string;
+    code: string;
+    rate: number;
+    rate_type?: string;
+}
+
 interface Props {
     vendors: VendorItem[];
     accounts: AccountItem[];
+    items?: ItemOption[];
+    taxRates?: TaxRateOption[];
+    taxSettings?: any;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    items: () => [],
+    taxRates: () => [],
+    taxSettings: null,
+});
 
 interface BillLineItem {
+    item_id?: number | '';
     line_number: number;
     description: string;
     quantity: number;
@@ -37,18 +65,34 @@ interface BillLineItem {
     tax_account_id: number | '';
 }
 
+const page = usePage();
+const tenant = computed(() => (page.props as any).current_tenant || {});
+const terms = computed(() => getTaxTerminology(tenant.value.country_code, tenant.value.tax_regime));
+const { currencyCode, currencySymbol, formatMoney } = useCurrency();
+const defaultCurrency = computed(() => tenant.value.currency || currencyCode.value || 'USD');
+
+const defaultInputTaxAccount = computed(() => props.taxSettings?.input_tax_account_id || '');
+const defaultPurchaseTaxRate = computed(() => {
+    if (props.taxSettings?.default_purchase_tax_rate_id && props.taxRates?.length) {
+        const found = props.taxRates.find((r) => r.id === props.taxSettings.default_purchase_tax_rate_id);
+        if (found) return Number(found.rate);
+    }
+    return 0;
+});
+
 const today = new Date().toISOString().split('T')[0];
 
 const lines = ref<BillLineItem[]>([
     {
+        item_id: '',
         line_number: 1,
         description: '',
         quantity: 1,
         unit_price: 0,
         discount_amount: 0,
-        tax_rate: 0,
+        tax_rate: defaultPurchaseTaxRate.value,
         debit_account_id: props.accounts[0]?.id ?? '',
-        tax_account_id: '',
+        tax_account_id: defaultInputTaxAccount.value,
     },
 ]);
 
@@ -57,7 +101,7 @@ const form = useForm({
     bill_number: `BILL-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`,
     bill_date: today,
     due_date: today,
-    currency: 'MYR',
+    currency: defaultCurrency.value,
     reference: '',
     notes: '',
     lines: [] as any[],
@@ -77,11 +121,22 @@ const accountOptions = computed<SelectOption[]>(() => {
     }));
 });
 
+const itemOptions = computed<SelectOption[]>(() => {
+    return [
+        { label: '-- Custom Item / Expense --', value: '' },
+        ...props.items.map((item) => ({
+            label: item.name,
+            sublabel: `${item.sku ? `[${item.sku}] ` : ''}Cost: ${form.currency || defaultCurrency.value} ${Number(item.cost_price || 0).toFixed(2)}${item.on_hand_stock !== undefined ? ` • Stock: ${item.on_hand_stock}` : ''}`,
+            value: item.id,
+        })),
+    ];
+});
+
 // Watch vendor change to update currency & calculate due date from payment terms
 watch(() => form.vendor_id, (newVendorId) => {
     const selected = props.vendors.find((v) => v.id === Number(newVendorId));
     if (selected) {
-        form.currency = selected.currency || 'MYR';
+        form.currency = selected.currency || defaultCurrency.value;
         if (selected.payment_terms_days && form.bill_date) {
             const date = new Date(form.bill_date);
             date.setDate(date.getDate() + Number(selected.payment_terms_days));
@@ -92,14 +147,15 @@ watch(() => form.vendor_id, (newVendorId) => {
 
 const addLine = () => {
     lines.value.push({
+        item_id: '',
         line_number: lines.value.length + 1,
         description: '',
         quantity: 1,
         unit_price: 0,
         discount_amount: 0,
-        tax_rate: 0,
+        tax_rate: defaultPurchaseTaxRate.value,
         debit_account_id: props.accounts[0]?.id ?? '',
-        tax_account_id: '',
+        tax_account_id: defaultInputTaxAccount.value,
     });
 };
 
@@ -109,6 +165,21 @@ const removeLine = (index: number) => {
         lines.value.forEach((line, idx) => {
             line.line_number = idx + 1;
         });
+    }
+};
+
+const onItemSelect = (line: BillLineItem, selectedId: any) => {
+    const id = Number(selectedId);
+    line.item_id = id || '';
+    if (!id) return;
+    const item = props.items.find((i) => i.id === id);
+    if (item) {
+        line.item_id = item.id;
+        line.description = item.name + (item.sku ? ` (${item.sku})` : '');
+        line.unit_price = Number(item.cost_price || 0);
+        if (item.tax_rate !== undefined && item.tax_rate !== null) {
+            line.tax_rate = Number(item.tax_rate);
+        }
     }
 };
 
@@ -150,10 +221,7 @@ const totals = computed(() => {
 });
 
 const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-MY', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(val);
+    return formatMoney(val);
 };
 
 const submit = () => {
@@ -309,12 +377,13 @@ const submit = () => {
                             <thead class="border-b border-zinc-200 text-[11px] font-semibold uppercase text-zinc-400 dark:border-zinc-800">
                                 <tr>
                                     <th class="w-8 pb-2">#</th>
+                                    <th class="min-w-[180px] pb-2">Existing Item (Optional)</th>
                                     <th class="min-w-[200px] pb-2">Description <span class="text-rose-500">*</span></th>
                                     <th class="min-w-[180px] pb-2">Expense / Debit Account <span class="text-rose-500">*</span></th>
                                     <th class="w-20 pb-2">Qty</th>
                                     <th class="w-28 pb-2">Unit Price</th>
                                     <th class="w-24 pb-2">Disc</th>
-                                    <th class="w-20 pb-2">Tax %</th>
+                                    <th class="w-20 pb-2">{{ terms.taxLabel }} %</th>
                                     <th class="w-28 pb-2 text-right">Line Total</th>
                                     <th class="w-10 pb-2"></th>
                                 </tr>
@@ -322,6 +391,16 @@ const submit = () => {
                             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
                                 <tr v-for="(line, index) in lines" :key="index" class="align-top">
                                     <td class="py-3 text-zinc-400 font-mono">{{ index + 1 }}</td>
+                                    <td class="py-3 pr-2 w-52">
+                                        <Select
+                                            v-model="line.item_id"
+                                            :options="itemOptions"
+                                            placeholder="Select product..."
+                                            :searchable="true"
+                                            size="sm"
+                                            @update:model-value="onItemSelect(line, $event)"
+                                        />
+                                    </td>
                                     <td class="py-3 pr-2">
                                         <input
                                             v-model="line.description"
@@ -338,6 +417,7 @@ const submit = () => {
                                             placeholder="Select account..."
                                             :searchable="true"
                                             :required="true"
+                                            size="sm"
                                         />
                                     </td>
                                     <td class="py-3 pr-2">
@@ -434,7 +514,7 @@ const submit = () => {
                                 <span class="font-mono">-{{ formatCurrency(totals.totalDiscount) }}</span>
                             </div>
                             <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
-                                <span>Tax Amount</span>
+                                <span>{{ terms.taxLabel }} Amount</span>
                                 <span class="font-mono">{{ formatCurrency(totals.totalTax) }}</span>
                             </div>
                             <div class="flex justify-between border-t border-zinc-200 pt-3 text-base font-bold text-zinc-900 dark:border-zinc-800 dark:text-zinc-100">

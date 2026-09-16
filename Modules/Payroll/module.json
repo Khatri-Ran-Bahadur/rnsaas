@@ -1,0 +1,11 @@
+{
+    "name": "Payroll",
+    "alias": "payroll",
+    "description": "Universal Payroll Engine module for SathiSaaS",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Payroll\\Providers\\PayrollServiceProvider"
+    ],
+    "files": []
+}

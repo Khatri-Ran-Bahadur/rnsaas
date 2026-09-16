@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\Payroll\Models\EmployeeLoan;
+use Modules\Payroll\Models\EmployeeSalaryProfile;
+use Modules\Payroll\Models\Payslip;
 use Modules\Tenancy\Domain\Enums\EmploymentStatus;
 
 class TenantStaff extends Model
@@ -72,6 +77,21 @@ class TenantStaff extends Model
     public function designation(): BelongsTo
     {
         return $this->belongsTo(Designation::class);
+    }
+
+    public function salaryProfile(): HasOne
+    {
+        return $this->hasOne(EmployeeSalaryProfile::class, 'staff_id');
+    }
+
+    public function employeeLoans(): HasMany
+    {
+        return $this->hasMany(EmployeeLoan::class, 'staff_id');
+    }
+
+    public function payslips(): HasMany
+    {
+        return $this->hasMany(Payslip::class, 'staff_id');
     }
 
     public function scopeForTenant(

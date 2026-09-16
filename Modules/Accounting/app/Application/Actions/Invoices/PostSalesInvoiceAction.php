@@ -9,7 +9,9 @@ use Modules\Accounting\Application\Actions\Journal\PostJournalEntryAction;
 use Modules\Accounting\Application\DTOs\Journal\CreateJournalEntryData;
 use Modules\Accounting\Application\DTOs\Journal\CreateJournalLineData;
 use Modules\Accounting\Application\Services\AccountingPeriodResolver;
+use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\SalesInvoice;
+use Modules\Tax\Models\TaxSetting;
 
 final class PostSalesInvoiceAction
 {
@@ -62,13 +64,43 @@ final class PostSalesInvoiceAction
                 description: 'Accounts receivable - Invoice '.$invoice->invoice_number,
             );
 
+            $taxSetting = class_exists(TaxSetting::class)
+                ? TaxSetting::where('tenant_id', $currentTenant->id())->first()
+                : null;
+            $taxAccountId = $taxSetting?->output_tax_account_id;
+
+            if (! $taxAccountId) {
+                $taxAccountId = Account::where('tenant_id', $currentTenant->id())
+                    ->where(function ($q) {
+                        $q->where('code', '2100')
+                            ->orWhere('name', 'like', '%VAT Output%')
+                            ->orWhere('name', 'like', '%Output Tax%')
+                            ->orWhere('name', 'like', '%Sales Tax%');
+                    })
+                    ->value('id');
+            }
+
+            $hasTaxAccount = $taxAccountId !== null && bccomp((string) $invoice->tax_total, '0.000000', 4) > 0;
+
             foreach ($invoice->lines as $line) {
+                $revenueAmount = $hasTaxAccount ? $line->subtotal : $line->total;
+
                 $journalLines[] = new CreateJournalLineData(
                     accountId: $line->revenue_account_id,
                     lineNumber: $lineNumber++,
                     lineType: 'credit',
-                    amount: $line->total,
+                    amount: $revenueAmount,
                     description: $line->description ?: 'Sales revenue',
+                );
+            }
+
+            if ($hasTaxAccount) {
+                $journalLines[] = new CreateJournalLineData(
+                    accountId: $taxAccountId,
+                    lineNumber: $lineNumber++,
+                    lineType: 'credit',
+                    amount: $invoice->tax_total,
+                    description: 'Output tax - Invoice '.$invoice->invoice_number,
                 );
             }
 

@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Modules\SuperAdmin\Http\Controllers\CustomPageController;
 use Modules\SuperAdmin\Http\Controllers\DashboardController;
+use Modules\SuperAdmin\Http\Controllers\DemoRequestController;
 use Modules\SuperAdmin\Http\Controllers\EmailSettingsController;
 use Modules\SuperAdmin\Http\Controllers\ImpersonateTenantController;
+use Modules\SuperAdmin\Http\Controllers\NotificationTemplateController;
 use Modules\SuperAdmin\Http\Controllers\PlatformAnalyticsController;
 use Modules\SuperAdmin\Http\Controllers\PlatformSettingsController;
 use Modules\SuperAdmin\Http\Controllers\RoleController;
@@ -92,4 +96,31 @@ Route::middleware(['auth', 'superadmin'])
         // Organization Impersonation ("Login as Admin")
         Route::post('/tenants/{tenant}/impersonate', [ImpersonateTenantController::class, 'impersonate'])
             ->name('tenants.impersonate');
+
+        // Notification & Email Templates
+        Route::resource('notification-templates', NotificationTemplateController::class)->except(['show']);
+        Route::post('notification-templates/{template}/toggle', [NotificationTemplateController::class, 'toggle'])
+            ->name('notification-templates.toggle');
+
+        // CMS / Custom Pages
+        Route::resource('pages', CustomPageController::class);
+        Route::post('pages/{page}/toggle', [CustomPageController::class, 'toggle'])
+            ->name('pages.toggle');
+
+        // Demo Requests
+        Route::get('demo-requests', [DemoRequestController::class, 'index'])
+            ->name('demo-requests.index');
+        Route::put('demo-requests/{demoRequest}', [DemoRequestController::class, 'update'])
+            ->name('demo-requests.update');
+        Route::delete('demo-requests/{demoRequest}', [DemoRequestController::class, 'destroy'])
+            ->name('demo-requests.destroy');
+
+        // SuperAdmin Profile Management
+        Route::controller(ProfileController::class)->prefix('profile')->name('profile.')->group(function () {
+            Route::get('/', 'edit')->name('edit');
+            Route::put('/', 'update')->name('update');
+            Route::post('/avatar', 'updateAvatar')->name('avatar.update');
+            Route::delete('/avatar', 'deleteAvatar')->name('avatar.delete');
+            Route::put('/password', 'updatePassword')->name('password.update');
+        });
     });

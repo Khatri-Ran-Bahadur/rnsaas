@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/pos",
+    "description": "Universal Point of Sale (POS) Module for SathiSaaS",
+    "authors": [
+        {
+            "name": "SathiSaaS",
+            "email": "info@sathisaas.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\POS\\": "app/",
+            "Modules\\POS\\Database\\Factories\\": "database/factories/",
+            "Modules\\POS\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\POS\\Tests\\": "tests/"
+        }
+    }
+}

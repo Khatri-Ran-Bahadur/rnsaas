@@ -289,4 +289,45 @@ class MemberController extends Controller
 
         return redirect()->back()->with('success', 'Member access revoked.');
     }
+
+    public function activate(Request $request, int $id): RedirectResponse
+    {
+        $this->authorize('members.manage');
+
+        $tenantId = $this->currentTenant->id();
+        $membership = TenantMembership::query()
+            ->where('tenant_id', $tenantId)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $membership->update([
+            'status' => TenantMembershipStatus::Active,
+            'joined_at' => now(),
+            'version' => $membership->version + 1,
+        ]);
+
+        return redirect()->back()->with('success', 'Member invitation accepted and activated.');
+    }
+
+    public function changePassword(Request $request, int $id): RedirectResponse
+    {
+        $this->authorize('members.manage');
+
+        $request->validate([
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+
+        $tenantId = $this->currentTenant->id();
+        $membership = TenantMembership::query()
+            ->where('tenant_id', $tenantId)
+            ->where('id', $id)
+            ->with(['user'])
+            ->firstOrFail();
+
+        $membership->user->update([
+            'password' => Hash::make($request->string('password')->value()),
+        ]);
+
+        return redirect()->back()->with('success', "Password for {$membership->user->name} updated successfully.");
+    }
 }

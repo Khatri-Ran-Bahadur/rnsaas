@@ -95,6 +95,11 @@ final class OrganizationPermissions
 
     public const ACCOUNTING_REPORTS_VIEW = 'accounting.reports.view';
 
+    // MRP & Manufacturing
+    public const MRP_VIEW = 'mrp.view';
+
+    public const MRP_MANAGE = 'mrp.manage';
+
     /**
      * @return array<string, array{
      *     label: string,

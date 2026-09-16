@@ -1,5 +1,12 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import { type DefineComponent, createApp, createSSRApp, h } from 'vue';
+import { translate } from './composables/useTranslation';
+import { configureEcho } from '@laravel/echo-vue';
+import './echo';
+
+configureEcho({
+    broadcaster: 'reverb',
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'SathiSaaS';
 
@@ -45,18 +52,33 @@ void createInertiaApp({
     },
 
     setup({ el, App, props, plugin }) {
+        const routeHelper = (name?: string, params?: any) => {
+            if ((window as any).route) {
+                return (window as any).route(name, params);
+            }
+            if (!name) {
+                return '#';
+            }
+            const normalized = name.startsWith('/') ? name : `/${name.replace(/\./g, '/')}`;
+            return params !== undefined ? `${normalized}/${params}` : normalized;
+        };
+
         if (el) {
-            createApp({
+            const vueApp = createApp({
                 render: () => h(App, props),
-            })
-                .use(plugin)
-                .mount(el);
+            });
+            vueApp.config.globalProperties.route = routeHelper;
+            vueApp.config.globalProperties.$t = translate;
+            vueApp.use(plugin).mount(el);
             return;
         }
 
-        return createSSRApp({
+        const ssrApp = createSSRApp({
             render: () => h(App, props),
-        }).use(plugin);
+        });
+        ssrApp.config.globalProperties.route = routeHelper;
+        ssrApp.config.globalProperties.$t = translate;
+        return ssrApp.use(plugin);
     },
 
     progress: {

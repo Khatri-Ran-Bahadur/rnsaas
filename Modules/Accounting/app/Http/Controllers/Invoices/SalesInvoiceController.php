@@ -21,6 +21,9 @@ use Modules\Accounting\Http\Resources\Invoices\SalesInvoiceResource;
 use Modules\Accounting\Models\Account;
 use Modules\Accounting\Models\Customer;
 use Modules\Accounting\Models\SalesInvoice;
+use Modules\Inventory\Models\InventoryItem;
+use Modules\Tax\Models\TaxRate;
+use Modules\Tax\Models\TaxSetting;
 
 class SalesInvoiceController extends Controller
 {
@@ -95,10 +98,30 @@ class SalesInvoiceController extends Controller
 
         $nextNumber = 'INV-'.date('Ymd').'-'.str_pad((string) (SalesInvoice::where('tenant_id', $currentTenant->id())->count() + 1), 4, '0', STR_PAD_LEFT);
 
+        $items = class_exists(InventoryItem::class)
+            ? InventoryItem::where('tenant_id', $currentTenant->id())
+                ->orderBy('name')
+                ->get(['id', 'name', 'sku', 'selling_price', 'cost_price', 'on_hand_stock', 'tax_rate'])
+            : collect();
+
+        $taxRates = class_exists(TaxRate::class)
+            ? TaxRate::where('tenant_id', $currentTenant->id())
+                ->where('timeline_status', 'active')
+                ->orderBy('rate')
+                ->get(['id', 'name', 'code', 'rate', 'rate_type'])
+            : collect();
+
+        $taxSettings = class_exists(TaxSetting::class)
+            ? TaxSetting::where('tenant_id', $currentTenant->id())->first()
+            : null;
+
         return Inertia::render('Accounting/Invoices/Create', [
             'customers' => $customers,
             'accounts' => $revenueAccounts,
             'suggestedInvoiceNumber' => $nextNumber,
+            'items' => $items,
+            'taxRates' => $taxRates,
+            'taxSettings' => $taxSettings,
         ]);
     }
 
@@ -125,13 +148,15 @@ class SalesInvoiceController extends Controller
             )
             ->all();
 
+        $tenantCurrency = $currentTenant->get()?->currency ?? 'USD';
+
         $invoice = $action->execute(
             data: new CreateSalesInvoiceData(
                 customerId: $request->integer('customer_id'),
                 invoiceNumber: $request->string('invoice_number')->toString(),
                 invoiceDate: $request->date('invoice_date'),
                 dueDate: $request->date('due_date'),
-                currency: $request->string('currency', 'MYR')->toString(),
+                currency: $request->string('currency', $tenantCurrency)->toString(),
                 reference: $request->input('reference'),
                 notes: $request->input('notes'),
                 lines: $lines,
@@ -208,10 +233,17 @@ class SalesInvoiceController extends Controller
             ->orderBy('code')
             ->get(['id', 'code', 'name']);
 
+        $items = class_exists(InventoryItem::class)
+            ? InventoryItem::where('tenant_id', $currentTenant->id())
+                ->orderBy('name')
+                ->get(['id', 'name', 'sku', 'selling_price', 'cost_price', 'on_hand_stock', 'tax_rate'])
+            : collect();
+
         return Inertia::render('Accounting/Invoices/Edit', [
             'invoice' => $invoice,
             'customers' => $customers,
             'accounts' => $revenueAccounts,
+            'items' => $items,
         ]);
     }
 

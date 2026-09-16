@@ -7,6 +7,7 @@ use App\Support\Tenancy\CurrentTenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Accounting\Application\Actions\Reports\GenerateAccountBalanceAction;
@@ -70,12 +71,17 @@ final class AccountingReportController extends Controller
 
         $reportData = null;
         if ($accountId > 0) {
-            $reportData = $this->generalLedger->execute(
-                tenantId: $this->currentTenant->id(),
-                accountId: $accountId,
-                fromDate: CarbonImmutable::parse($fromDate),
-                toDate: CarbonImmutable::parse($toDate),
-            );
+            try {
+                $reportData = $this->generalLedger->execute(
+                    tenantId: $this->currentTenant->id(),
+                    accountId: $accountId,
+                    fromDate: CarbonImmutable::parse($fromDate),
+                    toDate: CarbonImmutable::parse($toDate),
+                );
+            } catch (\Throwable $e) {
+                Log::warning('General Ledger execution failed: '.$e->getMessage());
+                $reportData = null;
+            }
         }
 
         return Inertia::render('Accounting/Reports/GeneralLedger', [
@@ -83,7 +89,7 @@ final class AccountingReportController extends Controller
             'selectedAccountId' => $accountId,
             'fromDate' => $fromDate,
             'toDate' => $toDate,
-            'ledger' => $reportData,
+            'ledger' => $this->formatGeneralLedgerData($reportData),
         ]);
     }
 
@@ -152,12 +158,17 @@ final class AccountingReportController extends Controller
 
         $reportData = null;
         if ($accountId > 0) {
-            $reportData = $this->generalLedger->execute(
-                tenantId: $this->currentTenant->id(),
-                accountId: $accountId,
-                fromDate: CarbonImmutable::parse($fromDate),
-                toDate: CarbonImmutable::parse($toDate),
-            );
+            try {
+                $reportData = $this->generalLedger->execute(
+                    tenantId: $this->currentTenant->id(),
+                    accountId: $accountId,
+                    fromDate: CarbonImmutable::parse($fromDate),
+                    toDate: CarbonImmutable::parse($toDate),
+                );
+            } catch (\Throwable $e) {
+                Log::warning('General Ledger Print execution failed: '.$e->getMessage());
+                $reportData = null;
+            }
         }
 
         return Inertia::render('Accounting/Reports/GeneralLedgerPrint', [
@@ -165,7 +176,7 @@ final class AccountingReportController extends Controller
             'selectedAccountId' => $accountId,
             'fromDate' => $fromDate,
             'toDate' => $toDate,
-            'ledger' => $reportData,
+            'ledger' => $this->formatGeneralLedgerData($reportData),
         ]);
     }
 
@@ -408,5 +419,43 @@ final class AccountingReportController extends Controller
             'fromDate' => $fromDate,
             'toDate' => $toDate,
         ]);
+    }
+
+    private function formatGeneralLedgerData($reportData): ?array
+    {
+        if (! $reportData) {
+            return null;
+        }
+
+        return [
+            'accountId' => $reportData->accountId,
+            'accountCode' => $reportData->accountCode,
+            'accountName' => $reportData->accountName,
+            'normalBalance' => $reportData->normalBalance,
+            'fromDate' => $reportData->fromDate->toDateString(),
+            'toDate' => $reportData->toDate->toDateString(),
+            'openingBalance' => (string) $reportData->openingBalance,
+            'totalDebit' => (string) $reportData->totalDebit,
+            'totalCredit' => (string) $reportData->totalCredit,
+            'closingBalance' => (string) $reportData->closingBalance,
+            'entries' => array_map(function ($line) {
+                return [
+                    'id' => $line['journal_entry_id'] ?? 0,
+                    'journal_entry_id' => $line['journal_entry_id'] ?? 0,
+                    'journal_public_id' => $line['journal_public_id'] ?? '',
+                    'entryNumber' => $line['entry_number'] ?? '',
+                    'entry_number' => $line['entry_number'] ?? '',
+                    'entryDate' => $line['entry_date'] ?? '',
+                    'entry_date' => $line['entry_date'] ?? '',
+                    'description' => $line['description'] ?? '',
+                    'debit' => $line['debit'] ?? '0',
+                    'credit' => $line['credit'] ?? '0',
+                    'balance' => $line['balance'] ?? '0',
+                    'referenceType' => null,
+                    'referenceId' => null,
+                ];
+            }, $reportData->lines ?? []),
+            'lines' => $reportData->lines ?? [],
+        ];
     }
 }

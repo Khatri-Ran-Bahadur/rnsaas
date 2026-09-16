@@ -30,7 +30,7 @@ it('allows a super admin to view platform settings', function (): void {
         ->assertOk()
         ->assertInertia(
             fn (Assert $page) => $page
-                ->component('Settings/Index')
+                ->component('SuperAdmin/Settings/Index')
                 ->has('settings')
                 ->has('settings.general')
                 ->has('settings.system')
@@ -230,7 +230,7 @@ it('updates and persists branding platform settings across page refresh', functi
         ->assertOk()
         ->assertInertia(
             fn (Assert $page) => $page
-                ->component('Settings/Index')
+                ->component('SuperAdmin/Settings/Index')
                 ->where('settings.branding.logo_url', 'https://example.com/logo.png')
                 ->where('settings.branding.favicon_url', 'https://example.com/favicon.png')
                 ->where('settings.branding.login_logo_url', 'https://example.com/login_logo.png')
@@ -278,7 +278,7 @@ it('resolves branding media urls dynamically from Media models', function (): vo
         ->assertOk()
         ->assertInertia(
             fn (Assert $page) => $page
-                ->component('Settings/Index')
+                ->component('SuperAdmin/Settings/Index')
                 ->where('settings.branding.logo_media_id', $media->id)
                 ->where('settings.branding.logo_url', $media->url)
         );

@@ -48,6 +48,7 @@ interface SettingsData {
         system_notice?: string | null;
     };
     mail?: {
+        provider?: string | null;
         host?: string | null;
         port?: number | null;
         username?: string | null;
@@ -55,6 +56,33 @@ interface SettingsData {
         from_address?: string | null;
         from_name?: string | null;
         password_configured?: boolean;
+    };
+    pusher?: {
+        enabled?: boolean;
+        app_id?: string | null;
+        app_key?: string | null;
+        app_secret?: string | null;
+        app_cluster?: string | null;
+    };
+    cookie?: {
+        consent_enabled?: boolean;
+        consent_message?: string | null;
+        policy_url?: string | null;
+    };
+    seo?: {
+        meta_title?: string | null;
+        meta_description?: string | null;
+        meta_keywords?: string | null;
+    };
+    recaptcha?: {
+        enabled?: boolean;
+        site_key?: string | null;
+        secret_key?: string | null;
+        version?: string | null;
+    };
+    bank_transfer?: {
+        enabled?: boolean;
+        instructions?: string | null;
     };
     storage?: Record<string, any>;
     cache?: Record<string, any>;
@@ -66,12 +94,21 @@ interface Props {
     settings?: SettingsData;
     timezones?: string[];
     currencies?: string[];
+    emailProviders?: Record<string, {
+        name: string;
+        driver: string;
+        host: string;
+        port: number;
+        encryption: string;
+        username_placeholder: string;
+    }>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     settings: () => ({}),
     timezones: () => [],
     currencies: () => [],
+    emailProviders: () => ({}),
 });
 
 const page = usePage();
@@ -82,20 +119,45 @@ type TabId =
     | 'branding'
     | 'mail'
     | 'system'
+    | 'pusher'
+    | 'seo'
+    | 'cookie'
+    | 'recaptcha'
+    | 'bank_transfer'
     | 'cache'
     | 'storage'
     | 'security'
     | 'health';
 
-const activeTab = ref<TabId>('general');
+const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+const tabFromUrl = searchParams.get('tab') as TabId | null;
+const validTabs: TabId[] = [
+    'general', 'branding', 'mail', 'system', 'pusher', 'seo', 'cookie', 'recaptcha', 'bank_transfer', 'cache', 'storage', 'security', 'health'
+];
+
+const activeTab = ref<TabId>(tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : 'general');
+
+const selectTab = (id: TabId) => {
+    activeTab.value = id;
+    if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', id);
+        window.history.replaceState({}, '', url.toString());
+    }
+};
 
 const tabs = [
     { id: 'general', label: 'General', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
-    { id: 'branding', label: 'Branding', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    { id: 'mail', label: 'Email (SMTP)', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-    { id: 'system', label: 'System', icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4' },
-    { id: 'cache', label: 'Cache', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-    { id: 'storage', label: 'Storage', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' },
+    { id: 'branding', label: 'Brand Settings', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { id: 'system', label: 'System Settings', icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4' },
+    { id: 'cookie', label: 'Cookie Settings', icon: 'M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 15a1 1 0 11-2 0 1 1 0 012 0zm-1-3a1 1 0 01-1-1V8a1 1 0 112 0v5a1 1 0 01-1 1z' },
+    { id: 'pusher', label: 'Pusher Settings', icon: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z' },
+    { id: 'seo', label: 'SEO Settings', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' },
+    { id: 'cache', label: 'Cache Settings', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+    { id: 'storage', label: 'Storage Settings', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' },
+    { id: 'mail', label: 'Email Settings', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+    { id: 'recaptcha', label: 'Google reCAPTCHA', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
+    { id: 'bank_transfer', label: 'Bank Transfer', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z' },
     { id: 'security', label: 'Security', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
     { id: 'health', label: 'System Health', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
 ];
@@ -115,6 +177,43 @@ const encryptionOptions: SelectOption[] = [
     { label: 'STARTTLS', value: 'starttls' },
     { label: 'None (Unencrypted / Local Mailpit)', value: 'none' },
 ];
+
+const emailProviderOptions = computed<SelectOption[]>(() => {
+    if (!props.emailProviders || Object.keys(props.emailProviders).length === 0) {
+        return [
+            { label: 'Custom SMTP Server', value: 'smtp' },
+            { label: 'Mailgun', value: 'mailgun' },
+            { label: 'SendGrid', value: 'sendgrid' },
+            { label: 'Amazon Simple Email Service (SES)', value: 'ses' },
+            { label: 'Postmark', value: 'postmark' },
+            { label: 'Resend', value: 'resend' },
+            { label: 'Google Workspace / Gmail SMTP', value: 'gmail' },
+            { label: 'Local Log (Testing)', value: 'log' },
+        ];
+    }
+
+    return Object.entries(props.emailProviders).map(([key, provider]) => ({
+        label: provider.name,
+        value: key,
+    }));
+});
+
+const onEmailProviderChange = (providerKey: string) => {
+    form.mail.provider = providerKey;
+    const preset = props.emailProviders?.[providerKey];
+    if (preset) {
+        if (preset.host) form.mail.host = preset.host;
+        if (preset.port) form.mail.port = preset.port;
+        if (preset.encryption) form.mail.encryption = preset.encryption;
+        if (providerKey === 'log') {
+            form.mail.username = 'log';
+        } else if (providerKey === 'sendgrid') {
+            form.mail.username = 'apikey';
+        } else if (providerKey === 'resend') {
+            form.mail.username = 'resend';
+        }
+    }
+};
 
 const timezoneOptions = computed<ComboboxOption[]>(() => {
     if (!props.timezones || props.timezones.length === 0) {
@@ -202,6 +301,7 @@ const form = useForm({
         calendar_start_day: props.settings?.system?.calendar_start_day ?? 'sunday',
     },
     mail: {
+        provider: props.settings?.mail?.provider ?? 'smtp',
         host: props.settings?.mail?.host ?? '',
         port: props.settings?.mail?.port ?? 587,
         username: props.settings?.mail?.username ?? '',
@@ -209,6 +309,33 @@ const form = useForm({
         encryption: props.settings?.mail?.encryption ?? 'tls',
         from_address: props.settings?.mail?.from_address ?? '',
         from_name: props.settings?.mail?.from_name ?? 'SathiSaaS',
+    },
+    pusher: {
+        enabled: Boolean(props.settings?.pusher?.enabled),
+        app_id: props.settings?.pusher?.app_id ?? '',
+        app_key: props.settings?.pusher?.app_key ?? '',
+        app_secret: props.settings?.pusher?.app_secret ?? '',
+        app_cluster: props.settings?.pusher?.app_cluster ?? 'mt1',
+    },
+    cookie: {
+        consent_enabled: Boolean(props.settings?.cookie?.consent_enabled),
+        consent_message: props.settings?.cookie?.consent_message ?? 'We use cookies to enhance your browsing experience and analyze our traffic.',
+        policy_url: props.settings?.cookie?.policy_url ?? '/page/privacy-policy',
+    },
+    seo: {
+        meta_title: props.settings?.seo?.meta_title ?? 'SathiSaaS - All-in-One Multi-Tenant Business ERP Platform',
+        meta_description: props.settings?.seo?.meta_description ?? 'Modern cloud ERP and SaaS platform featuring Accounting, POS, MRP, Inventory, Payroll, and Tax management.',
+        meta_keywords: props.settings?.seo?.meta_keywords ?? 'saas, erp, accounting, pos, inventory, mrp, payroll, tax',
+    },
+    recaptcha: {
+        enabled: Boolean(props.settings?.recaptcha?.enabled),
+        site_key: props.settings?.recaptcha?.site_key ?? '',
+        secret_key: props.settings?.recaptcha?.secret_key ?? '',
+        version: props.settings?.recaptcha?.version ?? 'v3',
+    },
+    bank_transfer: {
+        enabled: Boolean(props.settings?.bank_transfer?.enabled),
+        instructions: props.settings?.bank_transfer?.instructions ?? 'Please transfer the subscription amount to our company bank account and email the payment receipt to billing@sathisaas.com.\n\nBank: Chase Bank N.A.\nAccount Name: SathiSaaS Technologies Inc.\nAccount No: 1234567890\nSWIFT: CHASUS33XXX',
     },
 });
 
@@ -457,6 +584,7 @@ const saveSection = (sectionName: string) => {
                             placeholder="Choose section..."
                             :options="tabs.map((t) => ({ label: t.label, value: t.id }))"
                             :searchable="false"
+                            @change="(val) => selectTab(String(val) as TabId)"
                         />
                     </div>
 
@@ -476,7 +604,7 @@ const saveSection = (sectionName: string) => {
                                         ? 'bg-primary-600 text-white shadow-xs shadow-primary-500/25 font-semibold'
                                         : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
                                 ]"
-                                @click="activeTab = tab.id as TabId"
+                                @click="selectTab(tab.id as TabId)"
                             >
                                 <div class="flex items-center gap-3">
                                     <svg
@@ -1016,6 +1144,57 @@ const saveSection = (sectionName: string) => {
                         </div>
 
                         <div class="mt-6 space-y-5">
+                            <!-- Email Provider Presets -->
+                            <div class="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-800/40">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                                            Email Service Provider
+                                        </label>
+                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                            Choose a pre-configured email provider or use custom SMTP.
+                                        </p>
+                                    </div>
+                                    <span class="inline-flex items-center rounded-md bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700 dark:bg-primary-950/50 dark:text-primary-400 border border-primary-200/60 dark:border-primary-800/50">
+                                        Preset Active: {{ emailProviderOptions.find(p => p.value === form.mail.provider)?.label || 'Custom SMTP' }}
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                    <button
+                                        v-for="provider in [
+                                            { id: 'smtp', name: 'Custom SMTP', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+                                            { id: 'resend', name: 'Resend', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+                                            { id: 'postmark', name: 'Postmark', icon: 'M12 19l9 2-9-18-9 18 9-2zm0 0v-8' },
+                                            { id: 'sendgrid', name: 'SendGrid', icon: 'M4 6h16M4 12h16m-7 6h7' },
+                                            { id: 'mailgun', name: 'Mailgun', icon: 'M5 13l4 4L19 7' },
+                                            { id: 'ses', name: 'Amazon SES', icon: 'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z' },
+                                            { id: 'gmail', name: 'Gmail / Workspace', icon: 'M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207' },
+                                            { id: 'log', name: 'Local Log', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+                                        ]"
+                                        :key="provider.id"
+                                        type="button"
+                                        @click="onEmailProviderChange(provider.id)"
+                                        :class="[
+                                            form.mail.provider === provider.id
+                                                ? 'border-primary-600 bg-primary-50/80 text-primary-900 shadow-2xs dark:border-primary-500 dark:bg-primary-950/50 dark:text-primary-100'
+                                                : 'border-zinc-200 bg-white hover:bg-zinc-100/80 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800/80 dark:text-zinc-300',
+                                            'flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all duration-150'
+                                        ]"
+                                    >
+                                        <div :class="[
+                                            form.mail.provider === provider.id ? 'text-primary-600 dark:text-primary-400' : 'text-zinc-400 dark:text-zinc-500',
+                                            'flex h-6 w-6 shrink-0 items-center justify-center'
+                                        ]">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="provider.icon" />
+                                            </svg>
+                                        </div>
+                                        <span class="truncate text-xs font-medium">{{ provider.name }}</span>
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Host & Port -->
                             <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
                                 <div class="sm:col-span-2">
@@ -1288,6 +1467,395 @@ const saveSection = (sectionName: string) => {
                                 <span v-if="savingSection === 'System'">Saving...</span>
                                 <span v-else>Save Changes</span>
                             </Button>
+                        </div>
+                    </div>
+
+                    <!-- SECTION: COOKIE SETTINGS -->
+                    <div v-show="activeTab === 'cookie'" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="border-b border-zinc-200 pb-4 dark:border-zinc-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                                        <svg class="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 15a1 1 0 11-2 0 1 1 0 012 0zm-1-3a1 1 0 01-1-1V8a1 1 0 112 0v5a1 1 0 01-1 1z" />
+                                        </svg>
+                                        Cookie Consent Settings
+                                    </h2>
+                                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Configure the GDPR and privacy cookie compliance banner displayed to new visitors.
+                                    </p>
+                                </div>
+                                <Button
+                                    :disabled="form.processing"
+                                    @click="saveSection('Cookie Settings')"
+                                >
+                                    <span v-if="savingSection === 'Cookie Settings'">Saving...</span>
+                                    <span v-else>Save Changes</span>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 space-y-6">
+                            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                                <Switch
+                                    v-model="form.cookie.consent_enabled"
+                                    label="Enable Cookie Consent Banner"
+                                    description="Display a floating cookie consent notice to public visitors until accepted."
+                                />
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                                    Cookie Consent Message
+                                </label>
+                                <textarea
+                                    v-model="form.cookie.consent_message"
+                                    rows="3"
+                                    class="flex w-full rounded-lg border border-zinc-200 bg-white p-3 text-sm text-zinc-900 shadow-2xs transition-all hover:border-zinc-300 focus:border-primary-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                                    placeholder="We use cookies to improve your browsing experience and analyze site traffic..."
+                                />
+                                <p class="text-xs text-zinc-500">The clear message shown inside the cookie dialog.</p>
+                            </div>
+
+                            <div>
+                                <TextInput
+                                    v-model="form.cookie.policy_url"
+                                    label="Cookie & Privacy Policy URL"
+                                    placeholder="/page/privacy-policy"
+                                    hint="Relative path or absolute URL pointing to your privacy documentation."
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION: PUSHER SETTINGS (Matching Screenshot 2) -->
+                    <div v-show="activeTab === 'pusher'" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="border-b border-zinc-200 pb-4 dark:border-zinc-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                                        <svg class="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
+                                        </svg>
+                                        Pusher Settings
+                                    </h2>
+                                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Configure Pusher for real-time messaging and notifications across your application.
+                                    </p>
+                                </div>
+                                <Button
+                                    :disabled="form.processing"
+                                    @click="saveSection('Pusher Settings')"
+                                >
+                                    <span v-if="savingSection === 'Pusher Settings'">Saving...</span>
+                                    <span v-else>Save Changes</span>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+                            <!-- Left: Form inputs (8 cols) -->
+                            <div class="space-y-5 lg:col-span-8">
+                                <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                                    <Switch
+                                        v-model="form.pusher.enabled"
+                                        label="Enable Pusher Real-Time Broadcasting"
+                                        description="Broadcast live web socket events for order status, kitchen tickets, and instant notifications."
+                                    />
+                                </div>
+
+                                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                    <TextInput
+                                        v-model="form.pusher.app_id"
+                                        label="App ID"
+                                        placeholder="e.g. 1234567"
+                                        hint="Your Pusher application ID."
+                                    />
+                                    <TextInput
+                                        v-model="form.pusher.app_key"
+                                        label="App Key"
+                                        placeholder="your-pusher-app-key"
+                                        hint="Public cluster key used by web socket clients."
+                                    />
+                                </div>
+
+                                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                    <TextInput
+                                        v-model="form.pusher.app_secret"
+                                        type="password"
+                                        label="App Secret"
+                                        placeholder="••••••••••••"
+                                        hint="Private secret key for signing broadcast payloads."
+                                    />
+                                    <TextInput
+                                        v-model="form.pusher.app_cluster"
+                                        label="App Cluster"
+                                        placeholder="mt1"
+                                        hint="Server region cluster (e.g. mt1, us2, eu, ap1)."
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Right: Feature Callout Card (4 cols - Screenshot 2) -->
+                            <div class="lg:col-span-4">
+                                <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-5 dark:border-zinc-800 dark:bg-zinc-800/40">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <svg class="h-4 w-4 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                        <h3 class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">Real-time Features</h3>
+                                    </div>
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        Pusher enables real-time messaging and notifications in your application.
+                                    </p>
+
+                                    <div class="mt-4 space-y-2">
+                                        <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Features enabled:</p>
+                                        <ul class="space-y-1 text-xs text-zinc-700 dark:text-zinc-300">
+                                            <li class="flex items-center gap-2">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                Instant messaging
+                                            </li>
+                                            <li class="flex items-center gap-2">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                Real-time notifications
+                                            </li>
+                                            <li class="flex items-center gap-2">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                                Live updates
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="mt-5 pt-4 border-t border-zinc-200/80 dark:border-zinc-700/60">
+                                        <a
+                                            href="https://pusher.com"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="inline-flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                                        >
+                                            <span>Get your Pusher credentials from pusher.com</span>
+                                            <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION: SEO SETTINGS (Matching Screenshot 2) -->
+                    <div v-show="activeTab === 'seo'" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="border-b border-zinc-200 pb-4 dark:border-zinc-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                                        <svg class="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        SEO Settings
+                                    </h2>
+                                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Configure SEO settings to improve your website's search engine visibility.
+                                    </p>
+                                </div>
+                                <Button
+                                    :disabled="form.processing"
+                                    @click="saveSection('SEO Settings')"
+                                >
+                                    <span v-if="savingSection === 'SEO Settings'">Saving...</span>
+                                    <span v-else>Save Changes</span>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+                            <!-- Left: Form inputs (8 cols) -->
+                            <div class="space-y-5 lg:col-span-8">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                                            Meta Title
+                                        </label>
+                                        <span class="text-[11px] font-medium" :class="form.seo.meta_title.length > 60 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'">
+                                            {{ form.seo.meta_title.length }}/60
+                                        </span>
+                                    </div>
+                                    <input
+                                        v-model="form.seo.meta_title"
+                                        type="text"
+                                        placeholder="SathiSaaS - All-in-One Multi-Tenant Business ERP Platform"
+                                        class="flex h-10 w-full items-center rounded-lg border border-zinc-200 bg-white px-3.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-2xs transition-all hover:border-zinc-300 focus:border-primary-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                                    />
+                                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Appears as the clickable headline in search results.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                                            Meta Description
+                                        </label>
+                                        <span class="text-[11px] font-medium" :class="form.seo.meta_description.length > 160 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'">
+                                            {{ form.seo.meta_description.length }}/160
+                                        </span>
+                                    </div>
+                                    <textarea
+                                        v-model="form.seo.meta_description"
+                                        rows="3"
+                                        placeholder="Modern cloud ERP and SaaS platform featuring Accounting, POS, MRP, Inventory, Payroll, and Tax management."
+                                        class="flex w-full rounded-lg border border-zinc-200 bg-white p-3 text-sm text-zinc-900 placeholder-zinc-400 shadow-2xs transition-all hover:border-zinc-300 focus:border-primary-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                                    />
+                                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Appears below the title in search results. Optimal length: 120-160 characters.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                                            Meta Keywords
+                                        </label>
+                                        <span class="text-[11px] text-zinc-400">
+                                            Comma-separated keywords
+                                        </span>
+                                    </div>
+                                    <input
+                                        v-model="form.seo.meta_keywords"
+                                        type="text"
+                                        placeholder="saas, erp, accounting, pos, inventory, mrp, payroll, tax"
+                                        class="flex h-10 w-full items-center rounded-lg border border-zinc-200 bg-white px-3.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-2xs transition-all hover:border-zinc-300 focus:border-primary-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- Right: Live Google SERP Preview (4 cols - Screenshot 2) -->
+                            <div class="lg:col-span-4">
+                                <div class="rounded-xl border border-zinc-200 bg-zinc-50/70 p-5 dark:border-zinc-800 dark:bg-zinc-800/40">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <svg class="h-4 w-4 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        <h3 class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">SEO Live Preview</h3>
+                                    </div>
+
+                                    <div class="rounded-lg border border-zinc-200 bg-white p-3.5 shadow-2xs dark:border-zinc-700/80 dark:bg-zinc-900">
+                                        <p class="text-[11px] text-zinc-400 truncate">https://rnsaas.com</p>
+                                        <h4 class="mt-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400 cursor-pointer line-clamp-1">
+                                            {{ form.seo.meta_title || 'SathiSaaS - Modern Multi-Tenant Cloud ERP' }}
+                                        </h4>
+                                        <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                                            {{ form.seo.meta_description || 'Modern cloud ERP and SaaS platform featuring Accounting, POS, MRP, Inventory, Payroll, and Tax management.' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION: GOOGLE RECAPTCHA SETTINGS -->
+                    <div v-show="activeTab === 'recaptcha'" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="border-b border-zinc-200 pb-4 dark:border-zinc-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                                        <svg class="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                        Google reCAPTCHA Settings
+                                    </h2>
+                                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Protect registration and login flows from malicious bots and automated scrapers.
+                                    </p>
+                                </div>
+                                <Button
+                                    :disabled="form.processing"
+                                    @click="saveSection('Google reCAPTCHA')"
+                                >
+                                    <span v-if="savingSection === 'Google reCAPTCHA'">Saving...</span>
+                                    <span v-else>Save Changes</span>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 space-y-6">
+                            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                                <Switch
+                                    v-model="form.recaptcha.enabled"
+                                    label="Enable Google reCAPTCHA Verification"
+                                    description="Require bot verification challenge on public registration, login, and password reset forms."
+                                />
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                <TextInput
+                                    v-model="form.recaptcha.site_key"
+                                    label="reCAPTCHA Site Key"
+                                    placeholder="6LeIxacTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                                    hint="Client-side public key from Google reCAPTCHA console."
+                                />
+                                <TextInput
+                                    v-model="form.recaptcha.secret_key"
+                                    type="password"
+                                    label="reCAPTCHA Secret Key"
+                                    placeholder="6LeIxacTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+                                    hint="Server-side secret key for verification API requests."
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION: BANK TRANSFER SETTINGS -->
+                    <div v-show="activeTab === 'bank_transfer'" class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="border-b border-zinc-200 pb-4 dark:border-zinc-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                                        <svg class="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                        </svg>
+                                        Bank Transfer Settings
+                                    </h2>
+                                    <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                                        Configure offline bank wire payment instructions for subscription orders.
+                                    </p>
+                                </div>
+                                <Button
+                                    :disabled="form.processing"
+                                    @click="saveSection('Bank Transfer Settings')"
+                                >
+                                    <span v-if="savingSection === 'Bank Transfer Settings'">Saving...</span>
+                                    <span v-else>Save Changes</span>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 space-y-6">
+                            <div class="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+                                <Switch
+                                    v-model="form.bank_transfer.enabled"
+                                    label="Enable Bank Wire Transfer"
+                                    description="Allow customer organizations to choose Bank Transfer when purchasing subscriptions."
+                                />
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                                    Bank Transfer Instructions & Account Details
+                                </label>
+                                <textarea
+                                    v-model="form.bank_transfer.instructions"
+                                    rows="5"
+                                    class="flex w-full rounded-lg border border-zinc-200 bg-white p-3.5 text-sm font-mono text-zinc-900 shadow-2xs transition-all hover:border-zinc-300 focus:border-primary-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                                    placeholder="Bank Name: &#10;Account Name: &#10;Account Number: &#10;SWIFT/IBAN: "
+                                />
+                                <p class="text-xs text-zinc-500">
+                                    This text is displayed on the invoice and checkout page when the customer selects bank wire payment.
+                                </p>
+                            </div>
                         </div>
                     </div>
 

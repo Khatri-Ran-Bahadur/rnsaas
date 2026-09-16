@@ -1,0 +1,11 @@
+{
+    "name": "MRP",
+    "alias": "mrp",
+    "description": "Universal Advanced MRP, Production, Work Orders, BOM, Assembly, and Material Planning System for SathiSaaS",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\MRP\\Providers\\MrpServiceProvider"
+    ],
+    "files": []
+}

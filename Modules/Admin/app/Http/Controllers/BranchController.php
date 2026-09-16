@@ -30,7 +30,8 @@ class BranchController extends Controller
     {
         $this->authorize('branches.view');
 
-        $tenantId = $this->currentTenant->id();
+        $tenant = $this->currentTenant->get();
+        $tenantId = $tenant->id;
 
         $search = $request->string('search')->trim()->value();
         $status = $request->string('status')->trim()->value();
@@ -54,8 +55,22 @@ class BranchController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        $activeSubscription = $tenant->subscriptions()
+            ->whereIn('status', ['active', 'trialing'])
+            ->latest('id')
+            ->first();
+
+        $allowedBranches = $activeSubscription?->allowed_branches ?? 1;
+        $totalBranches = Branch::query()->where('tenant_id', $tenantId)->count();
+
         return Inertia::render('Admin/Branches/Index', [
             'branches' => $branches,
+            'branchStats' => [
+                'allowed' => $allowedBranches,
+                'used' => $totalBranches,
+                'remaining' => max(0, $allowedBranches - $totalBranches),
+                'can_create' => $totalBranches < $allowedBranches,
+            ],
             'filters' => [
                 'search' => $search,
                 'status' => $status,
@@ -68,6 +83,20 @@ class BranchController extends Controller
     {
         $this->authorize('branches.manage');
 
+        $tenant = $this->currentTenant->get();
+        $activeSubscription = $tenant->subscriptions()
+            ->whereIn('status', ['active', 'trialing'])
+            ->latest('id')
+            ->first();
+
+        $allowedBranches = $activeSubscription?->allowed_branches ?? 1;
+        $totalBranches = Branch::query()->where('tenant_id', $tenant->id)->count();
+
+        if ($totalBranches >= $allowedBranches) {
+            return redirect()->route('admin.branches.index')
+                ->with('warning', "Your organization has reached its limit of {$allowedBranches} branch(es). Please add more branches in your Subscription portal.");
+        }
+
         return Inertia::render('Admin/Branches/Create');
     }
 
@@ -76,6 +105,21 @@ class BranchController extends Controller
         CreateBranchAction $action,
     ): RedirectResponse {
         $this->authorize('branches.manage');
+
+        $tenant = $this->currentTenant->get();
+        $activeSubscription = $tenant->subscriptions()
+            ->whereIn('status', ['active', 'trialing'])
+            ->latest('id')
+            ->first();
+
+        $allowedBranches = $activeSubscription?->allowed_branches ?? 1;
+        $totalBranches = Branch::query()->where('tenant_id', $tenant->id)->count();
+
+        if ($totalBranches >= $allowedBranches) {
+            return back()->withErrors([
+                'name' => "Your subscription plan allows a maximum of {$allowedBranches} branch(es). Please upgrade or add branches in your Subscription portal to continue.",
+            ]);
+        }
 
         $data = new CreateBranchData(
             name: $request->validated('name'),

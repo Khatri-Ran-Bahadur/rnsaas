@@ -35,7 +35,7 @@ class ResolveCurrentTenant
             if ($isActive) {
                 app(CurrentTenant::class)->set($impersonatedTenant);
 
-                return $next($request);
+                return app(EnsureTenantHasActiveSubscription::class)->handle($request, $next);
             }
 
             // Clear invalid impersonation session
@@ -57,8 +57,10 @@ class ResolveCurrentTenant
 
             if ($tenant !== null) {
                 app(CurrentTenant::class)->set($tenant);
+                $activeLocale = $request->session()->get('locale', $user->locale ?: ($tenant->locale ?: config('app.locale', 'en')));
+                app()->setLocale($activeLocale);
 
-                return $next($request);
+                return app(EnsureTenantHasActiveSubscription::class)->handle($request, $next);
             }
 
             $request->session()->forget('current_tenant_id');
@@ -77,7 +79,9 @@ class ResolveCurrentTenant
         $request->session()->put('current_tenant_id', $tenant->id);
 
         app(CurrentTenant::class)->set($tenant);
+        $activeLocale = $request->session()->get('locale', $user->locale ?: ($tenant->locale ?: config('app.locale', 'en')));
+        app()->setLocale($activeLocale);
 
-        return $next($request);
+        return app(EnsureTenantHasActiveSubscription::class)->handle($request, $next);
     }
 }

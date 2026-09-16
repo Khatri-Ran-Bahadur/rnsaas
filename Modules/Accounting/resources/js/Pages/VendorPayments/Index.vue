@@ -149,12 +149,12 @@ const getStatusVariant = (status: PaymentItem['status']): 'active' | 'pending' |
     return val === 'posted' ? 'active' : 'pending';
 };
 
+import { useCurrency } from '@/composables/useCurrency';
+
+const { formatMoney } = useCurrency();
+
 const formatCurrency = (val: string | number) => {
-    const num = parseFloat(String(val) || '0');
-    return new Intl.NumberFormat('en-MY', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(num);
+    return formatMoney(val);
 };
 </script>
 

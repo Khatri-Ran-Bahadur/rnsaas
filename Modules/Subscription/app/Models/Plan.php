@@ -22,6 +22,8 @@ use Modules\Subscription\Enums\BillingCycle;
  * @property string $currency
  * @property BillingCycle $billing_cycle
  * @property int $trial_days
+ * @property int $included_branches
+ * @property string $extra_branch_price
  * @property bool $is_active
  * @property int $sort_order
  * @property array<string, mixed>|null $metadata
@@ -37,6 +39,8 @@ use Modules\Subscription\Enums\BillingCycle;
     'currency',
     'billing_cycle',
     'trial_days',
+    'included_branches',
+    'extra_branch_price',
     'is_active',
     'sort_order',
     'metadata',
@@ -47,10 +51,28 @@ class Plan extends Model
 
     protected $table = 'subscription_plans';
 
+    protected $fillable = [
+        'public_id',
+        'name',
+        'slug',
+        'description',
+        'price',
+        'currency',
+        'billing_cycle',
+        'trial_days',
+        'included_branches',
+        'extra_branch_price',
+        'is_active',
+        'sort_order',
+        'metadata',
+    ];
+
     protected function casts(): array
     {
         return [
             'price' => 'decimal:2',
+            'extra_branch_price' => 'decimal:2',
+            'included_branches' => 'integer',
             'billing_cycle' => BillingCycle::class,
             'trial_days' => 'integer',
             'is_active' => 'boolean',

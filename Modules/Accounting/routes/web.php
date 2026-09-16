@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Accounting\Http\Controllers\Attachments\AccountingAttachmentController;
 use Modules\Accounting\Http\Controllers\Customers\CustomerController;
 use Modules\Accounting\Http\Controllers\Invoices\SalesInvoiceController;
+use Modules\Accounting\Http\Controllers\JournalEntries\JournalEntryController;
 use Modules\Accounting\Http\Controllers\Payments\CustomerPaymentController;
 use Modules\Accounting\Http\Controllers\PurchaseBills\PurchaseBillController;
 use Modules\Accounting\Http\Controllers\Reports\AccountingReportController;
@@ -16,6 +17,22 @@ Route::middleware(['auth', 'tenant', EnsureAccountingModuleEnabled::class])
     ->prefix('admin/accounting')
     ->name('admin.accounting.')
     ->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Journal Entries
+        |--------------------------------------------------------------------------
+        */
+
+        Route::prefix('journal-entries')
+            ->name('journal-entries.')
+            ->controller(JournalEntryController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::post('{journal}/post', 'post')->name('post');
+            });
 
         /*
         |--------------------------------------------------------------------------
@@ -143,6 +160,21 @@ Route::middleware(['auth', 'tenant', EnsureAccountingModuleEnabled::class])
 
         Route::prefix('invoices')
             ->name('invoices.')
+            ->controller(SalesInvoiceController::class)
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('{invoice}', 'show')->name('show');
+                Route::get('{invoice}/edit', 'edit')->name('edit');
+                Route::put('{invoice}', 'update')->name('update');
+                Route::post('{invoice}/issue', 'issue')->name('issue');
+                Route::post('{invoice}/post', 'post')->name('post');
+                Route::post('{invoice}/void', 'void')->name('void');
+            });
+
+        Route::prefix('sales-invoices')
+            ->name('sales-invoices.')
             ->controller(SalesInvoiceController::class)
             ->group(function () {
                 Route::get('/', 'index')->name('index');

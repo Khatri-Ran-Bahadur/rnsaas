@@ -8,5 +8,12 @@
     "Media": true,
     "Admin": true,
     "HRM": true,
-    "Accounting": true
+    "Accounting": true,
+    "Inventory": true,
+    "Tax": true,
+    "POS": true,
+    "Payroll": true,
+    "MRP": true,
+    "Chat": true,
+    "AI": true
 }

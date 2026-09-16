@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
-import Button from '@/components/Button.vue';
+import { Button } from '@/components';
 import { usePermissions } from '@/composables/usePermissions';
+import { useCurrency } from '@/composables/useCurrency';
+import { getTaxTerminology } from '@/utils/taxTerminology';
 
 interface AccountRef {
     id: number;
@@ -105,12 +107,13 @@ const getStatusValue = (status: BillData['status']) => {
     return status;
 };
 
+const page = usePage();
+const tenant = computed(() => (page.props as any).current_tenant || {});
+const terms = computed(() => getTaxTerminology(tenant.value.country_code, tenant.value.tax_regime));
+const { formatMoney } = useCurrency();
+
 const formatCurrency = (val: string | number) => {
-    const num = parseFloat(String(val) || '0');
-    return new Intl.NumberFormat('en-MY', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(num);
+    return formatMoney(val);
 };
 
 const issueBill = () => {
@@ -259,7 +262,7 @@ const voidBill = () => {
                         <div class="mt-2 text-xs text-zinc-500 leading-relaxed">
                             <p v-if="bill.vendor?.email">{{ bill.vendor.email }}</p>
                             <p v-if="bill.vendor?.phone">{{ bill.vendor.phone }}</p>
-                            <p v-if="bill.vendor?.tax_number">Tax ID: {{ bill.vendor.tax_number }}</p>
+                            <p v-if="bill.vendor?.tax_number">{{ terms.registrationLabel }}: {{ bill.vendor.tax_number }}</p>
                             <p v-if="bill.vendor?.billing_address_line_1">{{ bill.vendor.billing_address_line_1 }}</p>
                             <p>{{ [bill.vendor?.billing_city, bill.vendor?.billing_state, bill.vendor?.billing_country].filter(Boolean).join(', ') }}</p>
                         </div>
@@ -316,7 +319,7 @@ const voidBill = () => {
                             <span class="font-mono">-{{ formatCurrency(bill.discount_amount) }}</span>
                         </div>
                         <div class="flex justify-between text-zinc-600 dark:text-zinc-400">
-                            <span>Total Tax</span>
+                            <span>{{ terms.taxLabel }} Total</span>
                             <span class="font-mono">{{ formatCurrency(bill.tax_amount) }}</span>
                         </div>
                         <div class="flex justify-between border-t border-zinc-200 pt-3 text-base font-bold text-zinc-900 dark:border-zinc-800 dark:text-zinc-100">

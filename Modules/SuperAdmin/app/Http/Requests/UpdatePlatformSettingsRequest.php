@@ -132,6 +132,12 @@ class UpdatePlatformSettingsRequest extends FormRequest
 
             'mail' => ['nullable', 'array'],
 
+            'mail.provider' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
             'mail.host' => [
                 'nullable',
                 'string',
@@ -159,7 +165,7 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'mail.encryption' => [
                 'nullable',
                 'string',
-                Rule::in(['tls', 'ssl', 'none']),
+                Rule::in(['tls', 'ssl', 'starttls', 'none']),
             ],
 
             'mail.from_address' => [
@@ -173,6 +179,33 @@ class UpdatePlatformSettingsRequest extends FormRequest
                 'string',
                 'max:100',
             ],
+
+            'pusher' => ['nullable', 'array'],
+            'pusher.enabled' => ['nullable', 'boolean'],
+            'pusher.app_id' => ['nullable', 'string', 'max:100'],
+            'pusher.app_key' => ['nullable', 'string', 'max:100'],
+            'pusher.app_secret' => ['nullable', 'string', 'max:100'],
+            'pusher.app_cluster' => ['nullable', 'string', 'max:50'],
+
+            'cookie' => ['nullable', 'array'],
+            'cookie.consent_enabled' => ['nullable', 'boolean'],
+            'cookie.consent_message' => ['nullable', 'string', 'max:1000'],
+            'cookie.policy_url' => ['nullable', 'string', 'max:500'],
+
+            'seo' => ['nullable', 'array'],
+            'seo.meta_title' => ['nullable', 'string', 'max:255'],
+            'seo.meta_description' => ['nullable', 'string', 'max:1000'],
+            'seo.meta_keywords' => ['nullable', 'string', 'max:500'],
+
+            'recaptcha' => ['nullable', 'array'],
+            'recaptcha.enabled' => ['nullable', 'boolean'],
+            'recaptcha.site_key' => ['nullable', 'string', 'max:255'],
+            'recaptcha.secret_key' => ['nullable', 'string', 'max:255'],
+            'recaptcha.version' => ['nullable', 'string', 'max:20'],
+
+            'bank_transfer' => ['nullable', 'array'],
+            'bank_transfer.enabled' => ['nullable', 'boolean'],
+            'bank_transfer.instructions' => ['nullable', 'string', 'max:2000'],
         ];
     }
 

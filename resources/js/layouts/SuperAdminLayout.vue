@@ -56,7 +56,7 @@ watch(
         />
 
         <!-- Main Content Area (Offset for Desktop Sidebar) -->
-        <div class="flex min-h-screen flex-col lg:pl-72">
+        <div class="flex min-h-screen flex-col lg:pl-72 rtl:lg:pl-0 rtl:lg:pr-72">
             <!-- Header Component -->
             <AdminHeader
                 :breadcrumbs="breadcrumbs"

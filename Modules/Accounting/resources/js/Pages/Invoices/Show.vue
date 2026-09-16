@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import Button from '@/components/Button.vue';
 import Badge from '@/components/Badge.vue';
 import { usePermissions } from '@/composables/usePermissions';
+import { getTaxTerminology } from '@/utils/taxTerminology';
 
 interface CustomerInfo {
     id: number;
@@ -115,6 +116,11 @@ const voidInvoice = () => {
         }
     );
 };
+
+const page = usePage();
+const tenant = computed(() => (page.props as any).current_tenant || {});
+const terms = computed(() => getTaxTerminology(tenant.value.country_code, tenant.value.tax_regime));
+const currencyCode = computed(() => props.invoice.currency || tenant.value.currency || 'USD');
 
 const formatMoney = (val: string | number | undefined) => {
     const num = Number(val || 0);
@@ -227,14 +233,14 @@ const getStatusVariant = (status: string) => {
                                 {{ invoice.customer.billing_city }}, {{ invoice.customer.billing_country }}
                             </div>
                             <div v-if="invoice.customer.tax_number" class="text-xs text-slate-500 dark:text-zinc-400">
-                                Tax ID: {{ invoice.customer.tax_number }}
+                                {{ terms.registrationLabel }}: {{ invoice.customer.tax_number }}
                             </div>
                         </div>
                     </div>
 
                     <div class="sm:text-right">
                         <div class="text-3xl font-extrabold uppercase tracking-tight text-slate-900 dark:text-white">
-                            Invoice
+                            {{ terms.invoiceTitle }}
                         </div>
                         <div class="mt-2 space-y-1 text-sm text-slate-600 dark:text-zinc-400">
                             <div><span class="font-semibold text-slate-900 dark:text-white">Invoice #:</span> {{ invoice.invoice_number }}</div>
@@ -274,11 +280,11 @@ const getStatusVariant = (status: string) => {
                                     <span v-else>—</span>
                                 </td>
                                 <td class="px-4 py-3 text-right">{{ line.quantity }}</td>
-                                <td class="px-4 py-3 text-right">${{ formatMoney(line.unit_price) }}</td>
-                                <td class="px-4 py-3 text-right">${{ formatMoney(line.tax_amount) }}</td>
-                                <td class="px-4 py-3 text-right">${{ formatMoney(line.discount_amount) }}</td>
+                                <td class="px-4 py-3 text-right">{{ currencyCode }} {{ formatMoney(line.unit_price) }}</td>
+                                <td class="px-4 py-3 text-right">{{ currencyCode }} {{ formatMoney(line.tax_amount) }}</td>
+                                <td class="px-4 py-3 text-right">{{ currencyCode }} {{ formatMoney(line.discount_amount) }}</td>
                                 <td class="px-4 py-3 text-right font-medium text-slate-900 dark:text-white">
-                                    ${{ formatMoney(line.total) }}
+                                    {{ currencyCode }} {{ formatMoney(line.total) }}
                                 </td>
                             </tr>
                         </tbody>
@@ -290,19 +296,19 @@ const getStatusVariant = (status: string) => {
                     <div class="w-80 space-y-2 text-sm">
                         <div class="flex justify-between text-slate-600 dark:text-zinc-400">
                             <span>Subtotal:</span>
-                            <span class="font-medium text-slate-900 dark:text-white">${{ formatMoney(invoice.subtotal) }}</span>
+                            <span class="font-medium text-slate-900 dark:text-white">{{ currencyCode }} {{ formatMoney(invoice.subtotal) }}</span>
                         </div>
                         <div class="flex justify-between text-slate-600 dark:text-zinc-400">
                             <span>Discount Total:</span>
-                            <span class="font-medium text-slate-900 dark:text-white">-${{ formatMoney(invoice.discount_total) }}</span>
+                            <span class="font-medium text-slate-900 dark:text-white">-{{ currencyCode }} {{ formatMoney(invoice.discount_total) }}</span>
                         </div>
                         <div class="flex justify-between text-slate-600 dark:text-zinc-400">
-                            <span>Tax Total:</span>
-                            <span class="font-medium text-slate-900 dark:text-white">+${{ formatMoney(invoice.tax_total) }}</span>
+                            <span>{{ terms.taxLabel }} Total:</span>
+                            <span class="font-medium text-slate-900 dark:text-white">+{{ currencyCode }} {{ formatMoney(invoice.tax_total) }}</span>
                         </div>
                         <div class="flex justify-between border-t border-slate-200 pt-3 text-lg font-bold text-slate-900 dark:border-zinc-800 dark:text-white">
                             <span>Grand Total:</span>
-                            <span class="text-indigo-600 dark:text-indigo-400">${{ formatMoney(invoice.grand_total) }}</span>
+                            <span class="text-indigo-600 dark:text-indigo-400">{{ currencyCode }} {{ formatMoney(invoice.grand_total) }}</span>
                         </div>
                     </div>
                 </div>
@@ -333,7 +339,7 @@ const getStatusVariant = (status: string) => {
                                 </span>
                             </div>
                             <div class="font-bold text-emerald-600 dark:text-emerald-400">
-                                -${{ formatMoney(alloc.allocated_amount) }}
+                                -{{ currencyCode }} {{ formatMoney(alloc.allocated_amount) }}
                             </div>
                         </div>
                     </div>

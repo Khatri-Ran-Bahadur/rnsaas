@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 
 defineProps<{
     breadcrumbs?: Array<{ label: string; href?: string }>;
@@ -26,6 +27,9 @@ const currentTenant = computed(() => (page.props.current_tenant as any) ?? {
 });
 
 const impersonation = computed(() => (page.props.impersonation as any) ?? null);
+
+const isPosEnabled = computed(() => currentTenant.value?.modules?.pos !== false);
+const isAccountingEnabled = computed(() => currentTenant.value?.modules?.accounting !== false);
 
 const handleClickOutside = (event: MouseEvent) => {
     if (userDropdownRef.value && !userDropdownRef.value.contains(event.target as Node)) {
@@ -105,11 +109,44 @@ const logout = () => {
                 </button>
             </div>
 
-            <!-- Organization Badge -->
+            <!-- Quick Actions: Sales Invoices & POS -->
+            <div class="flex items-center gap-2">
+                <Link
+                    v-if="isAccountingEnabled"
+                    href="/admin/accounting/invoices"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50/70 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 transition-all hover:bg-indigo-100 hover:text-indigo-800 dark:border-indigo-800/80 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60 shadow-xs"
+                    title="Sales Invoices"
+                >
+                    <svg class="h-4 w-4 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span class="hidden sm:inline font-bold">Invoices</span>
+                </Link>
+
+                <Link
+                    v-if="isPosEnabled"
+                    href="/admin/pos"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50/70 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 transition-all hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60 shadow-xs"
+                    title="Point of Sale (POS) Terminal"
+                >
+                    <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <span class="hidden sm:inline font-bold">POS</span>
+                </Link>
+            </div>
+
+            <!-- Organization & Currency Badge -->
             <div class="hidden md:flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-700 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300">
                 <span class="h-2 w-2 rounded-full bg-emerald-500" />
                 <span>{{ currentTenant.name }}</span>
+                <span v-if="currentTenant.currency" class="ml-1 rounded bg-zinc-200/80 px-1.5 py-0.5 font-mono text-[10px] font-bold dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">
+                    {{ currentTenant.currency_symbol || currentTenant.currency }}
+                </span>
             </div>
+
+            <!-- Universal Dynamic Language Switcher -->
+            <LanguageSwitcher />
 
             <!-- Theme Toggle Component -->
             <ThemeToggle />
@@ -121,7 +158,16 @@ const logout = () => {
                     class="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     @click.stop="userDropdownOpen = !userDropdownOpen"
                 >
-                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-xs shadow-indigo-500/25">
+                    <img
+                        v-if="user.avatar_url"
+                        :src="user.avatar_url"
+                        :alt="user.name"
+                        class="h-8 w-8 shrink-0 rounded-lg object-cover shadow-xs border border-zinc-200 dark:border-zinc-700"
+                    />
+                    <div
+                        v-else
+                        class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-xs shadow-indigo-500/25"
+                    >
                         {{ user.name.charAt(0) }}
                     </div>
                     <div class="hidden text-left md:block">
@@ -159,6 +205,17 @@ const logout = () => {
                         </div>
 
                         <div class="py-1">
+                            <Link
+                                href="/admin/profile"
+                                class="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                                @click="userDropdownOpen = false"
+                            >
+                                <svg class="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span>My Profile</span>
+                            </Link>
+
                             <Link
                                 href="/admin/dashboard"
                                 class="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"

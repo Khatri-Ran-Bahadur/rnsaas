@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/ai",
+    "description": "Enterprise AI Copilot and Support Assistant Module for SathiSaaS",
+    "authors": [
+        {
+            "name": "SathiSaaS",
+            "email": "dev@sathisaas.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\AI\\": "app/",
+            "Modules\\AI\\Database\\Factories\\": "database/factories/",
+            "Modules\\AI\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\AI\\Tests\\": "tests/"
+        }
+    }
+}

@@ -29,10 +29,10 @@ const fromInput = ref(props.fromDate);
 const toInput = ref(props.toDate);
 const isRebalancing = ref(false);
 
-const currency = computed(() => {
-    const curr = (page.props as any).current_tenant?.currency || (page.props as any).currentTenant?.currency || 'MYR';
-    return curr === 'MYR' ? 'RM' : (curr === 'USD' ? '$' : curr + ' ');
-});
+import { useCurrency } from '@/composables/useCurrency';
+
+const { currencySymbol } = useCurrency();
+const currency = computed(() => currencySymbol.value);
 
 const companyName = computed(() => {
     return (page.props as any).current_tenant?.name || (page.props as any).currentTenant?.name || (page.props as any).tenant?.name || 'My Company';

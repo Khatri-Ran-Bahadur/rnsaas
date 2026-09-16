@@ -50,15 +50,29 @@ interface InvoiceData {
     lines: InvoiceLineData[];
 }
 
+interface ItemOption {
+    id: number;
+    name: string;
+    sku: string;
+    selling_price: number;
+    cost_price: number;
+    on_hand_stock: number;
+    tax_rate?: number;
+}
+
 interface Props {
     invoice: InvoiceData;
     customers: CustomerOption[];
     accounts: AccountOption[];
+    items?: ItemOption[];
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    items: () => [],
+});
 
 interface InvoiceLineItem {
+    item_id?: number | '';
     description: string;
     quantity: number;
     unit_price: number;
@@ -75,6 +89,7 @@ const defaultAccount = props.accounts.length > 0 ? props.accounts[0].id : '';
 const lines = ref<InvoiceLineItem[]>(
     props.invoice.lines && props.invoice.lines.length > 0
         ? props.invoice.lines.map((l) => ({
+            item_id: (l as any).item_id ?? '',
             description: l.description,
             quantity: Number(l.quantity) || 1,
             unit_price: Number(l.unit_price) || 0,
@@ -87,6 +102,7 @@ const lines = ref<InvoiceLineItem[]>(
         }))
         : [
             {
+                item_id: '',
                 description: '',
                 quantity: 1,
                 unit_price: 0,
@@ -125,6 +141,17 @@ const accountOptions = computed<SelectOption[]>(() => {
     }));
 });
 
+const itemOptions = computed<SelectOption[]>(() => {
+    return [
+        { label: '-- Custom Item / None --', value: '' },
+        ...props.items.map((item) => ({
+            label: item.name,
+            sublabel: `${item.sku ? `[${item.sku}] ` : ''}${form.currency || props.invoice?.currency || 'USD'} ${Number(item.selling_price || 0).toFixed(2)}${item.on_hand_stock !== undefined ? ` • Stock: ${item.on_hand_stock}` : ''}`,
+            value: item.id,
+        })),
+    ];
+});
+
 watch(() => form.customer_id, (newVal) => {
     if (!newVal) return;
     const cust = props.customers.find((c) => c.id === Number(newVal));
@@ -134,6 +161,22 @@ watch(() => form.customer_id, (newVal) => {
         form.due_date = d.toISOString().split('T')[0];
     }
 });
+
+const onItemSelect = (line: InvoiceLineItem, selectedId: any) => {
+    const id = Number(selectedId);
+    line.item_id = id || '';
+    if (!id) return;
+    const item = props.items.find((i) => i.id === id);
+    if (item) {
+        line.item_id = item.id;
+        line.description = item.name + (item.sku ? ` (${item.sku})` : '');
+        line.unit_price = Number(item.selling_price || 0);
+        if (item.tax_rate !== undefined && item.tax_rate !== null) {
+            line.tax_rate = Number(item.tax_rate);
+        }
+        calculateLine(line);
+    }
+};
 
 const calculateLine = (line: InvoiceLineItem) => {
     const qty = Number(line.quantity) || 0;
@@ -152,6 +195,7 @@ const calculateLine = (line: InvoiceLineItem) => {
 
 const addLine = () => {
     lines.value.push({
+        item_id: '',
         description: '',
         quantity: 1,
         unit_price: 0,
@@ -331,8 +375,9 @@ const submit = () => {
                         <table class="w-full text-left text-xs text-slate-600 dark:text-zinc-400">
                             <thead class="border-b border-slate-200 bg-slate-50 font-semibold uppercase tracking-wider text-slate-500 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-400">
                                 <tr>
-                                    <th class="px-3 py-2.5">Description</th>
-                                    <th class="px-3 py-2.5 w-56">Revenue Account</th>
+                                    <th class="px-3 py-2.5 w-56 min-w-[200px]">Item / Product</th>
+                                    <th class="px-3 py-2.5 min-w-[180px]">Description <span class="text-rose-500">*</span></th>
+                                    <th class="px-3 py-2.5 w-52 min-w-[170px]">Revenue Account <span class="text-rose-500">*</span></th>
                                     <th class="px-3 py-2.5 w-20 text-right">Qty</th>
                                     <th class="px-3 py-2.5 w-28 text-right">Unit Price</th>
                                     <th class="px-3 py-2.5 w-24 text-right">Discount</th>
@@ -344,11 +389,21 @@ const submit = () => {
                             <tbody class="divide-y divide-slate-200 dark:divide-zinc-800">
                                 <tr v-for="(line, index) in lines" :key="index" class="hover:bg-slate-50/50 dark:hover:bg-zinc-800/40">
                                     <td class="px-3 py-2">
+                                        <Select
+                                            v-model="line.item_id"
+                                            :options="itemOptions"
+                                            placeholder="Select product..."
+                                            :searchable="true"
+                                            size="sm"
+                                            @update:model-value="onItemSelect(line, $event)"
+                                        />
+                                    </td>
+                                    <td class="px-3 py-2">
                                         <input
                                             v-model="line.description"
                                             type="text"
                                             placeholder="Item description..."
-                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
                                             required
                                         />
                                     </td>
@@ -359,6 +414,7 @@ const submit = () => {
                                             placeholder="Account..."
                                             :searchable="true"
                                             :required="true"
+                                            size="sm"
                                         />
                                     </td>
                                     <td class="px-3 py-2 text-right">
@@ -367,8 +423,9 @@ const submit = () => {
                                             type="number"
                                             step="0.0001"
                                             min="0.0001"
-                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
                                             required
+                                            @input="calculateLine(line)"
                                         />
                                     </td>
                                     <td class="px-3 py-2 text-right">
@@ -377,8 +434,9 @@ const submit = () => {
                                             type="number"
                                             step="0.01"
                                             min="0"
-                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
                                             required
+                                            @input="calculateLine(line)"
                                         />
                                     </td>
                                     <td class="px-3 py-2 text-right">
@@ -387,7 +445,8 @@ const submit = () => {
                                             type="number"
                                             step="0.01"
                                             min="0"
-                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                                            @input="calculateLine(line)"
                                         />
                                     </td>
                                     <td class="px-3 py-2 text-right">
@@ -397,10 +456,11 @@ const submit = () => {
                                             step="0.01"
                                             min="0"
                                             max="100"
-                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                                            class="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-right text-xs text-slate-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                                            @input="calculateLine(line)"
                                         />
                                     </td>
-                                    <td class="px-3 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                                    <td class="px-3 py-2 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">
                                         ${{ Number(line.total || 0).toFixed(2) }}
                                     </td>
                                     <td class="px-3 py-2 text-center">

@@ -2,10 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ReferenceData;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Modules\Media\Models\Media;
+use Modules\Subscription\Models\SubscriptionBankTransfer;
 use Modules\SuperAdmin\Services\PlatformSettings;
 use Modules\Tenancy\Application\Services\OrganizationAuthorizationService;
 use Modules\Tenancy\Domain\Enums\TenantStatus;
@@ -42,12 +44,42 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        if ($request->is('install*', 'update*') || ! file_exists(storage_path('installed'))) {
+            return [
+                'name' => config('app.name'),
+                'csrf_token' => csrf_token(),
+                'auth' => [
+                    'user' => null,
+                ],
+            ];
+        }
+
+        $userLocale = null;
+        try {
+            $userLocale = $request->user()?->locale;
+        } catch (\Throwable) {
+        }
+
+        $activeLocale = $request->session()->get('locale')
+            ?? $userLocale
+            ?? config('app.locale', 'en');
+
+        app()->setLocale($activeLocale);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'csrf_token' => csrf_token(),
+            'locale' => $activeLocale,
+            'supported_locales' => ReferenceData::locales(),
             'auth' => [
-                'user' => $request->user(),
+                'user' => function () use ($request) {
+                    try {
+                        return $request->user();
+                    } catch (\Throwable) {
+                        return null;
+                    }
+                },
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
@@ -56,7 +88,7 @@ class HandleInertiaRequests extends Middleware
                 'info' => fn () => $request->session()->get('info'),
             ],
             'platform' => $this->platformBranding(),
-            'current_tenant' => function () {
+            'current_tenant' => function () use ($request) {
                 try {
                     $currentTenant = app(CurrentTenant::class);
                     if (! $currentTenant->has()) {
@@ -64,6 +96,51 @@ class HandleInertiaRequests extends Middleware
                     }
 
                     $tenant = $currentTenant->get();
+                    $user = $request->user();
+
+                    $activeSub = $tenant->subscriptions()
+                        ->where('status', 'active')
+                        ->where(function ($query) {
+                            $query->whereNull('current_period_ends_at')
+                                ->orWhere('current_period_ends_at', '>=', now());
+                        })
+                        ->with('plan')
+                        ->first();
+
+                    $latestSub = $tenant->subscriptions()->latest('id')->with('plan')->first();
+                    $hasPendingTransfer = SubscriptionBankTransfer::query()
+                        ->where('tenant_id', $tenant->id)
+                        ->where('status', 'pending')
+                        ->exists();
+
+                    $isSubscribed = ($activeSub !== null);
+
+                    $statusString = 'none';
+                    if ($activeSub) {
+                        $statusString = 'active';
+                    } elseif ($hasPendingTransfer || ($latestSub && ($latestSub->status === 'pending' || (is_object($latestSub->status) && $latestSub->status->value === 'pending')))) {
+                        $statusString = 'pending_approval';
+                    } elseif ($latestSub) {
+                        $statusString = is_object($latestSub->status) ? $latestSub->status->value : (string) $latestSub->status;
+                    }
+
+                    $curr = strtoupper((string) ($tenant->currency ?? 'USD'));
+                    $currencySymbol = match ($curr) {
+                        'USD' => '$',
+                        'EUR' => '€',
+                        'GBP' => '£',
+                        'INR' => '₹',
+                        'NPR' => 'रू',
+                        'MYR' => 'RM',
+                        'CAD' => 'CA$',
+                        'AUD' => 'A$',
+                        'SGD' => 'S$',
+                        'AED' => 'AED',
+                        'SAR' => 'SAR',
+                        'QAR' => 'QAR',
+                        'JPY', 'CNY' => '¥',
+                        default => $curr,
+                    };
 
                     return [
                         'id' => $tenant->id,
@@ -72,9 +149,23 @@ class HandleInertiaRequests extends Middleware
                         'slug' => $tenant->slug,
                         'status' => $tenant->status instanceof TenantStatus ? $tenant->status->value : (string) $tenant->status,
                         'timezone' => $tenant->timezone,
-                        'currency' => $tenant->currency,
+                        'currency' => $tenant->currency ?: 'USD',
+                        'currency_symbol' => $currencySymbol,
+                        'country_code' => $tenant->country_code ?: 'US',
+                        'locale' => $tenant->locale ?: app()->getLocale(),
+                        'industry' => $tenant->industry,
+                        'is_hospitality' => in_array(strtolower((string) $tenant->industry), ['restaurant', 'food_beverage', 'hospitality', 'hotel']),
+                        'is_subscribed' => $isSubscribed,
+                        'subscription_status' => $statusString,
+                        'plan_name' => $activeSub?->plan?->name ?? ($latestSub?->plan?->name ?? null),
                         'modules' => [
                             'accounting' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('accounting') : true,
+                            'mrp' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('mrp') : true,
+                            'pos' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('pos') : true,
+                            'inventory' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('inventory') : true,
+                            'hrm' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('hrm') : true,
+                            'payroll' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('payroll') : true,
+                            'tax' => method_exists($tenant, 'isModuleEnabled') ? $tenant->isModuleEnabled('tax') : true,
                         ],
                     ];
                 } catch (\Throwable) {
@@ -171,6 +262,20 @@ class HandleInertiaRequests extends Middleware
                 } catch (\Throwable) {
                     return null;
                 }
+            },
+            'pending_bank_transfers_count' => function () use ($request) {
+                try {
+                    $user = $request->user();
+                    if ($user && $user->hasRole('SuperAdmin')) {
+                        return SubscriptionBankTransfer::query()
+                            ->where('status', 'pending')
+                            ->count();
+                    }
+                } catch (\Throwable) {
+                    return 0;
+                }
+
+                return 0;
             },
         ];
     }

@@ -2,7 +2,10 @@
 
 namespace Modules\SuperAdmin\Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -72,5 +75,32 @@ class SuperAdminDatabaseSeeder extends Seeder
         $superAdmin = Role::findOrCreate('SuperAdmin', 'web');
 
         $superAdmin->syncPermissions($permissionModels);
+
+        // Seed or verify default SuperAdmin user
+        $superAdminUser = User::firstWhere('email', 'admin@sathisaas.com');
+
+        if (! $superAdminUser) {
+            $superAdminUser = User::create([
+                'name' => 'Super Administrator',
+                'email' => 'admin@sathisaas.com',
+                'password' => Hash::make('password'),
+                'email_verified_at' => Carbon::now(),
+            ]);
+        } else {
+            $superAdminUser->forceFill([
+                'email_verified_at' => Carbon::now(),
+            ])->save();
+        }
+
+        if (! $superAdminUser->hasRole('SuperAdmin')) {
+            $superAdminUser->assignRole($superAdmin);
+        }
+
+        // Ensure all users with SuperAdmin role are marked as verified
+        User::role('SuperAdmin')->get()->each(function (User $user): void {
+            if (! $user->email_verified_at) {
+                $user->forceFill(['email_verified_at' => Carbon::now()])->save();
+            }
+        });
     }
 }

@@ -43,15 +43,35 @@ interface Props {
 
 const props = defineProps<Props>();
 const page = usePage();
+const isDownloading = ref(false);
+
+const currency = computed(() => {
+    return (page.props as any).current_tenant?.currency || (page.props as any).tenant?.currency || "USD";
+});
 
 const accountInput = ref(props.selectedAccountId || (props.accounts[0]?.id ?? ''));
 const fromInput = ref(props.fromDate);
 const toInput = ref(props.toDate);
 
 const accountOptions = computed<SelectOption[]>(() => {
-    return props.accounts.map((acc) => ({
+    return (props.accounts || []).map((acc) => ({
         label: `${acc.code} - ${acc.name}`,
         value: acc.id,
+    }));
+});
+
+const ledgerEntries = computed<LedgerEntry[]>(() => {
+    if (!props.ledger) return [];
+    return (props.ledger.entries || (props.ledger as any).lines || []).map((e: any) => ({
+        id: e.id || e.journal_entry_id || 0,
+        entryNumber: e.entryNumber || e.entry_number || '',
+        entryDate: e.entryDate || e.entry_date || '',
+        description: e.description || '',
+        debit: e.debit || '0',
+        credit: e.credit || '0',
+        balance: e.balance || '0',
+        referenceType: e.referenceType || e.reference_type || null,
+        referenceId: e.referenceId || e.reference_id || null,
     }));
 });
 
@@ -267,7 +287,7 @@ const handlePrint = () => {
                         <!-- Top Right -->
                         <div class="text-right w-1/3 text-[11px] text-slate-500 dark:text-zinc-400">
                             <div>Prepared By: <span class="font-semibold text-slate-700 dark:text-zinc-300">{{ userName }}</span></div>
-                            <div class="mt-0.5">Currency: <span class="font-mono font-bold text-slate-700 dark:text-zinc-300">USD ($)</span></div>
+                            <div class="mt-0.5">Currency: <span class="font-mono font-bold text-slate-700 dark:text-zinc-300">{{ currency }}</span></div>
                         </div>
                     </div>
                 </div>
@@ -302,7 +322,7 @@ const handlePrint = () => {
 
                             <!-- Transaction Lines -->
                             <tr
-                                v-for="entry in ledger.entries"
+                                v-for="entry in ledgerEntries"
                                 :key="entry.id"
                                 class="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors"
                             >
@@ -321,7 +341,7 @@ const handlePrint = () => {
                                 </td>
                             </tr>
 
-                            <tr v-if="ledger.entries.length === 0">
+                            <tr v-if="ledgerEntries.length === 0">
                                 <td colspan="7" class="py-8 text-center text-slate-400 italic">
                                     No ledger activity recorded for this account during the selected date range.
                                 </td>

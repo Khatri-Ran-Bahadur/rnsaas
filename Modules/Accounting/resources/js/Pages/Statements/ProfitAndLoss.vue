@@ -3,6 +3,8 @@ import { ref, computed } from 'vue';
 import { Head, usePage, router } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import { Button, DatePicker } from '@/components';
+import BarChart from '@/components/charts/BarChart.vue';
+import type { ChartData } from 'chart.js';
 
 interface StatementAccountRow {
     account_id: number;
@@ -64,6 +66,33 @@ const totalOperatingExpenses = computed(() => {
 
 const netProfit = computed(() => {
     return Number(props.statement.total || props.statement.sections.net_profit?.amount || 0);
+});
+
+
+const plOverviewChartData = computed<ChartData<'bar'>>(() => {
+    return {
+        labels: ['Gross Revenue', 'Cost of Sales', 'Gross Profit', 'Operating Expenses', 'Net Profit'],
+        datasets: [
+            {
+                label: 'Financial Performance',
+                data: [
+                    totalRevenue.value,
+                    totalCostOfSales.value,
+                    grossProfit.value,
+                    totalOperatingExpenses.value,
+                    netProfit.value,
+                ],
+                backgroundColor: [
+                    '#4f46e5',
+                    '#f59e0b',
+                    '#10b981',
+                    '#ef4444',
+                    netProfit.value >= 0 ? '#10b981' : '#f43f5e',
+                ],
+                borderRadius: 6,
+            }
+        ]
+    };
 });
 
 const formatCurrency = (val: string | number | undefined) => {
@@ -255,6 +284,20 @@ const exportExcel = () => {
                         </p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Financial Performance Visual Waterfall Breakdown -->
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-zinc-800">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Income & Expense Structure</h3>
+                        <p class="text-xs text-slate-500 dark:text-zinc-400">Revenue conversion, direct margin costs, operating overhead, and net margin</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold" :class="netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                        {{ formatCurrency(netProfit) }} Net
+                    </span>
+                </div>
+                <BarChart :data="plOverviewChartData" :currency-prefix="currency" :height="220" />
             </div>
 
             <!-- Two-Column Statement Paper Card (Matching Screenshot 3) -->

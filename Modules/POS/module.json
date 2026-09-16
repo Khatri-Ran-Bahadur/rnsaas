@@ -1,0 +1,11 @@
+{
+    "name": "POS",
+    "alias": "pos",
+    "description": "Universal Production-Grade Point of Sale (POS) Module for SathiSaaS",
+    "keywords": ["pos", "retail", "restaurant", "kds", "cashier", "shifts", "orders"],
+    "priority": 0,
+    "providers": [
+        "Modules\\POS\\Providers\\PosServiceProvider"
+    ],
+    "files": []
+}

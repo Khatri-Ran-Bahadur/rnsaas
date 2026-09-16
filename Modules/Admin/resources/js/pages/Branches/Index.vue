@@ -44,6 +44,12 @@ interface PaginatedBranches {
 
 const props = defineProps<{
     branches: PaginatedBranches;
+    branchStats?: {
+        allowed: number;
+        used: number;
+        remaining: number;
+        can_create: boolean;
+    };
     filters: {
         search?: string;
         status?: string;
@@ -219,12 +225,21 @@ const isNext = (label: string) => label.includes('Next') || label.includes('&raq
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <span class="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200/90 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                    <span
+                        v-if="branchStats"
+                        class="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200/90 bg-white px-3 py-2 text-xs font-semibold shadow-2xs dark:border-zinc-800 dark:bg-zinc-900"
+                        :class="branchStats.used >= branchStats.allowed ? 'text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800/80' : 'text-zinc-700 dark:text-zinc-300'"
+                    >
+                        <span class="h-2 w-2 rounded-full" :class="branchStats.used >= branchStats.allowed ? 'bg-amber-500' : 'bg-emerald-500'" />
+                        Branches: {{ branchStats.used }} / {{ branchStats.allowed }} Allowed
+                    </span>
+                    <span v-else class="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200/90 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
                         <span class="h-2 w-2 rounded-full bg-emerald-500" />
                         Total Branches: {{ branches.total }}
                     </span>
 
                     <Button
+                        v-if="!branchStats || branchStats.can_create"
                         href="/admin/branches/create"
                         variant="primary"
                         size="sm"
@@ -236,6 +251,16 @@ const isNext = (label: string) => label.includes('Next') || label.includes('&raq
                         </template>
                         Add Branch
                     </Button>
+                    <Link
+                        v-else
+                        href="/admin/subscription"
+                        class="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-500 transition-colors shadow-xs"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Upgrade Capacity (Limit Reached)
+                    </Link>
                 </div>
             </div>
 

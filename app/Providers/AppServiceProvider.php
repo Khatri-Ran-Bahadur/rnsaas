@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\ImportDemoDataCommand;
+use App\Console\Commands\SystemSetupCommand;
 use App\Support\Tenancy\CurrentTenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -33,6 +35,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureFactories();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ImportDemoDataCommand::class,
+                SystemSetupCommand::class,
+            ]);
+        }
     }
 
     /**
@@ -47,12 +56,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
+            ? Password::min(8)
             : null,
         );
     }

@@ -142,6 +142,15 @@ class SubscriptionFeatureSeeder extends Seeder
                 'description' => 'Generate and manage payslips.',
                 'sort_order' => 3,
             ],
+
+            // AI Assistant
+            [
+                'name' => 'AI Assistant & Copilot',
+                'slug' => 'ai',
+                'module' => 'ai',
+                'description' => 'Autonomous AI ERP Copilot, Natural Language Business Reporting, and Smart Assistant.',
+                'sort_order' => 1,
+            ],
         ];
 
         foreach ($features as $feature) {

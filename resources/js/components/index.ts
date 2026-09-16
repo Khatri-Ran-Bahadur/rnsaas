@@ -26,3 +26,7 @@ export { default as FilterButton } from './FilterButton.vue';
 export { default as MediaPicker } from './MediaPicker.vue';
 export { default as MediaLibraryModal } from './MediaLibraryModal.vue';
 export { default as FileUploader } from './FileUploader.vue';
+export { default as BarChart } from './charts/BarChart.vue';
+export { default as LineChart } from './charts/LineChart.vue';
+export { default as DoughnutChart } from './charts/DoughnutChart.vue';
+export { default as LanguageSwitcher } from './LanguageSwitcher.vue';

@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Responses\LoginResponse as CustomLoginResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -24,7 +25,11 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             LoginResponse::class,
-            \App\Http\Responses\LoginResponse::class,
+            CustomLoginResponse::class,
+        );
+        $this->app->singleton(
+            RegisterResponse::class,
+            CustomRegisterResponse::class,
         );
     }
 
@@ -35,6 +40,16 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::loginView(function () {
             return inertia('Auth/Login');
+        });
+
+        Fortify::registerView(function (Request $request) {
+            return inertia('Auth/Register', [
+                'selectedPlan' => $request->query('plan', 'starter'),
+            ]);
+        });
+
+        Fortify::verifyEmailView(function () {
+            return inertia('Auth/VerifyEmail');
         });
 
         Fortify::createUsersUsing(CreateNewUser::class);

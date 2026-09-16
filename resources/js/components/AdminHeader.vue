@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 
 defineProps<{
     breadcrumbs?: Array<{ label: string; href?: string }>;
@@ -85,6 +86,9 @@ const logout = () => {
                 <span>Operational</span>
             </div>
 
+            <!-- Universal Dynamic Language Switcher -->
+            <LanguageSwitcher />
+
             <!-- Theme Toggle Component -->
             <ThemeToggle />
 
@@ -95,7 +99,16 @@ const logout = () => {
                     class="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     @click.stop="userDropdownOpen = !userDropdownOpen"
                 >
-                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-xs font-bold text-white shadow-xs shadow-primary-500/25">
+                    <img
+                        v-if="user.avatar_url"
+                        :src="user.avatar_url"
+                        :alt="user.name"
+                        class="h-8 w-8 shrink-0 rounded-lg object-cover shadow-xs border border-zinc-200 dark:border-zinc-700"
+                    />
+                    <div
+                        v-else
+                        class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-xs font-bold text-white shadow-xs shadow-primary-500/25"
+                    >
                         {{ user.name.charAt(0) }}
                     </div>
                     <div class="hidden text-left md:block">
@@ -130,6 +143,17 @@ const logout = () => {
                         </div>
 
                         <div class="py-1">
+                            <Link
+                                href="/superadmin/profile"
+                                class="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                                @click="userDropdownOpen = false"
+                            >
+                                <svg class="h-4 w-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span>My Profile</span>
+                            </Link>
+
                             <Link
                                 href="/superadmin/dashboard"
                                 class="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"

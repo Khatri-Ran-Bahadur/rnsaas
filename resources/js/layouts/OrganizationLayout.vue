@@ -4,6 +4,7 @@ import { Head, usePage, router } from '@inertiajs/vue3';
 import { useTheme } from '@/composables/useTheme';
 import OrganizationSidebar from '@/components/OrganizationSidebar.vue';
 import OrganizationHeader from '@/components/OrganizationHeader.vue';
+import AiCopilotWidget from '@/components/AiCopilotWidget.vue';
 
 defineProps<{
     title?: string;
@@ -82,7 +83,7 @@ const exitImpersonation = () => {
         />
 
         <!-- Main Content Area -->
-        <div class="flex min-h-screen flex-col lg:pl-72">
+        <div class="flex min-h-screen flex-col lg:pl-72 rtl:lg:pl-0 rtl:lg:pr-72">
             <!-- Header Component -->
             <OrganizationHeader
                 :breadcrumbs="breadcrumbs"
@@ -131,5 +132,8 @@ const exitImpersonation = () => {
                 <slot />
             </main>
         </div>
+
+        <!-- Floating AI Copilot Widget -->
+        <AiCopilotWidget />
     </div>
 </template>

@@ -20,12 +20,17 @@ class PlatformSettingsController
 
     public function index(): Response
     {
-        return Inertia::render('Settings/Index', [
+        return Inertia::render('SuperAdmin/Settings/Index', [
             'settings' => [
                 'general' => $this->settings->group('general'),
                 'branding' => $this->brandingSettings(),
                 'system' => $this->settings->group('system'),
                 'mail' => $this->mailSettings(),
+                'pusher' => $this->settings->group('pusher'),
+                'cookie' => $this->settings->group('cookie'),
+                'seo' => $this->settings->group('seo'),
+                'recaptcha' => $this->settings->group('recaptcha'),
+                'bank_transfer' => $this->settings->group('bank_transfer'),
             ],
             'timezones' => timezone_identifiers_list(),
             'currencies' => [
@@ -38,6 +43,72 @@ class PlatformSettingsController
                 'SGD',
                 'AED',
                 'SAR',
+            ],
+            'emailProviders' => [
+                'smtp' => [
+                    'name' => 'Custom SMTP Server',
+                    'driver' => 'smtp',
+                    'host' => '',
+                    'port' => 587,
+                    'encryption' => 'tls',
+                    'username_placeholder' => 'user@yourdomain.com',
+                ],
+                'mailgun' => [
+                    'name' => 'Mailgun',
+                    'driver' => 'smtp',
+                    'host' => 'smtp.mailgun.org',
+                    'port' => 587,
+                    'encryption' => 'tls',
+                    'username_placeholder' => 'postmaster@your-domain.mailgun.org',
+                ],
+                'sendgrid' => [
+                    'name' => 'SendGrid',
+                    'driver' => 'smtp',
+                    'host' => 'smtp.sendgrid.net',
+                    'port' => 587,
+                    'encryption' => 'tls',
+                    'username_placeholder' => 'apikey',
+                ],
+                'ses' => [
+                    'name' => 'Amazon Simple Email Service (SES)',
+                    'driver' => 'smtp',
+                    'host' => 'email-smtp.us-east-1.amazonaws.com',
+                    'port' => 587,
+                    'encryption' => 'tls',
+                    'username_placeholder' => 'AWS SES SMTP Username',
+                ],
+                'postmark' => [
+                    'name' => 'Postmark',
+                    'driver' => 'smtp',
+                    'host' => 'smtp.postmarkapp.com',
+                    'port' => 587,
+                    'encryption' => 'tls',
+                    'username_placeholder' => 'Postmark Server API Token',
+                ],
+                'resend' => [
+                    'name' => 'Resend',
+                    'driver' => 'smtp',
+                    'host' => 'smtp.resend.com',
+                    'port' => 587,
+                    'encryption' => 'tls',
+                    'username_placeholder' => 'resend',
+                ],
+                'gmail' => [
+                    'name' => 'Google Workspace / Gmail SMTP',
+                    'driver' => 'smtp',
+                    'host' => 'smtp.gmail.com',
+                    'port' => 587,
+                    'encryption' => 'tls',
+                    'username_placeholder' => 'your-email@gmail.com',
+                ],
+                'log' => [
+                    'name' => 'Local Log (Development / Testing)',
+                    'driver' => 'log',
+                    'host' => '127.0.0.1',
+                    'port' => 1025,
+                    'encryption' => 'none',
+                    'username_placeholder' => 'not-required',
+                ],
             ],
         ]);
     }

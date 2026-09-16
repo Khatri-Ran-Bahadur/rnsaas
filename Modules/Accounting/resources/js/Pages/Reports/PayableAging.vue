@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import BarChart from '@/components/charts/BarChart.vue';
+import type { ChartData } from 'chart.js';
 import { Head, Link, router } from '@inertiajs/vue3';
 import OrganizationLayout from '@/layouts/OrganizationLayout.vue';
 import { Button, DatePicker } from '@/components';
@@ -42,12 +44,12 @@ const changeDate = () => {
     );
 };
 
+import { useCurrency } from '@/composables/useCurrency';
+
+const { formatMoney } = useCurrency();
+
 const formatCurrency = (val: string | number) => {
-    const num = parseFloat(String(val) || '0');
-    return new Intl.NumberFormat('en-MY', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(num);
+    return formatMoney(val);
 };
 
 const printReport = () => {

@@ -1,0 +1,25 @@
+{
+    "name": "sathisaas/mrp",
+    "description": "Universal Advanced MRP, Production, Work Orders, BOM, Assembly, and Material Planning System for SathiSaaS",
+    "authors": [
+        {
+            "name": "SathiSaaS Engineering",
+            "email": "engineering@sathisaas.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\MRP\\Providers\\MrpServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\MRP\\": "app/",
+            "Modules\\MRP\\Database\\Factories\\": "database/factories/",
+            "Modules\\MRP\\Database\\Seeders\\": "database/seeders/"
+        }
+    }
+}

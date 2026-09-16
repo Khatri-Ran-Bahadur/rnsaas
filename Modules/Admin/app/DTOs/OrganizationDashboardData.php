@@ -8,6 +8,10 @@ final readonly class OrganizationDashboardData
         public array $tenant,
         public array $members,
         public array $subscription,
+        public array $accounting = [],
+        public array $pos = [],
+        public array $inventory = [],
+        public array $operations = [],
     ) {}
 
     public function toArray(): array
@@ -16,6 +20,10 @@ final readonly class OrganizationDashboardData
             'tenant' => $this->tenant,
             'members' => $this->members,
             'subscription' => $this->subscription,
+            'accounting' => $this->accounting,
+            'pos' => $this->pos,
+            'inventory' => $this->inventory,
+            'operations' => $this->operations,
         ];
     }
 }

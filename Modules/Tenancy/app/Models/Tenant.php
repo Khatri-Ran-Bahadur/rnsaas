@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Modules\Subscription\Models\TenantSubscription;
 use Modules\Tenancy\Domain\Enums\TenantStatus;
 
@@ -16,6 +17,13 @@ class Tenant extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $model): void {
+            $model->public_id ??= (string) Str::ulid();
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -97,6 +105,11 @@ class Tenant extends Model
      */
     public function isModuleEnabled(string $module): bool
     {
+        // Tax compliance is an essential statutory capability for all operating businesses
+        if ($module === 'tax') {
+            return true;
+        }
+
         // 1. Explicit module toggle in tenant settings
         if (is_array($this->settings) && isset($this->settings['modules'][$module])) {
             return (bool) $this->settings['modules'][$module];
@@ -105,11 +118,23 @@ class Tenant extends Model
         // 2. Subscription plan feature verification if subscription exists
         if (class_exists(TenantSubscription::class)) {
             $activeSubscription = $this->subscriptions()
-                ->whereIn('status', ['active', 'trialing'])
+                ->where('status', 'active')
+                ->where(function ($query) {
+                    $query->whereNull('current_period_ends_at')
+                        ->orWhere('current_period_ends_at', '>=', now());
+                })
                 ->with('plan.features')
                 ->first();
 
-            if ($activeSubscription && $activeSubscription->plan && $activeSubscription->plan->relationLoaded('features')) {
+            if (! $activeSubscription) {
+                if (auth()->check() && auth()->user()->hasRole('SuperAdmin')) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            if ($activeSubscription->plan && $activeSubscription->plan->relationLoaded('features')) {
                 $features = $activeSubscription->plan->features;
                 if ($features->isNotEmpty()) {
                     return $features->contains(

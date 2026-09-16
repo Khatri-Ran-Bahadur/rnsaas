@@ -1,0 +1,11 @@
+{
+    "name": "Tax",
+    "alias": "tax",
+    "description": "Universal Tax Management Platform for SathiSaaS",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Tax\\Providers\\TaxServiceProvider"
+    ],
+    "files": []
+}
